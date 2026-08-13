@@ -1,235 +1,340 @@
 # Roadmap de modernización de TBO
 
-Este documento propone recuperar TBO como un editor de cómics mantenible, seguro y distribuible, sin perder los proyectos `.tbo` existentes. No es un calendario cerrado: cada fase tiene condiciones de salida verificables y la siguiente fase comienza únicamente cuando se cumplen.
+TBO 2 será una reimplementación compatible en **Python y PyQt6**. El código histórico en C/GTK 3 se conservará como referencia de comportamiento y como herramienta temporal para validar documentos, pero no se migrará a GTK 4.
+
+El objetivo no es traducir cada función línea por línea. Se reconstruirá la aplicación alrededor de un modelo comprobable, una interfaz moderna y compatibilidad explícita con los proyectos `.tbo` existentes.
+
+Este documento no establece fechas arbitrarias. Cada fase tiene resultados y condiciones de salida verificables; la siguiente comienza cuando estos se cumplen.
 
 ## Punto de partida
 
-La última revisión del repositorio es de abril de 2013 y la versión publicada es la 1.0. La aplicación contiene unas 8.800 líneas de C y utiliza GTK 3, GLib/GObject, Cairo, librsvg, gettext/intltool y Autotools.
+La última revisión del repositorio es de abril de 2013 y la versión publicada es la 1.0. La implementación histórica contiene unas 8.800 líneas de C y utiliza GTK 3, GLib/GObject, Cairo, librsvg, gettext/intltool y Autotools.
 
-La funcionalidad central sigue siendo valiosa: edición por páginas y viñetas, objetos SVG, imágenes y texto, deshacer/rehacer, biblioteca de dibujos y exportación a PNG, PDF y SVG. Sin embargo, hoy no existe una forma reproducible de compilarla ni una suite automática que permita cambiarla con confianza.
+La funcionalidad que debe preservarse incluye:
 
-Hallazgos concretos de la auditoría inicial:
+- documentos con páginas y viñetas;
+- objetos de texto, imágenes y SVG;
+- selección, movimiento, redimensionado, rotación y volteo;
+- biblioteca de doodles y bocadillos;
+- zoom y navegación entre páginas;
+- deshacer y rehacer;
+- lectura y escritura de `.tbo`;
+- exportación a PNG, PDF y SVG.
 
-- `./autogen.sh` depende de `gnome-autogen.sh`/`gnome-common`, una herramienta ya ausente en muchos sistemas modernos.
-- No hay integración continua, pruebas automáticas reales, análisis estático ni formato de código acordado. `typestest` y `undotest` son ejecutables auxiliares, no una suite integrada.
-- La interfaz usa numerosas API obsoletas de GTK 3: `GtkUIManager`, `GtkAction`, iconos stock, `GtkHBox`, `GtkMisc`, `GdkColor`, dibujo directo sobre ventanas GDK y diálogos síncronos.
-- El uso de librsvg corresponde a su API antigua (`rsvg_handle_get_dimensions` y `rsvg_handle_render_cairo`).
-- El lector `.tbo` copia atributos XML a buffers fijos con `sprintf`; un archivo manipulado puede desbordarlos. También mantiene estado global durante el parseo y apenas informa errores al usuario.
-- El guardado escribe directamente al destino con `fopen`, sin operación atómica, copia de recuperación ni propagación adecuada de errores.
-- Las rutas se construyen con `strcpy`/`strcat`, incluso a partir del entorno, y varios recursos tienen límites fijos de 255 caracteres.
-- El formato `.tbo` no declara versión, esquema, reglas de compatibilidad ni política para recursos externos.
-- Los paquetes de Debian y Arch, el archivo `.desktop`, URLs, metadatos y documentación de colaboración están desactualizados.
+Problemas relevantes encontrados en el legado:
 
-## Principios de la recuperación
+- la construcción depende de `gnome-common` y herramientas antiguas;
+- no existe CI ni una suite automática de regresión;
+- el lector `.tbo` copia atributos a buffers fijos con `sprintf`;
+- el guardado escribe directamente al archivo final y apenas propaga errores;
+- las rutas se construyen con `strcpy`/`strcat` y límites fijos;
+- el parser, el modelo y la interfaz comparten estado global;
+- el formato `.tbo` no tiene versión, esquema ni política de recursos externos;
+- la interfaz depende ampliamente de API GTK obsoleta.
 
-1. **No romper proyectos existentes.** Los archivos `.tbo` 1.0 forman parte de la API pública y se conservarán como fixtures de regresión.
-2. **Estabilizar antes de migrar.** Primero se obtendrá una versión mantenible sobre GTK 3; la migración a GTK 4 será posterior y deliberada.
-3. **Separar el documento de la interfaz.** Carga, guardado, modelo y renderizado deben poder probarse sin abrir una ventana.
-4. **Cambios pequeños y reversibles.** Cada pull request debe compilar, probarse y tener un alcance acotado.
-5. **Seguridad por defecto.** Un archivo corrupto debe producir un error útil, nunca un cierre inesperado, corrupción del archivo original o acceso arbitrario fuera de lo previsto.
-6. **Distribución reproducible.** El proyecto debe poder construirse de forma documentada en una distribución soportada y en CI.
+## Decisión tecnológica
 
-## Decisiones que deben quedar registradas
+La nueva aplicación usará:
 
-Las decisiones estructurales se documentarán en `docs/adr/` antes de implementarlas:
+- **Python 3** como lenguaje;
+- **PyQt6** para la aplicación y los widgets;
+- **QGraphicsScene/QGraphicsView** para el lienzo y sus objetos;
+- **QUndoStack** y comandos para deshacer/rehacer;
+- **QPainter**, **QImage**, **QPdfWriter** y **QSvgGenerator** para renderizado y exportación;
+- **QSvgRenderer** para los recursos SVG;
+- **pytest** y **pytest-qt** para pruebas;
+- `pyproject.toml` como fuente única de configuración del paquete y herramientas.
 
-- ADR-001: mantener C y GLib/GObject durante la recuperación.
-- ADR-002: Meson como sistema de construcción, sustituyendo Autotools.
-- ADR-003: estabilización temporal en GTK 3 y criterios para pasar a GTK 4.
-- ADR-004: evolución versionada y compatible del formato `.tbo`.
-- ADR-005: estrategia para incluir, enlazar o empaquetar imágenes y SVG externos.
+PyQt6 encaja con la licencia GPLv3 del proyecto. Antes de publicar TBO 2 se verificará formalmente la declaración de licencia del código, las dependencias y cada biblioteca de recursos gráficos.
 
-Reescribir la aplicación en otro lenguaje no forma parte del rescate inicial. Solo se reconsiderará con datos obtenidos después de separar y probar el núcleo.
+No se descarta evaluar PySide6 en el futuro, pero no se mantendrán simultáneamente dos bindings Qt. Cualquier cambio deberá contar con una razón de distribución o licencia documentada y pruebas que demuestren su coste.
 
-## Fase 0 — Gobernanza y conservación
+## Principios de la reimplementación
 
-**Objetivo:** evitar que la modernización pierda historia, alcance o compatibilidad.
+1. **Compatibilidad antes que funciones nuevas.** TBO 2 debe abrir proyectos creados con TBO 1.0.
+2. **Reimplementar, no transliterar.** Se preserva el comportamiento útil, no la estructura ni los defectos del código C.
+3. **El modelo no depende de Qt Widgets.** Un documento debe poder cargarse, modificarse y exportarse sin abrir una ventana.
+4. **El legado es un oráculo temporal.** Sirve para comparar comportamiento, no como base que deba seguir creciendo.
+5. **Todo cambio de documento es un comando.** Esto hace que undo/redo sea completo y comprobable.
+6. **Los archivos del usuario son datos no confiables.** Se validan límites, rutas, tipos y estructura antes de crear objetos.
+7. **La distribución forma parte del producto.** Una función no está terminada si la aplicación no puede instalarse y probarse de manera reproducible.
 
-- [ ] Confirmar mantenedores activos, canal de contacto, licencia GPL-3.0-or-later y procedencia/licencia de cada biblioteca de dibujos.
-- [ ] Publicar `CONTRIBUTING.md`, código de conducta, política de seguridad y plantillas de issues/pull requests.
-- [ ] Definir ramas protegidas, revisión obligatoria y etiquetas `bug`, `security`, `format`, `gtk4`, `packaging` y `good first issue`.
-- [ ] Etiquetar el estado histórico como `v1.0-legacy` si la etiqueta `1.0` existente no basta para las herramientas actuales.
-- [ ] Reunir un corpus de archivos `.tbo`: ejemplos del repositorio, archivos reales anonimizados, entradas mínimas, corruptas y casos con Unicode/rutas largas.
-- [ ] Documentar el comportamiento visible actual con una lista de comprobación manual y capturas de referencia.
+## Alcance inicial de TBO 2
 
-**Criterio de salida:** responsables y alcance publicados; artefactos históricos preservados; corpus de compatibilidad disponible en `tests/fixtures/`.
+La primera versión estable buscará paridad con TBO 1.0. No forman parte del MVP:
 
-## Fase 1 — Volver a compilar y observar
+- colaboración en red;
+- animación;
+- formato totalmente nuevo sin importador del anterior;
+- plugins de terceros;
+- edición SVG vectorial interna;
+- aplicaciones móviles;
+- reescritura o limpieza exhaustiva del código C.
 
-**Objetivo:** disponer de una construcción reproducible sin modificar aún la experiencia de usuario.
+Estas exclusiones evitan que las funciones nuevas retrasen la recuperación del programa.
 
-- [ ] Añadir Meson con opciones de desarrollo (`warning_level`, sanitizers y tests) y mantener Autotools solo durante una ventana de transición.
-- [ ] Declarar versiones mínimas probadas de GCC/Clang, Meson, GTK 3, GLib, Cairo y librsvg.
-- [ ] Crear un entorno de desarrollo reproducible —contenedor o configuración equivalente— y documentar `meson setup`, `meson compile` y `meson test`.
-- [ ] Corregir los errores de compilación con toolchains actuales y elevar advertencias gradualmente; no activar `-Werror` global hasta limpiar el legado.
-- [ ] Integrar CI para al menos GCC y Clang, compilación debug/release, `meson test` y generación del paquete fuente.
-- [ ] Añadir `clang-format`, EditorConfig y comprobaciones de formato sin mezclar un reformateo masivo con cambios funcionales.
-- [ ] Ejecutar análisis estático (`clang-tidy`/scan-build) y ASan/UBSan sobre pruebas y corpus.
-- [ ] Registrar en issues los warnings GTK/librsvg y defectos encontrados, separando bloqueo de compilación de migración futura.
+## Arquitectura objetivo
 
-**Criterio de salida:** un clon limpio compila mediante instrucciones documentadas; CI está verde con dos compiladores; los binarios auxiliares se ejecutan desde `meson test`.
+```text
+tbo_next/
+├── pyproject.toml
+├── src/
+│   └── tbo/
+│       ├── __main__.py
+│       ├── application.py
+│       ├── document/
+│       │   ├── comic.py
+│       │   ├── page.py
+│       │   ├── frame.py
+│       │   ├── objects.py
+│       │   └── commands.py
+│       ├── formats/
+│       │   ├── tbo_v1.py
+│       │   └── validation.py
+│       ├── rendering/
+│       │   ├── renderer.py
+│       │   └── exporter.py
+│       ├── assets/
+│       │   ├── catalog.py
+│       │   └── resolver.py
+│       └── ui/
+│           ├── main_window.py
+│           ├── canvas.py
+│           ├── graphics_items.py
+│           ├── dialogs/
+│           └── tools/
+└── tests/
+    ├── fixtures/
+    ├── unit/
+    ├── integration/
+    └── visual/
+```
 
-## Fase 2 — Blindar datos y comportamiento
+Las clases del dominio serán objetos Python simples, preferiblemente `dataclasses`, sin heredar de widgets. Los elementos `QGraphicsItem` actuarán como adaptadores visuales y no serán la fuente de verdad del documento.
 
-**Objetivo:** poder abrir, guardar y exportar sin comprometer archivos ni memoria.
+El flujo de dependencias será:
 
-### Formato y persistencia
+```text
+Interfaz PyQt6 ──> comandos ──> modelo de documento
+      │                            ▲
+      └──> renderizado ────────────┘
+                                   ▲
+              lector/escritor ─────┘
+```
 
-- [ ] Extraer carga/guardado del estado global de la UI a una API de documento con errores `GError` y ownership explícito.
-- [ ] Sustituir `sprintf`, `strcpy`, `strcat` y buffers de ruta fijos por funciones GLib con memoria dinámica y validación de límites.
-- [ ] Validar tipos, rangos, jerarquía, campos requeridos, codificación UTF-8 y tamaño máximo antes de crear objetos.
-- [ ] Rechazar de forma segura XML truncado, elementos fuera de contexto y recursos inválidos; mostrar mensajes accionables.
-- [ ] Implementar guardado atómico en el mismo sistema de archivos, comprobación de errores y recuperación ante fallo.
-- [ ] Hacer que el separador decimal del formato sea independiente de la configuración regional.
-- [ ] Formalizar `.tbo` v1 y añadir una versión de formato para futuras escrituras, manteniendo lectura de archivos históricos.
-- [ ] Decidir cómo tratar rutas absolutas, relativas y recursos faltantes; impedir escapes de directorio cuando se abra contenido empaquetado.
+El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni mostrará diálogos.
 
-### Pruebas
+## Fase 0 — Conservar y especificar
 
-- [ ] Convertir undo/redo y tipos en pruebas GLib reales.
-- [ ] Añadir pruebas unitarias del modelo, transformaciones, selección, serialización y exportación.
-- [ ] Añadir pruebas de ida y vuelta: `abrir -> guardar -> abrir` debe conservar el documento de forma semántica.
-- [ ] Crear imágenes de referencia para render PNG con una tolerancia explícita y pruebas estructurales para PDF/SVG.
-- [ ] Incorporar fuzzing del parser `.tbo` y conservar cada crash como regresión.
-- [ ] Probar nombres Unicode, rutas largas, cero páginas, dimensiones límite, recursos ausentes y errores de disco.
+**Objetivo:** definir qué significa ser compatible antes de escribir la nueva aplicación.
 
-**Criterio de salida:** el corpus histórico abre correctamente; las entradas inválidas fallan de forma controlada; no hay hallazgos conocidos de ASan/UBSan en carga, guardado o exportación; cobertura del núcleo medida y con umbral inicial acordado (objetivo orientativo: 70 % de líneas).
+- [ ] Mantener la etiqueta histórica `1.0` y declarar el árbol C/GTK como `legacy`.
+- [ ] Confirmar responsables, licencia GPL-3.0-or-later y procedencia de los doodles, iconos y documentos incluidos.
+- [ ] Reunir en `tests/fixtures/` archivos `.tbo` reales anonimizados, ejemplos del repositorio y casos mínimos.
+- [ ] Añadir fixtures con Unicode, rutas largas, imágenes externas, SVG, transformaciones, varias páginas y recursos ausentes.
+- [ ] Documentar el formato observado en `docs/file-format-v1.md`, incluidos separadores decimales y manejo de rutas.
+- [ ] Crear una lista manual de comportamiento de TBO 1.0 y capturas de referencia.
+- [ ] Guardar exportaciones PNG/PDF/SVG representativas para comparaciones posteriores.
+- [ ] Publicar `CONTRIBUTING.md`, política de seguridad y criterios de revisión.
 
-## Fase 3 — Versión de rescate en GTK 3
+**Criterio de salida:** el comportamiento y los documentos que TBO 2 debe preservar están disponibles en el repositorio y pueden revisarse sin depender de memoria oral.
 
-**Objetivo:** publicar una versión útil antes de asumir el riesgo de GTK 4.
+## Fase 1 — Esqueleto Python reproducible
 
-- [ ] Actualizar librsvg a su API soportada y eliminar API GTK 3 obsoleta donde sea posible sin cambiar de toolkit.
-- [ ] Adoptar `GtkApplication`, `GAction`/`GMenu`, recursos GResource y nombres de iconos del tema.
-- [ ] Sustituir colores y tipografía antiguas por `GdkRGBA` y APIs actuales de Pango.
-- [ ] Corregir pérdidas de memoria, ownership ambiguo, crashes y todos los warnings GTK reproducibles.
-- [ ] Implementar aviso de cambios sin guardar, guardado seguro, recuperación y mensajes de error visibles.
-- [ ] Completar undo/redo para mover, redimensionar y rotar, deuda ya marcada en el código.
-- [ ] Mejorar navegación por teclado, foco, nombres accesibles, contraste y escalado HiDPI.
-- [ ] Actualizar traducciones y automatizar comprobaciones de catálogos gettext.
-- [ ] Renovar README, ayuda, capturas, metadatos AppStream y `.desktop`.
-- [ ] Producir al menos un paquete instalable y verificable; Flatpak es el candidato preferido para aislar diferencias entre distribuciones.
+**Objetivo:** establecer una base pequeña, instalable y comprobable.
 
-**Criterio de salida:** release `1.1.0` instalable; funciones del README verificadas; cero crashes conocidos de severidad alta; apertura y guardado compatibles con v1.0; checklist manual completada en Wayland y X11.
+- [ ] Crear `tbo_next/` con distribución `src/`, `pyproject.toml` y un punto de entrada `tbo`.
+- [ ] Fijar una versión mínima de Python basada en las plataformas que se vayan a soportar.
+- [ ] Declarar PyQt6 como dependencia y separar dependencias de ejecución, desarrollo y empaquetado.
+- [ ] Configurar pytest, pytest-qt, cobertura, Ruff y un comprobador de tipos.
+- [ ] Adoptar un formateador automático y EditorConfig.
+- [ ] Añadir CI para Linux con las versiones mínima y actual de Python soportadas.
+- [ ] Ejecutar las pruebas Qt en modo headless dentro de CI.
+- [ ] Crear una ventana mínima, mostrar una escena vacía y verificar el arranque con una prueba de humo.
+- [ ] Documentar instalación, entorno de desarrollo y comandos de calidad.
 
-## Fase 4 — Separar núcleo, renderizado e interfaz
+**Criterio de salida:** un clon limpio instala TBO 2, abre la ventana mínima y pasa lint, tipos y pruebas en CI.
 
-**Objetivo:** reducir el coste y el riesgo de la migración de toolkit.
+## Fase 2 — Modelo y compatibilidad `.tbo`
 
-- [ ] Definir módulos explícitos: `document`, `io`, `render`, `commands/undo`, `assets` y `ui`.
-- [ ] Eliminar dependencias GTK del modelo y del parser; permitir pruebas completamente headless.
-- [ ] Encapsular Cairo/librsvg detrás de una API de renderizado usada tanto por pantalla como por exportación.
-- [ ] Reemplazar acceso directo a campos y singletons por APIs con invariantes claras.
-- [ ] Centralizar las operaciones editables como comandos para que undo/redo sea completo y consistente.
-- [ ] Introducir una API de recursos que resuelva biblioteca, imágenes del usuario y recursos faltantes de manera uniforme.
-- [ ] Medir rendimiento y memoria con documentos grandes; fijar presupuestos antes de optimizar.
+**Objetivo:** leer, representar y guardar documentos sin depender de la interfaz.
 
-**Criterio de salida:** modelo, I/O y render se compilan y prueban sin GTK; ninguna operación de documento depende de widgets; pruebas de regresión visual estables.
+- [ ] Modelar cómic, página, viñeta y objetos mediante tipos explícitos y `dataclasses`.
+- [ ] Definir invariantes: dimensiones válidas, orden de páginas, pertenencia de objetos, colores y transformaciones.
+- [ ] Implementar un lector `.tbo` v1 con parser XML seguro, límites de tamaño/profundidad y errores con contexto.
+- [ ] Validar UTF-8, números finitos, rangos, atributos requeridos y elementos fuera de jerarquía.
+- [ ] Resolver rutas de recursos sin permitir escapes de directorio cuando se procese contenido empaquetado.
+- [ ] Implementar un escritor determinista y con separador decimal independiente del locale.
+- [ ] Guardar de forma atómica mediante archivo temporal, sincronización y reemplazo del destino.
+- [ ] Producir mensajes útiles para archivos corruptos y recursos ausentes.
+- [ ] Añadir pruebas `abrir -> guardar -> abrir` que comparen documentos semánticamente.
+- [ ] Añadir property-based tests y fuzzing al lector cuando la base de pruebas sea estable.
+- [ ] Acordar si TBO 2 escribe inicialmente v1 compatible o un v2 versionado; documentar la decisión mediante ADR.
 
-## Fase 5 — Migración a GTK 4
+**Criterio de salida:** todo el corpus histórico válido se abre; el round-trip no pierde información; las entradas inválidas fallan de forma controlada; modelo y formato tienen cobertura mínima acordada —objetivo orientativo: 90 % en estos módulos críticos—.
 
-**Objetivo:** eliminar la dependencia de GTK 3 sin reescribir simultáneamente el núcleo.
+## Fase 3 — Lienzo y renderizado
 
-- [ ] Crear un inventario de cada API sin equivalente directo y un prototipo que valide lienzo, zoom, selección y drag-and-drop.
-- [ ] Migrar dibujo y eventos a los mecanismos de GTK 4, evitando acceso directo a `GdkWindow`.
-- [ ] Migrar menús/atajos a acciones, controladores de eventos y shortcuts de GTK 4.
-- [ ] Sustituir los árboles y barras de herramientas con widgets/modelos GTK 4 mantenidos.
-- [ ] Convertir diálogos de archivo y flujos modales a operaciones asíncronas donde corresponda.
-- [ ] Validar portapapeles, drag-and-drop, tablet/ratón, escalado, temas claro/oscuro y Wayland.
-- [ ] Mantener los mismos fixtures y pruebas de render para demostrar que la migración no altera documentos.
-- [ ] Retirar GTK 3 y Autotools solo después de que la nueva interfaz alcance paridad.
+**Objetivo:** reproducir visualmente un documento sin implementar todavía todas las herramientas.
 
-**Criterio de salida:** release `2.0.0` sobre GTK 4 con paridad funcional documentada, sin dependencias GTK 3 y con compatibilidad de lectura/escritura declarada.
+- [ ] Construir el lienzo con `QGraphicsScene` y `QGraphicsView`.
+- [ ] Crear adaptadores visuales para página, viñeta, texto, imagen y SVG.
+- [ ] Mantener identificadores estables entre objetos del modelo y elementos gráficos.
+- [ ] Implementar transformaciones: posición, tamaño, rotación y volteo.
+- [ ] Añadir zoom, ajuste a ventana, desplazamiento y navegación entre páginas.
+- [ ] Implementar un renderer compartido para pantalla y exportación, evitando dos interpretaciones del documento.
+- [ ] Exportar PNG, PDF y SVG con dimensiones y nombres de salida comprobados.
+- [ ] Crear pruebas visuales con imágenes de referencia y tolerancia documentada.
+- [ ] Probar recursos faltantes, SVG inválidos, imágenes grandes, HiDPI y fuentes no instaladas.
 
-## Fase 6 — Evolución posterior
+**Criterio de salida:** los fixtures se representan y exportan con paridad visual aceptada; el render puede ejecutarse sin mostrar la interfaz; las diferencias conocidas están documentadas.
 
-Estas mejoras se priorizarán después del rescate, según demanda demostrable:
+## Fase 4 — Edición y undo/redo
 
-- [ ] Formato empaquetado autocontenido para incrustar recursos con manifest y checksums.
-- [ ] Recuperación automática de sesión y copias versionadas.
-- [ ] Gestión de capas, agrupación completa, alineación y guías.
-- [ ] Plantillas de página y bibliotecas de recursos instalables.
-- [ ] Mejor edición de texto y soporte de fuentes incrustadas cuando su licencia lo permita.
-- [ ] Exportación multipágina mejorada y perfiles de impresión.
-- [ ] API o herramienta de línea de comandos para renderizar y convertir en modo headless.
-- [ ] Paquetes nativos adicionales solo si existe una persona responsable de mantenerlos.
+**Objetivo:** alcanzar paridad funcional mediante operaciones reversibles.
 
-## Matriz de prioridad inicial
+- [ ] Implementar `QUndoStack` y un comando por operación de documento.
+- [ ] Crear, eliminar, clonar, mover y redimensionar viñetas.
+- [ ] Añadir, seleccionar, mover, redimensionar, rotar, voltear, clonar y eliminar objetos.
+- [ ] Implementar edición de texto, tipografía y color.
+- [ ] Implementar importación de imágenes y SVG.
+- [ ] Integrar biblioteca de doodles y bocadillos con búsqueda y categorías.
+- [ ] Garantizar undo/redo para cada operación, incluidas acciones compuestas y drag continuo.
+- [ ] Añadir atajos de teclado y actualizar el estado de acciones según la selección.
+- [ ] Marcar el documento como modificado solo cuando su estado cambie realmente.
+- [ ] Probar secuencias largas de comandos y el regreso exacto al estado inicial.
+
+**Criterio de salida:** todas las operaciones descritas en el README histórico funcionan y tienen pruebas de comandos; undo/redo no pierde objetos ni desincroniza escena y modelo.
+
+## Fase 5 — Experiencia de escritorio y resiliencia
+
+**Objetivo:** convertir el editor funcional en una aplicación segura y agradable de usar.
+
+- [ ] Diseñar ventana, menús, barra de herramientas, panel de propiedades y biblioteca con layouts adaptables.
+- [ ] Añadir diálogos de nuevo, abrir, guardar, guardar como, importar y exportar.
+- [ ] Avisar de cambios sin guardar y manejar cancelación o errores sin perder el documento activo.
+- [ ] Implementar recuperación automática de sesión y copias de seguridad recuperables.
+- [ ] Persistir preferencias con `QSettings`, sin mezclar configuración con documentos.
+- [ ] Añadir archivos recientes sin conservar rutas sensibles en logs o reportes.
+- [ ] Mejorar teclado, orden de foco, lectores de pantalla, contraste, tema oscuro y escalado HiDPI.
+- [ ] Extraer textos traducibles y recuperar las traducciones existentes cuando sigan siendo válidas.
+- [ ] Actualizar README, tutorial, capturas, iconos, `.desktop` y metadatos AppStream.
+- [ ] Probar Wayland y X11; documentar otras plataformas como experimentales hasta tener CI y responsable.
+
+**Criterio de salida:** checklist completo de flujos de usuario; cero pérdidas de datos conocidas; accesibilidad básica verificada; recuperación probada después de cierre forzado.
+
+## Fase 6 — Empaquetado y TBO 2.0
+
+**Objetivo:** publicar una versión que una persona no desarrolladora pueda instalar y actualizar.
+
+- [ ] Definir versionado, changelog y política de soporte.
+- [ ] Crear paquetes reproducibles; Flatpak será el primer objetivo en Linux.
+- [ ] Evaluar PyInstaller u otra herramienta solo para plataformas con mantenimiento confirmado.
+- [ ] Verificar que se incluyen Qt, plugins de plataforma, soporte SVG, traducciones y recursos necesarios.
+- [ ] Generar SBOM, checksums y artefactos firmados cuando la infraestructura lo permita.
+- [ ] Ejecutar pruebas de instalación, primera ejecución, actualización y desinstalación limpia.
+- [ ] Publicar una beta con migración reversible: TBO 2 nunca modificará el único original sin confirmación o copia segura.
+- [ ] Resolver todos los bloqueos de seguridad, datos y compatibilidad antes de la versión estable.
+- [ ] Publicar `2.0.0` y archivar claramente las instrucciones del legado.
+
+**Criterio de salida:** TBO 2.0 se instala desde un artefacto publicado, abre documentos 1.0, completa los flujos del MVP y puede ser liberado por más de una persona siguiendo documentación.
+
+## Fase 7 — Evolución posterior
+
+Solo después de alcanzar paridad y publicar 2.0:
+
+- [ ] Formato autocontenido que empaquete imágenes/SVG con manifest y checksums.
+- [ ] Capas, agrupación avanzada, alineación, distribución y guías.
+- [ ] Plantillas de páginas y bibliotecas de recursos instalables.
+- [ ] Mejor edición de texto y administración de fuentes conforme a sus licencias.
+- [ ] Perfiles de impresión y exportación multipágina mejorada.
+- [ ] Herramienta CLI para inspeccionar, validar, convertir y renderizar en modo headless.
+- [ ] Optimización para documentos grandes basada en perfiles, no en suposiciones.
+- [ ] Soporte oficial de Windows/macOS únicamente cuando exista CI y mantenimiento continuado.
+
+## Matriz de prioridad
 
 | Prioridad | Trabajo | Motivo |
 | --- | --- | --- |
-| P0 | Construcción reproducible y CI | Sin una señal automática no es seguro aceptar cambios. |
-| P0 | Parser con límites y guardado atómico | Protege memoria y proyectos del usuario. |
-| P0 | Fixtures `.tbo` y pruebas de ida y vuelta | Define la compatibilidad antes de refactorizar. |
-| P1 | Errores, ownership y sanitizers | Reduce crashes y deuda invisible. |
-| P1 | Release de rescate GTK 3 | Devuelve valor sin bloquearse por la migración completa. |
-| P1 | Separación modelo/UI/render | Hace viable GTK 4 y el testing headless. |
-| P2 | GTK 4 | Garantiza mantenimiento a largo plazo una vez estabilizado el núcleo. |
-| P3 | Funciones nuevas | No deben desplazar seguridad, compatibilidad ni distribución. |
+| P0 | Corpus histórico y especificación `.tbo` v1 | Define qué debe preservar la reimplementación. |
+| P0 | Modelo Python independiente de la UI | Evita reproducir el acoplamiento del legado. |
+| P0 | Parser seguro y guardado atómico | Protege memoria, documentos y rutas del usuario. |
+| P0 | CI, lint, tipos y pruebas | Permite que Codex y colaboradores cambien código con una señal objetiva. |
+| P1 | Render y pruebas visuales | Demuestra compatibilidad antes de crear todas las herramientas. |
+| P1 | Comandos y undo/redo | Es la base de una edición confiable. |
+| P1 | Paridad funcional y paquete instalable | Convierte la reescritura en un reemplazo real. |
+| P2 | UX, accesibilidad y recuperación avanzada | Mejora el producto sin bloquear el primer prototipo. |
+| P3 | Funciones posteriores a 2.0 | No deben retrasar compatibilidad ni seguridad. |
 
-## Política de compatibilidad del formato
+## Política de compatibilidad
 
-- TBO 1.1 debe leer todos los `.tbo` válidos producidos por 1.0.
-- Un archivo abierto y guardado no debe perder páginas, objetos, texto, transformaciones, colores ni referencias a recursos.
-- Las extensiones nuevas serán versionadas. Los lectores deben ignorar extensiones opcionales desconocidas solo cuando hacerlo no cambie el significado del documento.
-- No se sobrescribirá silenciosamente un documento que requiera funciones que esta versión no comprende.
-- Toda migración tendrá fixtures de antes/después y se documentará en `docs/file-format.md`.
-- Los errores incluirán archivo y contexto, sin filtrar datos sensibles ni abortar el proceso.
+- TBO 2 debe leer todos los `.tbo` válidos producidos por TBO 1.0 presentes en el corpus.
+- Abrir y guardar no debe perder páginas, viñetas, objetos, texto, orden, transformaciones, colores ni referencias a recursos.
+- No se sobrescribirá silenciosamente un archivo con información que el lector no comprende.
+- Toda migración de formato incluirá fixtures de entrada/salida y una ruta de recuperación.
+- Las comparaciones se harán sobre el modelo semántico; diferencias irrelevantes de espacios o orden de atributos XML no serán consideradas pérdida.
+- La paridad visual tendrá tolerancias documentadas para diferencias legítimas entre motores de texto y renderizado.
+- Los errores indicarán archivo y contexto sin exponer información sensible ni cerrar abruptamente la aplicación.
 
-## Flujo de entrega y calidad
+## Reglas de implementación
 
-Cada cambio deberá:
+Cada pull request deberá:
 
-1. Referenciar un issue y explicar el comportamiento afectado.
-2. Incluir pruebas o justificar por qué solo admite verificación manual.
-3. Compilar sin nuevas advertencias y pasar CI, sanitizers y análisis estático aplicables.
-4. Actualizar documentación, traducciones y fixtures cuando corresponda.
-5. Evitar mezclar cambios funcionales, migraciones mecánicas y reformateos masivos.
+1. Tener alcance pequeño y una razón observable.
+2. Añadir pruebas o justificar la verificación manual necesaria.
+3. Pasar formato, lint, tipos, pruebas y cobertura acordada.
+4. No mezclar refactorizaciones, cambios funcionales y reformateos masivos.
+5. Actualizar documentación, fixtures y traducciones cuando corresponda.
+6. Mantener el modelo como fuente de verdad; la escena nunca guardará estado exclusivo del documento.
 
-Antes de cada release se verificará:
+Reglas específicas para trabajo asistido por Codex:
 
-- instalación, primera ejecución y desinstalación limpia;
-- apertura de todo el corpus histórico;
-- guardado, reapertura y recuperación frente a errores;
-- exportación PNG/PDF/SVG de una y varias páginas;
-- operaciones de selección, texto, imágenes, SVG, zoom y undo/redo;
-- teclado, accesibilidad básica, HiDPI, Wayland y X11;
-- traducciones, metadatos, licencias y artefactos firmados/checksums.
+- entregar una capacidad vertical pequeña y verificable en cada cambio;
+- pedir siempre pruebas junto con la implementación;
+- no aceptar APIs inventadas sin comprobarlas contra PyQt6 instalado y su documentación;
+- mantener type hints en las fronteras entre módulos;
+- evitar abstracciones generales hasta que existan al menos dos usos reales;
+- revisar manualmente seguridad, persistencia y migraciones aunque CI esté verde.
 
 ## Indicadores de salud
 
-- CI verde en la rama principal y releases reproducibles.
-- Tiempo medio de resolución de vulnerabilidades y crashes críticos.
-- Número de warnings de compilación, GTK, sanitizers y análisis estático: tendencia hasta cero.
-- Cobertura del núcleo y número de fixtures históricos sin regresión.
-- Porcentaje de operaciones editables cubiertas por undo/redo.
-- Issues sin clasificar y antigüedad de pull requests.
-- Al menos dos personas capaces de realizar una release documentada.
+- CI verde en la rama principal para las versiones de Python soportadas.
+- Cobertura del parser, escritor y modelo, además de cobertura global.
+- Porcentaje de fixtures históricos que cargan, hacen round-trip y exportan.
+- Número de operaciones editables respaldadas por comandos undo/redo.
+- Diferencias visuales sin explicar y errores de renderizado.
+- Tiempo de arranque, memoria y latencia con documentos de referencia.
+- Crashes, pérdidas de datos y vulnerabilidades abiertas por severidad.
+- Antigüedad de issues y pull requests sin clasificar.
+- Al menos dos personas capaces de generar una release.
 
-## Riesgos principales
+## Riesgos y mitigaciones
 
 | Riesgo | Mitigación |
 | --- | --- |
-| Migrar a GTK 4 y cambiar la arquitectura a la vez | Publicar primero 1.1 en GTK 3 y desacoplar el núcleo. |
-| Romper `.tbo` históricos | Corpus, especificación y pruebas de ida y vuelta desde la fase 0. |
-| Recursos SVG o imágenes no disponibles | Política explícita de rutas y futuro formato autocontenido. |
-| Trabajo de infraestructura sin release visible | Hitos cortos y una versión de rescate antes de GTK 4. |
-| Dependencia de una sola persona | Proceso de release documentado, revisión y rotación de responsables. |
-| Bibliotecas gráficas con licencia dudosa | Auditoría de procedencia antes de redistribuir paquetes. |
+| La reescritura nunca alcanza paridad | Hitos verticales, fixtures y beta solo después de los flujos completos. |
+| Se interpreta mal el formato legado | Especificación observada, corpus amplio y comparación semántica. |
+| Diferencias de renderizado Qt/Cairo | Referencias visuales, tolerancias y revisión de casos de texto/SVG. |
+| El modelo queda acoplado a `QGraphicsItem` | Objetos de dominio independientes y adaptadores visuales explícitos. |
+| Undo/redo se añade demasiado tarde | Todas las mutaciones pasan por comandos desde la fase de edición. |
+| PyQt6 dificulta alguna distribución | Prototipo temprano de empaquetado y ADR antes de considerar otro binding. |
+| Recursos gráficos carecen de licencia clara | Auditoría antes de incluirlos en artefactos publicados. |
+| Codex produce mucho código difícil de revisar | Cambios pequeños, type checking, pruebas y criterios de salida objetivos. |
+| Solo una persona entiende el release | Automatización, documentación y ensayo por un segundo mantenedor. |
 
-## Próximos issues recomendados
+## Primeros issues recomendados
 
-Los primeros cambios deben poder revisarse por separado:
+1. Inventariar elementos y atributos del formato `.tbo` v1.
+2. Crear `tests/fixtures/` con documentos válidos, corruptos y casos límite.
+3. Añadir el esqueleto `tbo_next/` con `pyproject.toml`, CI y herramientas de calidad.
+4. Definir con `dataclasses` el modelo mínimo de cómic, página y viñeta.
+5. Implementar y probar el lector seguro de `.tbo` v1.
+6. Añadir objetos de texto, imagen y SVG al modelo.
+7. Implementar escritor determinista, round-trip y guardado atómico.
+8. Crear una ventana PyQt6 con un `QGraphicsView` vacío y prueba de humo.
+9. Representar un fixture completo en una `QGraphicsScene`.
+10. Exportar ese fixture a PNG en modo headless y compararlo con una referencia.
+11. Implementar el primer comando undoable: mover una viñeta.
+12. Publicar `2.0.0-alpha.1` cuando abrir, mostrar y exportar un documento histórico funcione de extremo a extremo.
 
-1. Añadir corpus inicial y pruebas GLib para el undo existente.
-2. Introducir Meson en paralelo con Autotools.
-3. Añadir CI con GCC/Clang y build debug.
-4. Integrar ASan/UBSan y capturar la línea base de fallos.
-5. Reemplazar copias sin límite en `comic-load.c` y `tbo-files.c`.
-6. Añadir pruebas de parser inválido y rutas largas.
-7. Implementar guardado atómico con propagación de `GError`.
-8. Especificar `.tbo` v1 y añadir pruebas de ida y vuelta.
-9. Actualizar librsvg sin cambiar todavía de GTK.
-10. Preparar y publicar `1.1.0-alpha.1` como primera evidencia del rescate.
-
-La modernización se considerará exitosa no cuando todo el código parezca nuevo, sino cuando TBO vuelva a aceptar cambios con confianza, proteja los proyectos existentes y tenga un camino sostenible de releases.
+La reimplementación será exitosa cuando TBO 2 proteja los proyectos existentes, pueda instalarse de forma reproducible y permita añadir funciones mediante cambios pequeños y comprobables. La cantidad de código nuevo no será una medida de progreso por sí sola.
