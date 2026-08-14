@@ -212,8 +212,8 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 **Objetivo:** convertir el editor funcional en una aplicación segura y agradable de usar.
 
 - [ ] Diseñar ventana, menús, barra de herramientas, panel de propiedades y biblioteca con layouts adaptables.
-- [ ] Añadir diálogos de nuevo, abrir, guardar, guardar como, importar y exportar (abrir/guardar/guardar como listos).
-- [ ] Avisar de cambios sin guardar y manejar cancelación o errores sin perder el documento activo.
+- [ ] Añadir diálogos de nuevo, abrir, guardar, guardar como, importar y exportar (nuevo/abrir/guardar/guardar como listos).
+- [x] Avisar de cambios sin guardar y manejar cancelación o errores sin perder el documento activo.
 - [ ] Implementar recuperación automática de sesión y copias de seguridad recuperables.
 - [ ] Persistir preferencias con `QSettings`, sin mezclar configuración con documentos.
 - [ ] Añadir archivos recientes sin conservar rutas sensibles en logs o reportes.

@@ -17,5 +17,7 @@ def main(argv: list[str] | None = None) -> int:
     window = MainWindow(asset_root=asset_root if asset_root.is_dir() else None)
     if len(arguments) > 1:
         window.open_document(Path(arguments[1]))
+    else:
+        window.new_document("Sin título", 800, 450)
     window.show()
     return application.exec()

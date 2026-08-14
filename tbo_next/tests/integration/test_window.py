@@ -1,5 +1,8 @@
 from pathlib import Path
 
+from PyQt6.QtGui import QCloseEvent
+from PyQt6.QtWidgets import QMessageBox
+
 from tbo.formats.tbo_v1 import load
 from tbo.ui.main_window import MainWindow
 
@@ -160,3 +163,74 @@ def test_page_management_is_undoable_and_updates_navigation(qtbot, tmp_path: Pat
     target = tmp_path / "pages.tbo"
     assert window._save_to(target)
     assert len(load(target).pages) == 12
+
+
+def test_new_document_starts_clean_with_one_page(qtbot) -> None:
+    window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
+    qtbot.addWidget(window)
+
+    window.new_document("Mi cómic", 1024, 768)
+
+    comic = window.canvas.comic
+    assert comic is not None
+    assert comic.title == "Mi cómic"
+    assert (comic.width, comic.height) == (1024, 768)
+    assert len(comic.pages) == 1
+    assert window.canvas.undo_stack.isClean()
+    assert window.windowTitle() == "Mi cómic — TBO 2"
+    assert window.statusBar().currentMessage() == "Página 1 de 1"
+
+
+def test_cancel_keeps_modified_document_and_rejects_close(qtbot, monkeypatch) -> None:
+    window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
+    qtbot.addWidget(window)
+    window.new_document("Importante", 800, 450)
+    original = window.canvas.comic
+    window.canvas.add_frame()
+    assert not window.canvas.undo_stack.isClean()
+    monkeypatch.setattr(
+        QMessageBox,
+        "warning",
+        lambda *args, **kwargs: QMessageBox.StandardButton.Cancel,
+    )
+
+    assert not window._confirm_replacing_modified_document()
+    assert window.canvas.comic is original
+    assert not window.canvas.undo_stack.isClean()
+
+    event = QCloseEvent()
+    window.closeEvent(event)
+    assert not event.isAccepted()
+
+
+def test_discard_allows_replacing_modified_document(qtbot, monkeypatch) -> None:
+    window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
+    qtbot.addWidget(window)
+    window.new_document("Anterior", 800, 450)
+    window.canvas.add_frame()
+    monkeypatch.setattr(
+        QMessageBox,
+        "warning",
+        lambda *args, **kwargs: QMessageBox.StandardButton.Discard,
+    )
+
+    assert window._confirm_replacing_modified_document()
+    window.new_document("Nuevo", 640, 480)
+    assert window.canvas.comic is not None
+    assert window.canvas.comic.title == "Nuevo"
+    assert window.canvas.undo_stack.isClean()
+
+
+def test_save_choice_must_succeed_before_replacing(qtbot, monkeypatch) -> None:
+    window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
+    qtbot.addWidget(window)
+    window.new_document("Sin guardar", 800, 450)
+    window.canvas.add_frame()
+    monkeypatch.setattr(
+        QMessageBox,
+        "warning",
+        lambda *args, **kwargs: QMessageBox.StandardButton.Save,
+    )
+    monkeypatch.setattr(window, "save_document", lambda: False)
+
+    assert not window._confirm_replacing_modified_document()

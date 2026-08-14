@@ -3,10 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from PyQt6.QtGui import QAction, QKeySequence
-from PyQt6.QtWidgets import QFileDialog, QMainWindow, QMessageBox
+from PyQt6.QtWidgets import QDialog, QFileDialog, QMainWindow, QMessageBox
 
+from tbo.document.model import Comic, Page
 from tbo.formats.tbo_v1 import TboFormatError, load, save
 from tbo.ui.canvas import ComicCanvas
+from tbo.ui.new_comic_dialog import NewComicDialog
 
 
 class MainWindow(QMainWindow):
@@ -25,6 +27,11 @@ class MainWindow(QMainWindow):
 
     def _create_actions(self) -> None:
         file_menu = self.menuBar().addMenu("&Archivo")
+        new_action = QAction("&Nuevo…", self)
+        new_action.setShortcut(QKeySequence.StandardKey.New)
+        new_action.triggered.connect(self.new_document_dialog)
+        file_menu.addAction(new_action)
+
         open_action = QAction("&Abrir…", self)
         open_action.setShortcut(QKeySequence.StandardKey.Open)
         open_action.triggered.connect(self.open_dialog)
@@ -135,8 +142,19 @@ class MainWindow(QMainWindow):
         filename, _ = QFileDialog.getOpenFileName(
             self, "Abrir cómic", "", "Archivos TBO (*.tbo);;Todos los archivos (*)"
         )
-        if filename:
+        if filename and self._confirm_replacing_modified_document():
             self.open_document(Path(filename))
+
+    def new_document_dialog(self) -> None:
+        dialog = NewComicDialog(self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        title, width, height = dialog.values()
+        if self._confirm_replacing_modified_document():
+            self.new_document(title, width, height)
+
+    def new_document(self, title: str, width: int, height: int) -> None:
+        self._set_document(Comic(title, width, height, [Page()]), filename=None)
 
     def open_document(self, filename: Path) -> bool:
         try:
@@ -145,6 +163,10 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "No se pudo abrir el archivo", str(error))
             return False
 
+        self._set_document(comic, filename=filename)
+        return True
+
+    def _set_document(self, comic: Comic, *, filename: Path | None) -> None:
         self.canvas.set_comic(comic)
         self._filename = filename
         self.save_action.setEnabled(True)
@@ -153,7 +175,6 @@ class MainWindow(QMainWindow):
         self._update_edit_actions()
         self._update_window_title()
         self.canvas.fit_page()
-        return True
 
     def save_document(self) -> bool:
         if self._filename is None:
@@ -189,6 +210,28 @@ class MainWindow(QMainWindow):
         self._update_window_title()
         self.statusBar().showMessage(f"Guardado en {filename}", 5000)
         return True
+
+    def _confirm_replacing_modified_document(self) -> bool:
+        if self.canvas.comic is None or self.canvas.undo_stack.isClean():
+            return True
+        answer = QMessageBox.warning(
+            self,
+            "Cambios sin guardar",
+            "El documento contiene cambios sin guardar. ¿Quieres guardarlos antes de continuar?",
+            QMessageBox.StandardButton.Save
+            | QMessageBox.StandardButton.Discard
+            | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Save,
+        )
+        if answer == QMessageBox.StandardButton.Save:
+            return self.save_document()
+        return answer == QMessageBox.StandardButton.Discard
+
+    def closeEvent(self, event) -> None:
+        if self._confirm_replacing_modified_document():
+            event.accept()
+        else:
+            event.ignore()
 
     def previous_page(self) -> None:
         if self.canvas.previous_page():

@@ -15,6 +15,7 @@ representar las páginas, viñetas, textos y recursos SVG del formato histórico
 
 Controles disponibles:
 
+- `Ctrl+N`: crear un cómic indicando título y dimensiones;
 - `PageUp` / `PageDown`: página anterior o siguiente;
 - `Ctrl+Shift+N`: añadir una página después de la actual;
 - `Ctrl+Supr`: eliminar la página actual;
@@ -41,6 +42,10 @@ el título indica que existen cambios sin guardar.
 TBO 2 escribe por ahora el formato v1 sin versión para mantener compatibilidad
 con el programa histórico. Conviene utilizar **Guardar como** mientras la nueva
 implementación siga en desarrollo.
+
+Si hay cambios pendientes al crear, abrir otro documento o cerrar la ventana,
+TBO pregunta si deben guardarse, descartarse o si se desea cancelar la acción.
+Cancelar nunca sustituye el documento ni elimina su historial de undo/redo.
 
 ## Pruebas
 
