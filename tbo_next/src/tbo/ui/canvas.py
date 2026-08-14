@@ -3,7 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 from pathlib import Path
 
-from PyQt6.QtCore import QPointF, QRectF, Qt
+from PyQt6.QtCore import QPointF, QRectF, Qt, pyqtSignal
 from PyQt6.QtGui import (
     QBrush,
     QColor,
@@ -29,8 +29,11 @@ from PyQt6.QtWidgets import (
 from tbo.document.model import Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
 from tbo.ui.commands import (
     AddFrameCommand,
+    AddPageCommand,
     DeleteFrameCommand,
+    DeletePageCommand,
     MoveFrameCommand,
+    MovePageCommand,
     ResizeFrameCommand,
 )
 
@@ -122,6 +125,8 @@ class FrameGraphicsItem(QGraphicsRectItem):
 
 
 class ComicCanvas(QGraphicsView):
+    pageChanged = pyqtSignal(int, int)
+
     def __init__(self, asset_root: Path | None = None) -> None:
         self.scene = QGraphicsScene()
         super().__init__(self.scene)
@@ -164,6 +169,8 @@ class ComicCanvas(QGraphicsView):
         self.scene.clear()
         if comic.pages:
             self.show_page(0)
+        else:
+            self.pageChanged.emit(0, 0)
 
     def show_page(self, index: int) -> None:
         if self._comic is None:
@@ -189,6 +196,7 @@ class ComicCanvas(QGraphicsView):
             self._frame_items[id(frame)] = frame_item
             for graphic_object in frame.objects:
                 self._add_object(graphic_object, frame_item)
+        self.pageChanged.emit(index, len(self._comic.pages))
 
     def previous_page(self) -> bool:
         if self._page_index == 0:
@@ -201,6 +209,52 @@ class ComicCanvas(QGraphicsView):
             return False
         self.show_page(self._page_index + 1)
         return True
+
+    def add_page(self) -> Page | None:
+        if self._comic is None:
+            return None
+        page = Page()
+        destination = self._page_index + 1 if self._comic.pages else 0
+        self.undo_stack.push(
+            AddPageCommand(self._comic, page, destination, self._show_page_from_command)
+        )
+        return page
+
+    def delete_current_page(self) -> bool:
+        if self._comic is None or len(self._comic.pages) <= 1:
+            return False
+        page = self.current_page
+        if page is None:
+            return False
+        self.undo_stack.push(
+            DeletePageCommand(self._comic, page, self._show_page_from_command)
+        )
+        return True
+
+    def move_current_page(self, offset: int) -> bool:
+        if self._comic is None or self.current_page is None:
+            return False
+        destination = self._page_index + offset
+        if not 0 <= destination < len(self._comic.pages):
+            return False
+        self.undo_stack.push(
+            MovePageCommand(
+                self._comic,
+                self.current_page,
+                destination,
+                self._show_page_from_command,
+            )
+        )
+        return True
+
+    def _show_page_from_command(self, index: int) -> None:
+        if self._comic is not None and self._comic.pages:
+            self.show_page(index)
+            return
+        self._page_index = 0
+        self._frame_items.clear()
+        self.scene.clear()
+        self.pageChanged.emit(0, 0)
 
     def add_frame(self) -> Frame | None:
         page = self.current_page

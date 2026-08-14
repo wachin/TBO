@@ -16,6 +16,9 @@ representar las páginas, viñetas, textos y recursos SVG del formato histórico
 Controles disponibles:
 
 - `PageUp` / `PageDown`: página anterior o siguiente;
+- `Ctrl+Shift+N`: añadir una página después de la actual;
+- `Ctrl+Supr`: eliminar la página actual;
+- `Ctrl+PageUp` / `Ctrl+PageDown`: mover la página actual a izquierda o derecha;
 - `+` / `-`: acercar o alejar;
 - `1`: volver al tamaño real;
 - `2`: ajustar la página a la ventana;
@@ -32,7 +35,8 @@ Controles disponibles:
 
 Las operaciones de añadir, clonar, mover, redimensionar y eliminar viñetas
 modifican el modelo del documento y quedan registradas en el historial de
-deshacer. Un `*` en el título indica que existen cambios sin guardar.
+deshacer. Crear, eliminar y reordenar páginas también es reversible. Un `*` en
+el título indica que existen cambios sin guardar.
 
 TBO 2 escribe por ahora el formato v1 sin versión para mantener compatibilidad
 con el programa histórico. Conviene utilizar **Guardar como** mientras la nueva

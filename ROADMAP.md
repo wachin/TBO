@@ -194,6 +194,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 **Objetivo:** alcanzar paridad funcional mediante operaciones reversibles.
 
 - [ ] Implementar `QUndoStack` y un comando por operación de documento (`QUndoStack` y primeros comandos listos).
+- [x] Crear, eliminar, navegar y reordenar páginas mediante comandos reversibles.
 - [x] Crear, eliminar, clonar, mover y redimensionar viñetas.
 - [ ] Añadir, seleccionar, mover, redimensionar, rotar, voltear, clonar y eliminar objetos.
 - [ ] Implementar edición de texto, tipografía y color.

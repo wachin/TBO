@@ -19,6 +19,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.canvas)
         self._create_actions()
         self.canvas.undo_stack.cleanChanged.connect(self._on_clean_changed)
+        self.canvas.pageChanged.connect(self._update_page_actions)
         self.canvas.scene.selectionChanged.connect(self._update_edit_actions)
         self._update_edit_actions()
 
@@ -87,6 +88,27 @@ class MainWindow(QMainWindow):
         self.next_page_action.setShortcut("PageDown")
         self.next_page_action.triggered.connect(self.next_page)
         navigate_menu.addAction(self.next_page_action)
+
+        navigate_menu.addSeparator()
+        self.add_page_action = QAction("Añadir página", self)
+        self.add_page_action.setShortcut("Ctrl+Shift+N")
+        self.add_page_action.triggered.connect(self.add_page)
+        navigate_menu.addAction(self.add_page_action)
+
+        self.delete_page_action = QAction("Eliminar página", self)
+        self.delete_page_action.setShortcut("Ctrl+Delete")
+        self.delete_page_action.triggered.connect(self.delete_page)
+        navigate_menu.addAction(self.delete_page_action)
+
+        self.move_page_left_action = QAction("Mover página a la izquierda", self)
+        self.move_page_left_action.setShortcut("Ctrl+PageUp")
+        self.move_page_left_action.triggered.connect(lambda: self.move_page(-1))
+        navigate_menu.addAction(self.move_page_left_action)
+
+        self.move_page_right_action = QAction("Mover página a la derecha", self)
+        self.move_page_right_action.setShortcut("Ctrl+PageDown")
+        self.move_page_right_action.triggered.connect(lambda: self.move_page(1))
+        navigate_menu.addAction(self.move_page_right_action)
 
         view_menu = self.menuBar().addMenu("&Ver")
         fit_action = QAction("Ajustar página", self)
@@ -178,6 +200,15 @@ class MainWindow(QMainWindow):
             self.canvas.fit_page()
         self._update_page_actions()
 
+    def add_page(self) -> None:
+        self.canvas.add_page()
+
+    def delete_page(self) -> None:
+        self.canvas.delete_current_page()
+
+    def move_page(self, offset: int) -> None:
+        self.canvas.move_current_page(offset)
+
     def add_frame(self) -> None:
         frame = self.canvas.add_frame()
         if frame is not None:
@@ -211,10 +242,14 @@ class MainWindow(QMainWindow):
         self.delete_frame_action.setEnabled(self.canvas.selected_frame() is not None)
         self.clone_frame_action.setEnabled(self.canvas.selected_frame() is not None)
 
-    def _update_page_actions(self) -> None:
+    def _update_page_actions(self, *args) -> None:
         index = self.canvas.page_index
         count = self.canvas.page_count
         self.previous_page_action.setEnabled(count > 0 and index > 0)
         self.next_page_action.setEnabled(count > 0 and index + 1 < count)
+        self.add_page_action.setEnabled(self.canvas.comic is not None)
+        self.delete_page_action.setEnabled(count > 1)
+        self.move_page_left_action.setEnabled(count > 1 and index > 0)
+        self.move_page_right_action.setEnabled(count > 1 and index + 1 < count)
         message = f"Página {index + 1} de {count}" if count else "Documento sin páginas"
         self.statusBar().showMessage(message)

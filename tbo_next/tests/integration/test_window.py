@@ -124,3 +124,39 @@ def test_zoom_controls_change_and_reset_view(qtbot) -> None:
     window.canvas.zoom_in()
     window.canvas.reset_zoom()
     assert window.canvas.transform().m11() == 1.0
+
+
+def test_page_management_is_undoable_and_updates_navigation(qtbot, tmp_path: Path) -> None:
+    window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
+    qtbot.addWidget(window)
+    assert window.open_document(REPOSITORY_ROOT / "data" / "tut.tbo")
+    comic = window.canvas.comic
+    assert comic is not None
+    original_pages = list(comic.pages)
+
+    added = window.canvas.add_page()
+    assert added is not None
+    assert len(comic.pages) == 12
+    assert window.canvas.page_index == 1
+    assert window.statusBar().currentMessage() == "Página 2 de 12"
+
+    assert window.canvas.move_current_page(1)
+    assert comic.pages[2] is added
+    assert window.canvas.page_index == 2
+    window.canvas.undo_stack.undo()
+    assert comic.pages[1] is added
+
+    assert window.canvas.delete_current_page()
+    assert all(page is not added for page in comic.pages)
+    window.canvas.undo_stack.undo()
+    assert comic.pages[1] is added
+
+    window.canvas.undo_stack.undo()
+    assert all(current is original for current, original in zip(comic.pages, original_pages))
+    assert window.canvas.page_index == 0
+    assert window.statusBar().currentMessage() == "Página 1 de 11"
+
+    window.canvas.undo_stack.redo()
+    target = tmp_path / "pages.tbo"
+    assert window._save_to(target)
+    assert len(load(target).pages) == 12
