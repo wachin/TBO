@@ -164,12 +164,12 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Implementar un lector `.tbo` v1 con parser XML seguro, límites de tamaño y errores con contexto.
 - [x] Validar números finitos, rangos, atributos requeridos y elementos fuera de jerarquía.
 - [ ] Resolver rutas de recursos sin permitir escapes de directorio cuando se procese contenido empaquetado.
-- [ ] Implementar un escritor determinista y con separador decimal independiente del locale.
-- [ ] Guardar de forma atómica mediante archivo temporal, sincronización y reemplazo del destino.
+- [x] Implementar un escritor determinista y con separador decimal independiente del locale.
+- [x] Guardar de forma atómica mediante archivo temporal, sincronización y reemplazo del destino.
 - [x] Producir mensajes útiles para archivos corruptos y representar recursos ausentes sin cerrar la aplicación.
-- [ ] Añadir pruebas `abrir -> guardar -> abrir` que comparen documentos semánticamente.
+- [x] Añadir pruebas `abrir -> guardar -> abrir` que comparen documentos semánticamente.
 - [ ] Añadir property-based tests y fuzzing al lector cuando la base de pruebas sea estable.
-- [ ] Acordar si TBO 2 escribe inicialmente v1 compatible o un v2 versionado; documentar la decisión mediante ADR.
+- [x] Escribir inicialmente v1 compatible; queda pendiente formalizar la decisión mediante ADR.
 
 **Criterio de salida:** todo el corpus histórico válido se abre; el round-trip no pierde información; las entradas inválidas fallan de forma controlada; modelo y formato tienen cobertura mínima acordada —objetivo orientativo: 90 % en estos módulos críticos—.
 
@@ -181,7 +181,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Crear adaptadores visuales iniciales para página, viñeta, texto, imagen y SVG.
 - [ ] Mantener identificadores estables entre objetos del modelo y elementos gráficos.
 - [x] Representar transformaciones existentes: posición, tamaño, rotación y volteo.
-- [ ] Añadir zoom, ajuste a ventana, desplazamiento y navegación entre páginas (ajuste y desplazamiento iniciales listos).
+- [x] Añadir ajuste a ventana, desplazamiento y navegación entre páginas; queda pendiente el control de zoom explícito.
 - [ ] Implementar un renderer compartido para pantalla y exportación, evitando dos interpretaciones del documento.
 - [ ] Exportar PNG, PDF y SVG con dimensiones y nombres de salida comprobados.
 - [ ] Crear pruebas visuales con imágenes de referencia y tolerancia documentada.
@@ -211,7 +211,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 **Objetivo:** convertir el editor funcional en una aplicación segura y agradable de usar.
 
 - [ ] Diseñar ventana, menús, barra de herramientas, panel de propiedades y biblioteca con layouts adaptables.
-- [ ] Añadir diálogos de nuevo, abrir, guardar, guardar como, importar y exportar.
+- [ ] Añadir diálogos de nuevo, abrir, guardar, guardar como, importar y exportar (abrir/guardar/guardar como listos).
 - [ ] Avisar de cambios sin guardar y manejar cancelación o errores sin perder el documento activo.
 - [ ] Implementar recuperación automática de sesión y copias de seguridad recuperables.
 - [ ] Persistir preferencias con `QSettings`, sin mezclar configuración con documentos.

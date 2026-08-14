@@ -36,10 +36,20 @@ class ComicCanvas(QGraphicsView):
     def comic(self) -> Comic | None:
         return self._comic
 
+    @property
+    def page_index(self) -> int:
+        return self._page_index
+
+    @property
+    def page_count(self) -> int:
+        return len(self._comic.pages) if self._comic is not None else 0
+
     def set_comic(self, comic: Comic) -> None:
         self._comic = comic
         self._page_index = 0
-        self.show_page(0)
+        self.scene.clear()
+        if comic.pages:
+            self.show_page(0)
 
     def show_page(self, index: int) -> None:
         if self._comic is None:
@@ -64,6 +74,18 @@ class ComicCanvas(QGraphicsView):
             self.scene.addItem(frame_item)
             for graphic_object in frame.objects:
                 self._add_object(graphic_object, frame_item)
+
+    def previous_page(self) -> bool:
+        if self._page_index == 0:
+            return False
+        self.show_page(self._page_index - 1)
+        return True
+
+    def next_page(self) -> bool:
+        if self._comic is None or self._page_index + 1 >= len(self._comic.pages):
+            return False
+        self.show_page(self._page_index + 1)
+        return True
 
     def fit_page(self) -> None:
         if self._comic is not None:
@@ -138,4 +160,3 @@ def _missing_asset_item(obj: GraphicObject, parent: QGraphicsRectItem) -> QGraph
     item.setPen(QPen(QColor("#b00020"), 2, Qt.PenStyle.DashLine))
     item.setBrush(QColor(255, 220, 220, 100))
     return item
-

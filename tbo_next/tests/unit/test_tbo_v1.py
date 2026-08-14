@@ -3,15 +3,13 @@ from pathlib import Path
 import pytest
 
 from tbo.document.model import SvgObject, TextObject
-from tbo.formats.tbo_v1 import TboFormatError, loads
+from tbo.formats.tbo_v1 import TboFormatError, dumps, load, loads, save
 
 
 TUTORIAL = Path(__file__).parents[3] / "data" / "tut.tbo"
 
 
 def test_loads_historical_tutorial() -> None:
-    from tbo.formats.tbo_v1 import load
-
     comic = load(TUTORIAL)
 
     assert comic.title == "tut"
@@ -59,3 +57,57 @@ def test_rejects_non_finite_numbers() -> None:
     with pytest.raises(TboFormatError, match="finite"):
         loads(xml)
 
+
+def test_tutorial_round_trip_preserves_document() -> None:
+    original = load(TUTORIAL)
+
+    serialized = dumps(original)
+    restored = loads(serialized, title=original.title)
+
+    assert restored == original
+    assert b'r="1.000000"' in serialized
+    assert b"1,000000" not in serialized
+
+
+def test_save_replaces_existing_file_atomically(tmp_path: Path) -> None:
+    target = tmp_path / "comic.tbo"
+    target.write_text("old contents", encoding="utf-8")
+    comic = load(TUTORIAL)
+
+    save(comic, target)
+
+    restored = load(target)
+    assert restored.title == "comic"
+    assert restored.width == comic.width
+    assert restored.height == comic.height
+    assert restored.pages == comic.pages
+    assert not list(tmp_path.glob(".comic.tbo.*.tmp"))
+
+
+def test_save_does_not_touch_target_when_serialization_fails(tmp_path: Path) -> None:
+    target = tmp_path / "comic.tbo"
+    target.write_text("original", encoding="utf-8")
+    comic = load(TUTORIAL)
+    comic.width = 0
+
+    with pytest.raises(TboFormatError):
+        save(comic, target)
+
+    assert target.read_text(encoding="utf-8") == "original"
+
+
+def test_save_cleans_temporary_file_when_replace_fails(tmp_path: Path, monkeypatch) -> None:
+    target = tmp_path / "comic.tbo"
+    target.write_text("original", encoding="utf-8")
+    comic = load(TUTORIAL)
+
+    def fail_replace(source, destination) -> None:
+        raise OSError("simulated replacement failure")
+
+    monkeypatch.setattr("tbo.formats.tbo_v1.os.replace", fail_replace)
+
+    with pytest.raises(TboFormatError, match="simulated replacement failure"):
+        save(comic, target)
+
+    assert target.read_text(encoding="utf-8") == "original"
+    assert not list(tmp_path.glob(".comic.tbo.*.tmp"))
