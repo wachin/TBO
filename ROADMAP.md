@@ -193,16 +193,16 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 
 **Objetivo:** alcanzar paridad funcional mediante operaciones reversibles.
 
-- [ ] Implementar `QUndoStack` y un comando por operación de documento.
-- [ ] Crear, eliminar, clonar, mover y redimensionar viñetas.
+- [ ] Implementar `QUndoStack` y un comando por operación de documento (`QUndoStack` y primeros comandos listos).
+- [ ] Crear, eliminar, clonar, mover y redimensionar viñetas (crear, eliminar y mover listos).
 - [ ] Añadir, seleccionar, mover, redimensionar, rotar, voltear, clonar y eliminar objetos.
 - [ ] Implementar edición de texto, tipografía y color.
 - [ ] Implementar importación de imágenes y SVG.
 - [ ] Integrar biblioteca de doodles y bocadillos con búsqueda y categorías.
-- [ ] Garantizar undo/redo para cada operación, incluidas acciones compuestas y drag continuo.
+- [ ] Garantizar undo/redo para cada operación, incluidas acciones compuestas y drag continuo (cubierto inicialmente para viñetas).
 - [ ] Añadir atajos de teclado y actualizar el estado de acciones según la selección.
-- [ ] Marcar el documento como modificado solo cuando su estado cambie realmente.
-- [ ] Probar secuencias largas de comandos y el regreso exacto al estado inicial.
+- [x] Marcar el documento como modificado solo cuando su estado cambie realmente.
+- [ ] Probar secuencias largas de comandos y el regreso exacto al estado inicial (primeras secuencias verificadas).
 
 **Criterio de salida:** todas las operaciones descritas en el README histórico funcionan y tienen pruebas de comandos; undo/redo no pierde objetos ni desincroniza escena y modelo.
 

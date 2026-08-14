@@ -3,18 +3,54 @@ from __future__ import annotations
 from pathlib import Path
 
 from PyQt6.QtCore import QRectF, Qt
-from PyQt6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPixmap, QTransform
+from PyQt6.QtGui import (
+    QBrush,
+    QColor,
+    QFont,
+    QPainter,
+    QPen,
+    QPixmap,
+    QTransform,
+    QUndoStack,
+)
 from PyQt6.QtSvgWidgets import QGraphicsSvgItem
 from PyQt6.QtWidgets import (
     QGraphicsItem,
     QGraphicsPixmapItem,
     QGraphicsRectItem,
     QGraphicsScene,
+    QGraphicsSceneMouseEvent,
     QGraphicsTextItem,
     QGraphicsView,
 )
 
-from tbo.document.model import Comic, GraphicObject, ImageObject, SvgObject, TextObject
+from tbo.document.model import Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
+from tbo.ui.commands import AddFrameCommand, DeleteFrameCommand, MoveFrameCommand
+
+
+class FrameGraphicsItem(QGraphicsRectItem):
+    def __init__(self, frame: Frame, canvas: ComicCanvas) -> None:
+        super().__init__(0, 0, frame.width, frame.height)
+        self.frame = frame
+        self._canvas = canvas
+        self._drag_start = (frame.x, frame.y)
+        self.setFlags(
+            QGraphicsItem.GraphicsItemFlag.ItemIsMovable
+            | QGraphicsItem.GraphicsItemFlag.ItemIsSelectable
+            | QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape
+        )
+
+    def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        self._drag_start = (self.frame.x, self.frame.y)
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        super().mouseReleaseEvent(event)
+        destination = (round(self.pos().x()), round(self.pos().y()))
+        if destination == self._drag_start:
+            self.setPos(*self._drag_start)
+            return
+        self._canvas.move_frame(self.frame, destination, old_position=self._drag_start)
 
 
 class ComicCanvas(QGraphicsView):
@@ -24,6 +60,8 @@ class ComicCanvas(QGraphicsView):
         self._asset_root = asset_root
         self._comic: Comic | None = None
         self._page_index = 0
+        self._frame_items: dict[int, FrameGraphicsItem] = {}
+        self.undo_stack = QUndoStack(self)
         self.setRenderHints(
             QPainter.RenderHint.Antialiasing
             | QPainter.RenderHint.TextAntialiasing
@@ -44,9 +82,17 @@ class ComicCanvas(QGraphicsView):
     def page_count(self) -> int:
         return len(self._comic.pages) if self._comic is not None else 0
 
+    @property
+    def current_page(self) -> Page | None:
+        if self._comic is None or not self._comic.pages:
+            return None
+        return self._comic.pages[self._page_index]
+
     def set_comic(self, comic: Comic) -> None:
         self._comic = comic
         self._page_index = 0
+        self.undo_stack.clear()
+        self._frame_items.clear()
         self.scene.clear()
         if comic.pages:
             self.show_page(0)
@@ -58,6 +104,7 @@ class ComicCanvas(QGraphicsView):
             raise IndexError("page index out of range")
 
         self._page_index = index
+        self._frame_items.clear()
         self.scene.clear()
         page_rect = QRectF(0, 0, self._comic.width, self._comic.height)
         self.scene.setSceneRect(page_rect)
@@ -66,12 +113,12 @@ class ComicCanvas(QGraphicsView):
         for frame in self._comic.pages[index].frames:
             pen = QPen(QColor("black"), 2) if frame.border else QPen(Qt.PenStyle.NoPen)
             color = QColor.fromRgbF(frame.color.red, frame.color.green, frame.color.blue)
-            frame_item = QGraphicsRectItem(0, 0, frame.width, frame.height)
+            frame_item = FrameGraphicsItem(frame, self)
             frame_item.setPos(frame.x, frame.y)
             frame_item.setPen(pen)
             frame_item.setBrush(color)
-            frame_item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape)
             self.scene.addItem(frame_item)
+            self._frame_items[id(frame)] = frame_item
             for graphic_object in frame.objects:
                 self._add_object(graphic_object, frame_item)
 
@@ -86,6 +133,69 @@ class ComicCanvas(QGraphicsView):
             return False
         self.show_page(self._page_index + 1)
         return True
+
+    def add_frame(self) -> Frame | None:
+        page = self.current_page
+        if page is None or self._comic is None:
+            return None
+        width = min(400, max(1, self._comic.width - 40))
+        height = min(250, max(1, self._comic.height - 40))
+        frame = Frame(
+            x=(self._comic.width - width) // 2,
+            y=(self._comic.height - height) // 2,
+            width=width,
+            height=height,
+        )
+        self.undo_stack.push(AddFrameCommand(page, frame, self._refresh_current_page))
+        self.select_frame(frame)
+        return frame
+
+    def delete_selected_frame(self) -> bool:
+        page = self.current_page
+        frame = self.selected_frame()
+        if page is None or frame is None:
+            return False
+        self.undo_stack.push(DeleteFrameCommand(page, frame, self._refresh_current_page))
+        return True
+
+    def selected_frame(self) -> Frame | None:
+        for item in self.scene.selectedItems():
+            if isinstance(item, FrameGraphicsItem):
+                return item.frame
+        return None
+
+    def select_frame(self, frame: Frame) -> bool:
+        item = self._frame_items.get(id(frame))
+        if item is None:
+            return False
+        self.scene.clearSelection()
+        item.setSelected(True)
+        return True
+
+    def move_frame(
+        self,
+        frame: Frame,
+        new_position: tuple[int, int],
+        *,
+        old_position: tuple[int, int] | None = None,
+    ) -> bool:
+        origin = old_position if old_position is not None else (frame.x, frame.y)
+        if origin == new_position:
+            self._sync_frame_position(frame)
+            return False
+        self.undo_stack.push(
+            MoveFrameCommand(frame, origin, new_position, self._sync_frame_position)
+        )
+        return True
+
+    def _refresh_current_page(self) -> None:
+        if self.current_page is not None:
+            self.show_page(self._page_index)
+
+    def _sync_frame_position(self, frame: Frame) -> None:
+        item = self._frame_items.get(id(frame))
+        if item is not None:
+            item.setPos(frame.x, frame.y)
 
     def fit_page(self) -> None:
         if self._comic is not None:
@@ -108,7 +218,9 @@ class ComicCanvas(QGraphicsView):
                 bounds = svg_item.boundingRect()
                 if bounds.width() and bounds.height():
                     svg_item.setTransform(
-                        QTransform.fromScale(obj.width / bounds.width(), obj.height / bounds.height())
+                        QTransform.fromScale(
+                            obj.width / bounds.width(), obj.height / bounds.height()
+                        )
                     )
                 item = svg_item
             else:
@@ -137,6 +249,7 @@ class ComicCanvas(QGraphicsView):
         transform = item.transform()
         transform.scale(-1.0 if obj.flip_horizontal else 1.0, -1.0 if obj.flip_vertical else 1.0)
         item.setTransform(transform)
+        item.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
 
     def _resolve_asset(self, asset_path: Path) -> Path | None:
         if asset_path.is_absolute() and asset_path.is_file():

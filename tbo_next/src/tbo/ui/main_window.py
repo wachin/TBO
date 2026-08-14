@@ -18,6 +18,9 @@ class MainWindow(QMainWindow):
         self.canvas = ComicCanvas(asset_root=asset_root)
         self.setCentralWidget(self.canvas)
         self._create_actions()
+        self.canvas.undo_stack.cleanChanged.connect(self._on_clean_changed)
+        self.canvas.scene.selectionChanged.connect(self._update_edit_actions)
+        self._update_edit_actions()
 
     def _create_actions(self) -> None:
         file_menu = self.menuBar().addMenu("&Archivo")
@@ -37,6 +40,24 @@ class MainWindow(QMainWindow):
         self.save_as_action.setEnabled(False)
         self.save_as_action.triggered.connect(self.save_as_dialog)
         file_menu.addAction(self.save_as_action)
+
+        edit_menu = self.menuBar().addMenu("&Editar")
+        self.undo_action = self.canvas.undo_stack.createUndoAction(self, "&Deshacer")
+        self.undo_action.setShortcut(QKeySequence.StandardKey.Undo)
+        edit_menu.addAction(self.undo_action)
+        self.redo_action = self.canvas.undo_stack.createRedoAction(self, "&Rehacer")
+        self.redo_action.setShortcut(QKeySequence.StandardKey.Redo)
+        edit_menu.addAction(self.redo_action)
+
+        edit_menu.addSeparator()
+        self.add_frame_action = QAction("Añadir &viñeta", self)
+        self.add_frame_action.setShortcut("F")
+        self.add_frame_action.triggered.connect(self.add_frame)
+        edit_menu.addAction(self.add_frame_action)
+        self.delete_frame_action = QAction("&Eliminar viñeta", self)
+        self.delete_frame_action.setShortcut(QKeySequence.StandardKey.Delete)
+        self.delete_frame_action.triggered.connect(self.delete_frame)
+        edit_menu.addAction(self.delete_frame_action)
 
         navigate_menu = self.menuBar().addMenu("&Página")
         self.previous_page_action = QAction("Página &anterior", self)
@@ -71,10 +92,11 @@ class MainWindow(QMainWindow):
 
         self.canvas.set_comic(comic)
         self._filename = filename
-        self.setWindowTitle(f"{comic.title} — TBO 2")
         self.save_action.setEnabled(True)
         self.save_as_action.setEnabled(True)
         self._update_page_actions()
+        self._update_edit_actions()
+        self._update_window_title()
         self.canvas.fit_page()
         return True
 
@@ -108,7 +130,8 @@ class MainWindow(QMainWindow):
             return False
         self._filename = filename
         comic.title = filename.stem
-        self.setWindowTitle(f"{comic.title} — TBO 2")
+        self.canvas.undo_stack.setClean()
+        self._update_window_title()
         self.statusBar().showMessage(f"Guardado en {filename}", 5000)
         return True
 
@@ -121,6 +144,31 @@ class MainWindow(QMainWindow):
         if self.canvas.next_page():
             self.canvas.fit_page()
         self._update_page_actions()
+
+    def add_frame(self) -> None:
+        frame = self.canvas.add_frame()
+        if frame is not None:
+            self._update_edit_actions()
+
+    def delete_frame(self) -> None:
+        if self.canvas.delete_selected_frame():
+            self._update_edit_actions()
+
+    def _on_clean_changed(self, clean: bool) -> None:
+        self._update_window_title()
+
+    def _update_window_title(self) -> None:
+        comic = self.canvas.comic
+        if comic is None:
+            self.setWindowTitle("TBO 2")
+            return
+        modified = " *" if not self.canvas.undo_stack.isClean() else ""
+        self.setWindowTitle(f"{comic.title}{modified} — TBO 2")
+
+    def _update_edit_actions(self) -> None:
+        has_page = self.canvas.current_page is not None
+        self.add_frame_action.setEnabled(has_page)
+        self.delete_frame_action.setEnabled(self.canvas.selected_frame() is not None)
 
     def _update_page_actions(self) -> None:
         index = self.canvas.page_index
