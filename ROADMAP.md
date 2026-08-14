@@ -143,15 +143,15 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 
 **Objetivo:** establecer una base pequeña, instalable y comprobable.
 
-- [ ] Crear `tbo_next/` con distribución `src/`, `pyproject.toml` y un punto de entrada `tbo`.
+- [x] Crear `tbo_next/` con distribución `src/`, `pyproject.toml` y un punto de entrada `tbo`.
 - [ ] Fijar una versión mínima de Python basada en las plataformas que se vayan a soportar.
-- [ ] Declarar PyQt6 como dependencia y separar dependencias de ejecución, desarrollo y empaquetado.
+- [x] Declarar PyQt6 como dependencia y separar dependencias de ejecución y desarrollo.
 - [ ] Configurar pytest, pytest-qt, cobertura, Ruff y un comprobador de tipos.
 - [ ] Adoptar un formateador automático y EditorConfig.
 - [ ] Añadir CI para Linux con las versiones mínima y actual de Python soportadas.
-- [ ] Ejecutar las pruebas Qt en modo headless dentro de CI.
-- [ ] Crear una ventana mínima, mostrar una escena vacía y verificar el arranque con una prueba de humo.
-- [ ] Documentar instalación, entorno de desarrollo y comandos de calidad.
+- [ ] Ejecutar las pruebas Qt en modo headless dentro de CI (ya funcionan localmente en modo headless).
+- [x] Crear una ventana mínima, mostrar una escena y verificar el arranque con una prueba de humo.
+- [x] Documentar instalación, entorno de desarrollo y comandos de calidad iniciales.
 
 **Criterio de salida:** un clon limpio instala TBO 2, abre la ventana mínima y pasa lint, tipos y pruebas en CI.
 
@@ -159,14 +159,14 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 
 **Objetivo:** leer, representar y guardar documentos sin depender de la interfaz.
 
-- [ ] Modelar cómic, página, viñeta y objetos mediante tipos explícitos y `dataclasses`.
-- [ ] Definir invariantes: dimensiones válidas, orden de páginas, pertenencia de objetos, colores y transformaciones.
-- [ ] Implementar un lector `.tbo` v1 con parser XML seguro, límites de tamaño/profundidad y errores con contexto.
-- [ ] Validar UTF-8, números finitos, rangos, atributos requeridos y elementos fuera de jerarquía.
+- [x] Modelar cómic, página, viñeta y objetos mediante tipos explícitos y `dataclasses`.
+- [x] Definir las primeras invariantes: dimensiones válidas, colores y transformaciones finitas.
+- [x] Implementar un lector `.tbo` v1 con parser XML seguro, límites de tamaño y errores con contexto.
+- [x] Validar números finitos, rangos, atributos requeridos y elementos fuera de jerarquía.
 - [ ] Resolver rutas de recursos sin permitir escapes de directorio cuando se procese contenido empaquetado.
 - [ ] Implementar un escritor determinista y con separador decimal independiente del locale.
 - [ ] Guardar de forma atómica mediante archivo temporal, sincronización y reemplazo del destino.
-- [ ] Producir mensajes útiles para archivos corruptos y recursos ausentes.
+- [x] Producir mensajes útiles para archivos corruptos y representar recursos ausentes sin cerrar la aplicación.
 - [ ] Añadir pruebas `abrir -> guardar -> abrir` que comparen documentos semánticamente.
 - [ ] Añadir property-based tests y fuzzing al lector cuando la base de pruebas sea estable.
 - [ ] Acordar si TBO 2 escribe inicialmente v1 compatible o un v2 versionado; documentar la decisión mediante ADR.
@@ -177,11 +177,11 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 
 **Objetivo:** reproducir visualmente un documento sin implementar todavía todas las herramientas.
 
-- [ ] Construir el lienzo con `QGraphicsScene` y `QGraphicsView`.
-- [ ] Crear adaptadores visuales para página, viñeta, texto, imagen y SVG.
+- [x] Construir el lienzo inicial con `QGraphicsScene` y `QGraphicsView`.
+- [x] Crear adaptadores visuales iniciales para página, viñeta, texto, imagen y SVG.
 - [ ] Mantener identificadores estables entre objetos del modelo y elementos gráficos.
-- [ ] Implementar transformaciones: posición, tamaño, rotación y volteo.
-- [ ] Añadir zoom, ajuste a ventana, desplazamiento y navegación entre páginas.
+- [x] Representar transformaciones existentes: posición, tamaño, rotación y volteo.
+- [ ] Añadir zoom, ajuste a ventana, desplazamiento y navegación entre páginas (ajuste y desplazamiento iniciales listos).
 - [ ] Implementar un renderer compartido para pantalla y exportación, evitando dos interpretaciones del documento.
 - [ ] Exportar PNG, PDF y SVG con dimensiones y nombres de salida comprobados.
 - [ ] Crear pruebas visuales con imágenes de referencia y tolerancia documentada.
