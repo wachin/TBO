@@ -16,9 +16,9 @@ MAX_CANVAS_SIZE = 1_000_000
 class NewComicDialog(QDialog):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Nuevo cómic")
+        self.setWindowTitle(self.tr("New comic"))
 
-        self.title_input = QLineEdit("Sin título")
+        self.title_input = QLineEdit(self.tr("Untitled"))
         self.title_input.selectAll()
         self.width_input = QSpinBox()
         self.width_input.setRange(1, MAX_CANVAS_SIZE)
@@ -30,9 +30,9 @@ class NewComicDialog(QDialog):
         self.height_input.setSuffix(" px")
 
         form = QFormLayout()
-        form.addRow("Título:", self.title_input)
-        form.addRow("Anchura:", self.width_input)
-        form.addRow("Altura:", self.height_input)
+        form.addRow(self.tr("Title:"), self.title_input)
+        form.addRow(self.tr("Width:"), self.width_input)
+        form.addRow(self.tr("Height:"), self.height_input)
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -45,5 +45,5 @@ class NewComicDialog(QDialog):
         layout.addWidget(buttons)
 
     def values(self) -> tuple[str, int, int]:
-        title = self.title_input.text().strip() or "Sin título"
+        title = self.title_input.text().strip() or self.tr("Untitled")
         return title, self.width_input.value(), self.height_input.value()

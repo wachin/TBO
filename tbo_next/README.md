@@ -1,82 +1,87 @@
-# TBO 2 (en desarrollo)
+# TBO 2 (in development)
 
-Esta carpeta contiene la reimplementación de TBO en Python y PyQt6. El código
-C/GTK del directorio raíz se conserva como referencia de compatibilidad.
+This directory contains the Python and PyQt6 reimplementation of TBO. The C/GTK
+code in the repository root is retained as a compatibility reference.
 
-## Ejecutar desde el repositorio
+English is the source language for the application. User-interface strings are
+marked for Qt translation, but translation catalogs will be introduced only
+after the functionality and terminology have stabilized.
 
-Desde la raíz del repositorio puedes utilizar el launcher:
+## Running from the repository
+
+Use the launcher from the repository root:
 
 ```bash
 ./tbo.sh
 ./tbo.sh data/tut.tbo
 ```
 
-El script configura automáticamente `PYTHONPATH` y también funciona al
-invocarlo desde otro directorio.
+The launcher configures `PYTHONPATH` automatically and can be invoked from any
+directory.
 
-La ejecución equivalente sin el launcher es:
-
-```bash
-cd tbo_next
-PYTHONPATH=src python -m tbo ../data/tut.tbo
-```
-
-Para abrir el lienzo vacío, omite la ruta. La aplicación ya puede leer y
-representar las páginas, viñetas, textos y recursos SVG del formato histórico.
-
-Controles disponibles:
-
-- `Ctrl+N`: crear un cómic indicando título y dimensiones;
-- `PageUp` / `PageDown`: página anterior o siguiente;
-- `Ctrl+Shift+N`: añadir una página después de la actual;
-- `Ctrl+Supr`: eliminar la página actual;
-- `Ctrl+PageUp` / `Ctrl+PageDown`: mover la página actual a izquierda o derecha;
-- `+` / `-`: acercar o alejar;
-- `1`: volver al tamaño real;
-- `2`: ajustar la página a la ventana;
-- `Ctrl+O`: abrir un documento;
-- `Ctrl+S`: guardar de forma atómica;
-- `Ctrl+Shift+S`: guardar una copia;
-- `F`: añadir una viñeta;
-- arrastrar una viñeta seleccionada: moverla;
-- arrastrar el tirador amarillo inferior derecho: redimensionarla;
-- flechas: mover la viñeta seleccionada en pasos de 5 píxeles;
-- `Ctrl+D`: clonar la viñeta seleccionada;
-- `Supr`: eliminar la viñeta seleccionada;
-- `Ctrl+Z` / `Ctrl+Shift+Z`: deshacer o rehacer.
-
-Las operaciones de añadir, clonar, mover, redimensionar y eliminar viñetas
-modifican el modelo del documento y quedan registradas en el historial de
-deshacer. Crear, eliminar y reordenar páginas también es reversible. Un `*` en
-el título indica que existen cambios sin guardar.
-
-Para editar el contenido de una viñeta, haz doble clic sobre ella. En este modo
-puedes seleccionar y arrastrar textos, imágenes o SVG, clonarlos con `Ctrl+D`,
-moverlos con las flechas y eliminarlos con `Supr`. Todas esas operaciones admiten
-undo/redo y se guardan en el `.tbo`. Pulsa `Esc` para regresar a la edición de
-página; las demás viñetas aparecen atenuadas mientras editas una.
-
-TBO 2 escribe por ahora el formato v1 sin versión para mantener compatibilidad
-con el programa histórico. Conviene utilizar **Guardar como** mientras la nueva
-implementación siga en desarrollo.
-
-Si hay cambios pendientes al crear, abrir otro documento o cerrar la ventana,
-TBO pregunta si deben guardarse, descartarse o si se desea cancelar la acción.
-Cancelar nunca sustituye el documento ni elimina su historial de undo/redo.
-
-## Pruebas
+The equivalent command without the launcher is:
 
 ```bash
 cd tbo_next
-QT_QPA_PLATFORM=offscreen python -m pytest
+PYTHONPATH=src python3 -m tbo ../data/tut.tbo
 ```
 
-Instalación editable para desarrollo:
+Omit the document path to create a new comic. The application can read and
+render pages, panels, text, images, and SVG resources from the historical
+format.
+
+## Keyboard shortcuts
+
+- `Ctrl+N`: create a comic with a title and dimensions;
+- `Ctrl+O`: open a document;
+- `Ctrl+S`: save atomically;
+- `Ctrl+Shift+S`: save a copy;
+- `PageUp` / `PageDown`: previous or next page;
+- `Ctrl+Shift+N`: add a page after the current page;
+- `Ctrl+Delete`: delete the current page;
+- `Ctrl+PageUp` / `Ctrl+PageDown`: move the current page left or right;
+- `+` / `-`: zoom in or out;
+- `1`: return to actual size;
+- `2`: fit the page to the window;
+- `F`: add a panel;
+- drag a selected panel: move it;
+- drag its yellow bottom-right handle: resize it;
+- arrow keys: move the selection in 5-pixel increments;
+- `Ctrl+D`: clone the selected panel or object;
+- `Delete`: delete the selected panel or object;
+- `Ctrl+Z` / `Ctrl+Shift+Z`: undo or redo.
+
+Adding, cloning, moving, resizing, and deleting panels changes the document
+model and is recorded in the undo history. Creating, deleting, and reordering
+pages is reversible as well. An asterisk in the window title indicates unsaved
+changes.
+
+Double-click a panel to edit its contents. In this mode, you can select and drag
+text, images, or SVGs, clone them with `Ctrl+D`, move them with the arrow keys,
+and delete them with `Delete`. These operations support undo/redo and persist in
+the `.tbo` file. Press `Esc` to return to page editing; other panels are dimmed
+while a panel is being edited.
+
+TBO 2 currently writes the unversioned v1 format for compatibility with the
+historical application. Use **Save As** while the new implementation remains in
+development.
+
+When there are pending changes, TBO asks whether to save, discard, or cancel
+before creating another document, opening one, or closing the window. Canceling
+never replaces the document or removes its undo/redo history.
+
+## Tests
 
 ```bash
-python -m pip install -e '.[dev]'
+cd tbo_next
+QT_QPA_PLATFORM=offscreen python3 -m pytest
 ```
 
-El formato `.tbo` se trata como entrada no confiable. No se deben relajar sus
-límites ni validaciones sin añadir primero un caso de prueba.
+Editable development installation:
+
+```bash
+python3 -m pip install -e '.[dev]'
+```
+
+The `.tbo` format is treated as untrusted input. Do not relax its validation or
+limits without adding a regression test first.

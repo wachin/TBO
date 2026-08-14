@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from PyQt6.QtCore import QCoreApplication
 from PyQt6.QtGui import QUndoCommand
 
 from tbo.document.model import Comic, Frame, GraphicObject, Page
@@ -10,6 +11,10 @@ ChangeCallback = Callable[[], None]
 MoveCallback = Callable[[Frame], None]
 PageChangeCallback = Callable[[int], None]
 ObjectMoveCallback = Callable[[GraphicObject], None]
+
+
+def _tr(text: str) -> str:
+    return QCoreApplication.translate("UndoCommands", text)
 
 
 def _identity_index(frames: list[Frame], target: Frame) -> int:
@@ -41,7 +46,7 @@ class MoveFrameCommand(QUndoCommand):
         new_position: tuple[int, int],
         on_change: MoveCallback,
     ) -> None:
-        super().__init__("Mover viñeta")
+        super().__init__(_tr("Move panel"))
         self._frame = frame
         self._old_position = old_position
         self._new_position = new_position
@@ -66,9 +71,9 @@ class AddFrameCommand(QUndoCommand):
         on_change: ChangeCallback,
         *,
         index: int | None = None,
-        text: str = "Añadir viñeta",
+        text: str | None = None,
     ) -> None:
-        super().__init__(text)
+        super().__init__(text or _tr("Add panel"))
         self._page = page
         self._frame = frame
         self._index = len(page.frames) if index is None else index
@@ -88,7 +93,7 @@ class AddFrameCommand(QUndoCommand):
 
 class DeleteFrameCommand(QUndoCommand):
     def __init__(self, page: Page, frame: Frame, on_change: ChangeCallback) -> None:
-        super().__init__("Eliminar viñeta")
+        super().__init__(_tr("Delete panel"))
         self._page = page
         self._frame = frame
         self._index = _identity_index(page.frames, frame)
@@ -111,7 +116,7 @@ class ResizeFrameCommand(QUndoCommand):
         new_size: tuple[int, int],
         on_change: MoveCallback,
     ) -> None:
-        super().__init__("Redimensionar viñeta")
+        super().__init__(_tr("Resize panel"))
         self._frame = frame
         self._old_size = old_size
         self._new_size = new_size
@@ -136,7 +141,7 @@ class AddPageCommand(QUndoCommand):
         index: int,
         on_change: PageChangeCallback,
     ) -> None:
-        super().__init__("Añadir página")
+        super().__init__(_tr("Add page"))
         self._comic = comic
         self._page = page
         self._index = index
@@ -163,7 +168,7 @@ class DeletePageCommand(QUndoCommand):
     ) -> None:
         if len(comic.pages) <= 1:
             raise ValueError("the last page cannot be deleted")
-        super().__init__("Eliminar página")
+        super().__init__(_tr("Delete page"))
         self._comic = comic
         self._page = page
         self._index = _page_identity_index(comic.pages, page)
@@ -187,7 +192,7 @@ class MovePageCommand(QUndoCommand):
         destination: int,
         on_change: PageChangeCallback,
     ) -> None:
-        super().__init__("Reordenar página")
+        super().__init__(_tr("Reorder page"))
         self._comic = comic
         self._page = page
         self._origin = _page_identity_index(comic.pages, page)
@@ -216,7 +221,7 @@ class MoveObjectCommand(QUndoCommand):
         new_position: tuple[int, int],
         on_change: ObjectMoveCallback,
     ) -> None:
-        super().__init__("Mover objeto")
+        super().__init__(_tr("Move object"))
         self._object = graphic_object
         self._old_position = old_position
         self._new_position = new_position
@@ -241,9 +246,9 @@ class AddObjectCommand(QUndoCommand):
         on_change: ChangeCallback,
         *,
         index: int | None = None,
-        text: str = "Añadir objeto",
+        text: str | None = None,
     ) -> None:
-        super().__init__(text)
+        super().__init__(text or _tr("Add object"))
         self._frame = frame
         self._object = graphic_object
         self._index = len(frame.objects) if index is None else index
@@ -268,7 +273,7 @@ class DeleteObjectCommand(QUndoCommand):
         graphic_object: GraphicObject,
         on_change: ChangeCallback,
     ) -> None:
-        super().__init__("Eliminar objeto")
+        super().__init__(_tr("Delete object"))
         self._frame = frame
         self._object = graphic_object
         self._index = _object_identity_index(frame.objects, graphic_object)

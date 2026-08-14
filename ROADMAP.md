@@ -58,6 +58,7 @@ No se descarta evaluar PySide6 en el futuro, pero no se mantendrán simultáneam
 5. **Todo cambio de documento es un comando.** Esto hace que undo/redo sea completo y comprobable.
 6. **Los archivos del usuario son datos no confiables.** Se validan límites, rutas, tipos y estructura antes de crear objetos.
 7. **La distribución forma parte del producto.** Una función no está terminada si la aplicación no puede instalarse y probarse de manera reproducible.
+8. **Inglés como idioma fuente.** La interfaz se implementará primero en inglés y las cadenas se marcarán para Qt Linguist; la traducción al español se añadirá cuando la funcionalidad y la terminología sean estables.
 
 ## Alcance inicial de TBO 2
 

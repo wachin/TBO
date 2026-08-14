@@ -18,7 +18,7 @@ def test_window_opens_historical_tutorial(qtbot) -> None:
     assert window.canvas.comic is not None
     assert len(window.canvas.scene.items()) > 1
     assert window.windowTitle() == "tut — TBO 2"
-    assert window.statusBar().currentMessage() == "Página 1 de 11"
+    assert window.statusBar().currentMessage() == "Page 1 of 11"
     assert not window.previous_page_action.isEnabled()
     assert window.next_page_action.isEnabled()
 
@@ -30,7 +30,7 @@ def test_window_navigates_and_saves_copy(qtbot, tmp_path: Path) -> None:
 
     window.next_page()
     assert window.canvas.page_index == 1
-    assert window.statusBar().currentMessage() == "Página 2 de 11"
+    assert window.statusBar().currentMessage() == "Page 2 of 11"
     window.previous_page()
     assert window.canvas.page_index == 0
 
@@ -141,7 +141,7 @@ def test_page_management_is_undoable_and_updates_navigation(qtbot, tmp_path: Pat
     assert added is not None
     assert len(comic.pages) == 12
     assert window.canvas.page_index == 1
-    assert window.statusBar().currentMessage() == "Página 2 de 12"
+    assert window.statusBar().currentMessage() == "Page 2 of 12"
 
     assert window.canvas.move_current_page(1)
     assert comic.pages[2] is added
@@ -157,7 +157,7 @@ def test_page_management_is_undoable_and_updates_navigation(qtbot, tmp_path: Pat
     window.canvas.undo_stack.undo()
     assert all(current is original for current, original in zip(comic.pages, original_pages))
     assert window.canvas.page_index == 0
-    assert window.statusBar().currentMessage() == "Página 1 de 11"
+    assert window.statusBar().currentMessage() == "Page 1 of 11"
 
     window.canvas.undo_stack.redo()
     target = tmp_path / "pages.tbo"
@@ -169,22 +169,22 @@ def test_new_document_starts_clean_with_one_page(qtbot) -> None:
     window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
     qtbot.addWidget(window)
 
-    window.new_document("Mi cómic", 1024, 768)
+    window.new_document("My comic", 1024, 768)
 
     comic = window.canvas.comic
     assert comic is not None
-    assert comic.title == "Mi cómic"
+    assert comic.title == "My comic"
     assert (comic.width, comic.height) == (1024, 768)
     assert len(comic.pages) == 1
     assert window.canvas.undo_stack.isClean()
-    assert window.windowTitle() == "Mi cómic — TBO 2"
-    assert window.statusBar().currentMessage() == "Página 1 de 1"
+    assert window.windowTitle() == "My comic — TBO 2"
+    assert window.statusBar().currentMessage() == "Page 1 of 1"
 
 
 def test_cancel_keeps_modified_document_and_rejects_close(qtbot, monkeypatch) -> None:
     window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
     qtbot.addWidget(window)
-    window.new_document("Importante", 800, 450)
+    window.new_document("Important", 800, 450)
     original = window.canvas.comic
     window.canvas.add_frame()
     assert not window.canvas.undo_stack.isClean()
@@ -206,7 +206,7 @@ def test_cancel_keeps_modified_document_and_rejects_close(qtbot, monkeypatch) ->
 def test_discard_allows_replacing_modified_document(qtbot, monkeypatch) -> None:
     window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
     qtbot.addWidget(window)
-    window.new_document("Anterior", 800, 450)
+    window.new_document("Previous", 800, 450)
     window.canvas.add_frame()
     monkeypatch.setattr(
         QMessageBox,
@@ -215,16 +215,16 @@ def test_discard_allows_replacing_modified_document(qtbot, monkeypatch) -> None:
     )
 
     assert window._confirm_replacing_modified_document()
-    window.new_document("Nuevo", 640, 480)
+    window.new_document("New", 640, 480)
     assert window.canvas.comic is not None
-    assert window.canvas.comic.title == "Nuevo"
+    assert window.canvas.comic.title == "New"
     assert window.canvas.undo_stack.isClean()
 
 
 def test_save_choice_must_succeed_before_replacing(qtbot, monkeypatch) -> None:
     window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
     qtbot.addWidget(window)
-    window.new_document("Sin guardar", 800, 450)
+    window.new_document("Unsaved", 800, 450)
     window.canvas.add_frame()
     monkeypatch.setattr(
         QMessageBox,
@@ -248,7 +248,7 @@ def test_object_edit_mode_mutates_model_and_is_undoable(qtbot, tmp_path: Path) -
 
     assert window.canvas.enter_frame(frame)
     assert window.canvas.editing_frame is frame
-    assert "Editando viñeta" in window.statusBar().currentMessage()
+    assert "Editing panel" in window.statusBar().currentMessage()
     assert window.canvas.select_object(graphic_object)
 
     clone = window.canvas.clone_selected_object()
@@ -278,4 +278,4 @@ def test_object_edit_mode_mutates_model_and_is_undoable(qtbot, tmp_path: Path) -
 
     assert window.canvas.leave_frame()
     assert window.canvas.editing_frame is None
-    assert window.statusBar().currentMessage() == "Página 1 de 11"
+    assert window.statusBar().currentMessage() == "Page 1 of 11"

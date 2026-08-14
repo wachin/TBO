@@ -27,53 +27,53 @@ class MainWindow(QMainWindow):
         self._update_edit_actions()
 
     def _create_actions(self) -> None:
-        file_menu = self.menuBar().addMenu("&Archivo")
-        new_action = QAction("&Nuevo…", self)
+        file_menu = self.menuBar().addMenu(self.tr("&File"))
+        new_action = QAction(self.tr("&New…"), self)
         new_action.setShortcut(QKeySequence.StandardKey.New)
         new_action.triggered.connect(self.new_document_dialog)
         file_menu.addAction(new_action)
 
-        open_action = QAction("&Abrir…", self)
+        open_action = QAction(self.tr("&Open…"), self)
         open_action.setShortcut(QKeySequence.StandardKey.Open)
         open_action.triggered.connect(self.open_dialog)
         file_menu.addAction(open_action)
 
-        self.save_action = QAction("&Guardar", self)
+        self.save_action = QAction(self.tr("&Save"), self)
         self.save_action.setShortcut(QKeySequence.StandardKey.Save)
         self.save_action.setEnabled(False)
         self.save_action.triggered.connect(self.save_document)
         file_menu.addAction(self.save_action)
 
-        self.save_as_action = QAction("Guardar &como…", self)
+        self.save_as_action = QAction(self.tr("Save &As…"), self)
         self.save_as_action.setShortcut("Ctrl+Shift+S")
         self.save_as_action.setEnabled(False)
         self.save_as_action.triggered.connect(self.save_as_dialog)
         file_menu.addAction(self.save_as_action)
 
-        edit_menu = self.menuBar().addMenu("&Editar")
-        self.undo_action = self.canvas.undo_stack.createUndoAction(self, "&Deshacer")
+        edit_menu = self.menuBar().addMenu(self.tr("&Edit"))
+        self.undo_action = self.canvas.undo_stack.createUndoAction(self, self.tr("&Undo"))
         self.undo_action.setShortcut(QKeySequence.StandardKey.Undo)
         edit_menu.addAction(self.undo_action)
-        self.redo_action = self.canvas.undo_stack.createRedoAction(self, "&Rehacer")
+        self.redo_action = self.canvas.undo_stack.createRedoAction(self, self.tr("&Redo"))
         self.redo_action.setShortcut(QKeySequence.StandardKey.Redo)
         edit_menu.addAction(self.redo_action)
 
         edit_menu.addSeparator()
-        self.add_frame_action = QAction("Añadir &viñeta", self)
+        self.add_frame_action = QAction(self.tr("Add &Panel"), self)
         self.add_frame_action.setShortcut("F")
         self.add_frame_action.triggered.connect(self.add_frame)
         edit_menu.addAction(self.add_frame_action)
-        self.delete_frame_action = QAction("&Eliminar viñeta", self)
+        self.delete_frame_action = QAction(self.tr("&Delete Panel"), self)
         self.delete_frame_action.setShortcut(QKeySequence.StandardKey.Delete)
         self.delete_frame_action.triggered.connect(self.delete_frame)
         edit_menu.addAction(self.delete_frame_action)
 
-        self.clone_frame_action = QAction("&Clonar viñeta", self)
+        self.clone_frame_action = QAction(self.tr("&Clone Panel"), self)
         self.clone_frame_action.setShortcut("Ctrl+D")
         self.clone_frame_action.triggered.connect(self.clone_frame)
         edit_menu.addAction(self.clone_frame_action)
 
-        self.leave_frame_action = QAction("Salir de la viñeta", self)
+        self.leave_frame_action = QAction(self.tr("Leave Panel"), self)
         self.leave_frame_action.setShortcut("Escape")
         self.leave_frame_action.triggered.connect(self.leave_frame)
         edit_menu.addAction(self.leave_frame_action)
@@ -91,62 +91,65 @@ class MainWindow(QMainWindow):
             )
             self.addAction(action)
 
-        navigate_menu = self.menuBar().addMenu("&Página")
-        self.previous_page_action = QAction("Página &anterior", self)
+        navigate_menu = self.menuBar().addMenu(self.tr("&Page"))
+        self.previous_page_action = QAction(self.tr("&Previous Page"), self)
         self.previous_page_action.setShortcut("PageUp")
         self.previous_page_action.triggered.connect(self.previous_page)
         navigate_menu.addAction(self.previous_page_action)
 
-        self.next_page_action = QAction("Página &siguiente", self)
+        self.next_page_action = QAction(self.tr("&Next Page"), self)
         self.next_page_action.setShortcut("PageDown")
         self.next_page_action.triggered.connect(self.next_page)
         navigate_menu.addAction(self.next_page_action)
 
         navigate_menu.addSeparator()
-        self.add_page_action = QAction("Añadir página", self)
+        self.add_page_action = QAction(self.tr("Add Page"), self)
         self.add_page_action.setShortcut("Ctrl+Shift+N")
         self.add_page_action.triggered.connect(self.add_page)
         navigate_menu.addAction(self.add_page_action)
 
-        self.delete_page_action = QAction("Eliminar página", self)
+        self.delete_page_action = QAction(self.tr("Delete Page"), self)
         self.delete_page_action.setShortcut("Ctrl+Delete")
         self.delete_page_action.triggered.connect(self.delete_page)
         navigate_menu.addAction(self.delete_page_action)
 
-        self.move_page_left_action = QAction("Mover página a la izquierda", self)
+        self.move_page_left_action = QAction(self.tr("Move Page Left"), self)
         self.move_page_left_action.setShortcut("Ctrl+PageUp")
         self.move_page_left_action.triggered.connect(lambda: self.move_page(-1))
         navigate_menu.addAction(self.move_page_left_action)
 
-        self.move_page_right_action = QAction("Mover página a la derecha", self)
+        self.move_page_right_action = QAction(self.tr("Move Page Right"), self)
         self.move_page_right_action.setShortcut("Ctrl+PageDown")
         self.move_page_right_action.triggered.connect(lambda: self.move_page(1))
         navigate_menu.addAction(self.move_page_right_action)
 
-        view_menu = self.menuBar().addMenu("&Ver")
-        fit_action = QAction("Ajustar página", self)
+        view_menu = self.menuBar().addMenu(self.tr("&View"))
+        fit_action = QAction(self.tr("Fit Page"), self)
         fit_action.setShortcut("2")
         fit_action.triggered.connect(self.canvas.fit_page)
         view_menu.addAction(fit_action)
 
-        zoom_in_action = QAction("Acercar", self)
+        zoom_in_action = QAction(self.tr("Zoom In"), self)
         zoom_in_action.setShortcut("+")
         zoom_in_action.triggered.connect(self.canvas.zoom_in)
         view_menu.addAction(zoom_in_action)
 
-        zoom_out_action = QAction("Alejar", self)
+        zoom_out_action = QAction(self.tr("Zoom Out"), self)
         zoom_out_action.setShortcut("-")
         zoom_out_action.triggered.connect(self.canvas.zoom_out)
         view_menu.addAction(zoom_out_action)
 
-        reset_zoom_action = QAction("Tamaño real", self)
+        reset_zoom_action = QAction(self.tr("Actual Size"), self)
         reset_zoom_action.setShortcut("1")
         reset_zoom_action.triggered.connect(self.canvas.reset_zoom)
         view_menu.addAction(reset_zoom_action)
 
     def open_dialog(self) -> None:
         filename, _ = QFileDialog.getOpenFileName(
-            self, "Abrir cómic", "", "Archivos TBO (*.tbo);;Todos los archivos (*)"
+            self,
+            self.tr("Open Comic"),
+            "",
+            self.tr("TBO Files (*.tbo);;All Files (*)"),
         )
         if filename and self._confirm_replacing_modified_document():
             self.open_document(Path(filename))
@@ -166,7 +169,7 @@ class MainWindow(QMainWindow):
         try:
             comic = load(filename)
         except TboFormatError as error:
-            QMessageBox.critical(self, "No se pudo abrir el archivo", str(error))
+            QMessageBox.critical(self, self.tr("Could Not Open File"), str(error))
             return False
 
         self._set_document(comic, filename=filename)
@@ -192,7 +195,7 @@ class MainWindow(QMainWindow):
             return False
         suggested = str(self._filename or Path(f"{self.canvas.comic.title}.tbo"))
         filename, _ = QFileDialog.getSaveFileName(
-            self, "Guardar cómic", suggested, "Archivos TBO (*.tbo)"
+            self, self.tr("Save Comic"), suggested, self.tr("TBO Files (*.tbo)")
         )
         if not filename:
             return False
@@ -208,13 +211,15 @@ class MainWindow(QMainWindow):
         try:
             save(comic, filename)
         except TboFormatError as error:
-            QMessageBox.critical(self, "No se pudo guardar el archivo", str(error))
+            QMessageBox.critical(self, self.tr("Could Not Save File"), str(error))
             return False
         self._filename = filename
         comic.title = filename.stem
         self.canvas.undo_stack.setClean()
         self._update_window_title()
-        self.statusBar().showMessage(f"Guardado en {filename}", 5000)
+        self.statusBar().showMessage(
+            self.tr("Saved to {filename}").format(filename=filename), 5000
+        )
         return True
 
     def _confirm_replacing_modified_document(self) -> bool:
@@ -222,8 +227,10 @@ class MainWindow(QMainWindow):
             return True
         answer = QMessageBox.warning(
             self,
-            "Cambios sin guardar",
-            "El documento contiene cambios sin guardar. ¿Quieres guardarlos antes de continuar?",
+            self.tr("Unsaved Changes"),
+            self.tr(
+                "The document has unsaved changes. Do you want to save them before continuing?"
+            ),
             QMessageBox.StandardButton.Save
             | QMessageBox.StandardButton.Discard
             | QMessageBox.StandardButton.Cancel,
@@ -312,8 +319,12 @@ class MainWindow(QMainWindow):
         self.add_frame_action.setEnabled(has_page and not editing)
         self.delete_frame_action.setEnabled(selected is not None)
         self.clone_frame_action.setEnabled(selected is not None)
-        self.delete_frame_action.setText("Eliminar objeto" if editing else "Eliminar viñeta")
-        self.clone_frame_action.setText("Clonar objeto" if editing else "Clonar viñeta")
+        self.delete_frame_action.setText(
+            self.tr("Delete Object") if editing else self.tr("Delete Panel")
+        )
+        self.clone_frame_action.setText(
+            self.tr("Clone Object") if editing else self.tr("Clone Panel")
+        )
         self.leave_frame_action.setEnabled(editing)
 
     def _update_page_actions(self, *args) -> None:
@@ -327,7 +338,15 @@ class MainWindow(QMainWindow):
         self.move_page_left_action.setEnabled(not editing and count > 1 and index > 0)
         self.move_page_right_action.setEnabled(not editing and count > 1 and index + 1 < count)
         if editing:
-            message = f"Editando viñeta — pulsa Esc para volver · Página {index + 1} de {count}"
+            message = self.tr(
+                "Editing panel — press Esc to return · Page {current} of {count}"
+            ).format(current=index + 1, count=count)
         else:
-            message = f"Página {index + 1} de {count}" if count else "Documento sin páginas"
+            message = (
+                self.tr("Page {current} of {count}").format(
+                    current=index + 1, count=count
+                )
+                if count
+                else self.tr("Document has no pages")
+            )
         self.statusBar().showMessage(message)

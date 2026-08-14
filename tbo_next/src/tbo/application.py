@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+from PyQt6.QtCore import QCoreApplication
 from PyQt6.QtWidgets import QApplication
 
 from tbo.ui.main_window import MainWindow
@@ -18,6 +19,6 @@ def main(argv: list[str] | None = None) -> int:
     if len(arguments) > 1:
         window.open_document(Path(arguments[1]))
     else:
-        window.new_document("Sin título", 800, 450)
+        window.new_document(QCoreApplication.translate("Application", "Untitled"), 800, 450)
     window.show()
     return application.exec()

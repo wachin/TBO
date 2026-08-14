@@ -403,7 +403,7 @@ class ComicCanvas(QGraphicsView):
                 clone,
                 self._refresh_current_page,
                 index=source_index + 1,
-                text="Clonar viñeta",
+                text=self.tr("Clone panel"),
             )
         )
         self.select_frame(clone)
@@ -440,7 +440,7 @@ class ComicCanvas(QGraphicsView):
                 clone,
                 self._refresh_current_page,
                 index=source_index + 1,
-                text="Clonar objeto",
+                text=self.tr("Clone object"),
             )
         )
         self.select_object(clone)

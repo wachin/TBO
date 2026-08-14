@@ -5,7 +5,7 @@ def test_new_comic_dialog_has_sensible_defaults(qtbot) -> None:
     dialog = NewComicDialog()
     qtbot.addWidget(dialog)
 
-    assert dialog.values() == ("Sin título", 800, 450)
+    assert dialog.values() == ("Untitled", 800, 450)
     assert dialog.width_input.maximum() == MAX_CANVAS_SIZE
     assert dialog.height_input.maximum() == MAX_CANVAS_SIZE
 
@@ -17,4 +17,4 @@ def test_new_comic_dialog_normalizes_empty_title(qtbot) -> None:
     dialog.width_input.setValue(1200)
     dialog.height_input.setValue(900)
 
-    assert dialog.values() == ("Sin título", 1200, 900)
+    assert dialog.values() == ("Untitled", 1200, 900)
