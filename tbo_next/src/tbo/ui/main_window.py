@@ -22,6 +22,7 @@ class MainWindow(QMainWindow):
         self._create_actions()
         self.canvas.undo_stack.cleanChanged.connect(self._on_clean_changed)
         self.canvas.pageChanged.connect(self._update_page_actions)
+        self.canvas.modeChanged.connect(self._on_mode_changed)
         self.canvas.scene.selectionChanged.connect(self._update_edit_actions)
         self._update_edit_actions()
 
@@ -71,6 +72,11 @@ class MainWindow(QMainWindow):
         self.clone_frame_action.setShortcut("Ctrl+D")
         self.clone_frame_action.triggered.connect(self.clone_frame)
         edit_menu.addAction(self.clone_frame_action)
+
+        self.leave_frame_action = QAction("Salir de la viñeta", self)
+        self.leave_frame_action.setShortcut("Escape")
+        self.leave_frame_action.triggered.connect(self.leave_frame)
+        edit_menu.addAction(self.leave_frame_action)
 
         for shortcut, dx, dy in (
             ("Left", -5, 0),
@@ -258,15 +264,35 @@ class MainWindow(QMainWindow):
             self._update_edit_actions()
 
     def delete_frame(self) -> None:
-        if self.canvas.delete_selected_frame():
+        deleted = (
+            self.canvas.delete_selected_object()
+            if self.canvas.editing_frame is not None
+            else self.canvas.delete_selected_frame()
+        )
+        if deleted:
             self._update_edit_actions()
 
     def clone_frame(self) -> None:
-        if self.canvas.clone_selected_frame() is not None:
+        cloned = (
+            self.canvas.clone_selected_object()
+            if self.canvas.editing_frame is not None
+            else self.canvas.clone_selected_frame()
+        )
+        if cloned is not None:
             self._update_edit_actions()
 
     def nudge_selected_frame(self, dx: int, dy: int) -> None:
-        self.canvas.nudge_selected_frame(dx, dy)
+        if self.canvas.editing_frame is not None:
+            self.canvas.nudge_selected_object(dx, dy)
+        else:
+            self.canvas.nudge_selected_frame(dx, dy)
+
+    def leave_frame(self) -> None:
+        self.canvas.leave_frame()
+
+    def _on_mode_changed(self, editing: bool) -> None:
+        self._update_page_actions()
+        self._update_edit_actions()
 
     def _on_clean_changed(self, clean: bool) -> None:
         self._update_window_title()
@@ -281,18 +307,27 @@ class MainWindow(QMainWindow):
 
     def _update_edit_actions(self) -> None:
         has_page = self.canvas.current_page is not None
-        self.add_frame_action.setEnabled(has_page)
-        self.delete_frame_action.setEnabled(self.canvas.selected_frame() is not None)
-        self.clone_frame_action.setEnabled(self.canvas.selected_frame() is not None)
+        editing = self.canvas.editing_frame is not None
+        selected = self.canvas.selected_object() if editing else self.canvas.selected_frame()
+        self.add_frame_action.setEnabled(has_page and not editing)
+        self.delete_frame_action.setEnabled(selected is not None)
+        self.clone_frame_action.setEnabled(selected is not None)
+        self.delete_frame_action.setText("Eliminar objeto" if editing else "Eliminar viñeta")
+        self.clone_frame_action.setText("Clonar objeto" if editing else "Clonar viñeta")
+        self.leave_frame_action.setEnabled(editing)
 
     def _update_page_actions(self, *args) -> None:
         index = self.canvas.page_index
         count = self.canvas.page_count
-        self.previous_page_action.setEnabled(count > 0 and index > 0)
-        self.next_page_action.setEnabled(count > 0 and index + 1 < count)
-        self.add_page_action.setEnabled(self.canvas.comic is not None)
-        self.delete_page_action.setEnabled(count > 1)
-        self.move_page_left_action.setEnabled(count > 1 and index > 0)
-        self.move_page_right_action.setEnabled(count > 1 and index + 1 < count)
-        message = f"Página {index + 1} de {count}" if count else "Documento sin páginas"
+        editing = self.canvas.editing_frame is not None
+        self.previous_page_action.setEnabled(not editing and count > 0 and index > 0)
+        self.next_page_action.setEnabled(not editing and count > 0 and index + 1 < count)
+        self.add_page_action.setEnabled(not editing and self.canvas.comic is not None)
+        self.delete_page_action.setEnabled(not editing and count > 1)
+        self.move_page_left_action.setEnabled(not editing and count > 1 and index > 0)
+        self.move_page_right_action.setEnabled(not editing and count > 1 and index + 1 < count)
+        if editing:
+            message = f"Editando viñeta — pulsa Esc para volver · Página {index + 1} de {count}"
+        else:
+            message = f"Página {index + 1} de {count}" if count else "Documento sin páginas"
         self.statusBar().showMessage(message)

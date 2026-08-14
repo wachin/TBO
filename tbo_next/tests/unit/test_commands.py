@@ -1,12 +1,15 @@
 import pytest
 
-from tbo.document.model import Comic, Frame, Page
+from tbo.document.model import Comic, Frame, Page, TextObject
 from tbo.ui.commands import (
     AddFrameCommand,
+    AddObjectCommand,
     AddPageCommand,
     DeleteFrameCommand,
+    DeleteObjectCommand,
     DeletePageCommand,
     MoveFrameCommand,
+    MoveObjectCommand,
     MovePageCommand,
     ResizeFrameCommand,
 )
@@ -119,3 +122,26 @@ def test_move_page_command_round_trip() -> None:
     assert comic.pages[1] is moved
     assert comic.pages[2] is last
     assert indexes == [2, 1]
+
+
+def test_object_commands_preserve_identity_and_position() -> None:
+    original = TextObject(x=0, y=0, width=100, height=40, text="Original")
+    added = TextObject(x=10, y=10, width=100, height=40, text="Copia")
+    frame = Frame(0, 0, 200, 100, objects=[original])
+    add = AddObjectCommand(frame, added, lambda: None)
+
+    add.redo()
+    assert frame.objects[1] is added
+    move = MoveObjectCommand(added, (10, 10), (30, 40), lambda obj: None)
+    move.redo()
+    assert (added.x, added.y) == (30, 40)
+    move.undo()
+    assert (added.x, added.y) == (10, 10)
+
+    delete = DeleteObjectCommand(frame, original, lambda: None)
+    delete.redo()
+    assert all(graphic_object is not original for graphic_object in frame.objects)
+    delete.undo()
+    assert frame.objects[0] is original
+    add.undo()
+    assert len(frame.objects) == 1

@@ -196,11 +196,11 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [ ] Implementar `QUndoStack` y un comando por operación de documento (`QUndoStack` y primeros comandos listos).
 - [x] Crear, eliminar, navegar y reordenar páginas mediante comandos reversibles.
 - [x] Crear, eliminar, clonar, mover y redimensionar viñetas.
-- [ ] Añadir, seleccionar, mover, redimensionar, rotar, voltear, clonar y eliminar objetos.
+- [ ] Añadir, seleccionar, mover, redimensionar, rotar, voltear, clonar y eliminar objetos (seleccionar, mover, clonar y eliminar listos para objetos existentes).
 - [ ] Implementar edición de texto, tipografía y color.
 - [ ] Implementar importación de imágenes y SVG.
 - [ ] Integrar biblioteca de doodles y bocadillos con búsqueda y categorías.
-- [ ] Garantizar undo/redo para cada operación, incluidas acciones compuestas y drag continuo (cubierto inicialmente para viñetas).
+- [ ] Garantizar undo/redo para cada operación, incluidas acciones compuestas y drag continuo (cubierto para páginas, viñetas y primeras operaciones de objetos).
 - [ ] Añadir atajos de teclado y actualizar el estado de acciones según la selección.
 - [x] Marcar el documento como modificado solo cuando su estado cambie realmente.
 - [ ] Probar secuencias largas de comandos y el regreso exacto al estado inicial (primeras secuencias verificadas).

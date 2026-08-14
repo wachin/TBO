@@ -39,6 +39,12 @@ modifican el modelo del documento y quedan registradas en el historial de
 deshacer. Crear, eliminar y reordenar páginas también es reversible. Un `*` en
 el título indica que existen cambios sin guardar.
 
+Para editar el contenido de una viñeta, haz doble clic sobre ella. En este modo
+puedes seleccionar y arrastrar textos, imágenes o SVG, clonarlos con `Ctrl+D`,
+moverlos con las flechas y eliminarlos con `Supr`. Todas esas operaciones admiten
+undo/redo y se guardan en el `.tbo`. Pulsa `Esc` para regresar a la edición de
+página; las demás viñetas aparecen atenuadas mientras editas una.
+
 TBO 2 escribe por ahora el formato v1 sin versión para mantener compatibilidad
 con el programa histórico. Conviene utilizar **Guardar como** mientras la nueva
 implementación siga en desarrollo.

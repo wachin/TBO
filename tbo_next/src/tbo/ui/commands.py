@@ -4,11 +4,12 @@ from collections.abc import Callable
 
 from PyQt6.QtGui import QUndoCommand
 
-from tbo.document.model import Comic, Frame, Page
+from tbo.document.model import Comic, Frame, GraphicObject, Page
 
 ChangeCallback = Callable[[], None]
 MoveCallback = Callable[[Frame], None]
 PageChangeCallback = Callable[[int], None]
+ObjectMoveCallback = Callable[[GraphicObject], None]
 
 
 def _identity_index(frames: list[Frame], target: Frame) -> int:
@@ -23,6 +24,13 @@ def _page_identity_index(pages: list[Page], target: Page) -> int:
         if page is target:
             return index
     raise ValueError("page is not part of the comic")
+
+
+def _object_identity_index(objects: list[GraphicObject], target: GraphicObject) -> int:
+    for index, graphic_object in enumerate(objects):
+        if graphic_object is target:
+            return index
+    raise ValueError("object is not part of the frame")
 
 
 class MoveFrameCommand(QUndoCommand):
@@ -198,3 +206,78 @@ class MovePageCommand(QUndoCommand):
         bounded_destination = max(0, min(destination, len(self._comic.pages)))
         self._comic.pages.insert(bounded_destination, page)
         self._on_change(bounded_destination)
+
+
+class MoveObjectCommand(QUndoCommand):
+    def __init__(
+        self,
+        graphic_object: GraphicObject,
+        old_position: tuple[int, int],
+        new_position: tuple[int, int],
+        on_change: ObjectMoveCallback,
+    ) -> None:
+        super().__init__("Mover objeto")
+        self._object = graphic_object
+        self._old_position = old_position
+        self._new_position = new_position
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new_position)
+
+    def undo(self) -> None:
+        self._apply(self._old_position)
+
+    def _apply(self, position: tuple[int, int]) -> None:
+        self._object.x, self._object.y = position
+        self._on_change(self._object)
+
+
+class AddObjectCommand(QUndoCommand):
+    def __init__(
+        self,
+        frame: Frame,
+        graphic_object: GraphicObject,
+        on_change: ChangeCallback,
+        *,
+        index: int | None = None,
+        text: str = "Añadir objeto",
+    ) -> None:
+        super().__init__(text)
+        self._frame = frame
+        self._object = graphic_object
+        self._index = len(frame.objects) if index is None else index
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        try:
+            _object_identity_index(self._frame.objects, self._object)
+        except ValueError:
+            self._frame.objects.insert(min(self._index, len(self._frame.objects)), self._object)
+        self._on_change()
+
+    def undo(self) -> None:
+        del self._frame.objects[_object_identity_index(self._frame.objects, self._object)]
+        self._on_change()
+
+
+class DeleteObjectCommand(QUndoCommand):
+    def __init__(
+        self,
+        frame: Frame,
+        graphic_object: GraphicObject,
+        on_change: ChangeCallback,
+    ) -> None:
+        super().__init__("Eliminar objeto")
+        self._frame = frame
+        self._object = graphic_object
+        self._index = _object_identity_index(frame.objects, graphic_object)
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        del self._frame.objects[_object_identity_index(self._frame.objects, self._object)]
+        self._on_change()
+
+    def undo(self) -> None:
+        self._frame.objects.insert(min(self._index, len(self._frame.objects)), self._object)
+        self._on_change()

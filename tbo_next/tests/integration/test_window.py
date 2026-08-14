@@ -234,3 +234,48 @@ def test_save_choice_must_succeed_before_replacing(qtbot, monkeypatch) -> None:
     monkeypatch.setattr(window, "save_document", lambda: False)
 
     assert not window._confirm_replacing_modified_document()
+
+
+def test_object_edit_mode_mutates_model_and_is_undoable(qtbot, tmp_path: Path) -> None:
+    window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
+    qtbot.addWidget(window)
+    assert window.open_document(REPOSITORY_ROOT / "data" / "tut.tbo")
+    page = window.canvas.current_page
+    assert page is not None
+    frame = page.frames[0]
+    original_count = len(frame.objects)
+    graphic_object = frame.objects[0]
+
+    assert window.canvas.enter_frame(frame)
+    assert window.canvas.editing_frame is frame
+    assert "Editando viñeta" in window.statusBar().currentMessage()
+    assert window.canvas.select_object(graphic_object)
+
+    clone = window.canvas.clone_selected_object()
+    assert clone is not None
+    assert clone is not graphic_object
+    assert len(frame.objects) == original_count + 1
+    original_position = (clone.x, clone.y)
+    assert window.canvas.move_object(clone, (clone.x + 20, clone.y - 10))
+    moved_position = (clone.x, clone.y)
+    assert moved_position == (original_position[0] + 20, original_position[1] - 10)
+
+    window.canvas.undo_stack.undo()
+    assert (clone.x, clone.y) == original_position
+    window.canvas.undo_stack.redo()
+    assert (clone.x, clone.y) == moved_position
+    assert window.canvas.select_object(clone)
+    assert window.canvas.delete_selected_object()
+    assert len(frame.objects) == original_count
+    window.canvas.undo_stack.undo()
+    assert len(frame.objects) == original_count + 1
+
+    target = tmp_path / "objects.tbo"
+    assert window._save_to(target)
+    restored = load(target)
+    restored_clone = restored.pages[0].frames[0].objects[1]
+    assert (restored_clone.x, restored_clone.y) == moved_position
+
+    assert window.canvas.leave_frame()
+    assert window.canvas.editing_frame is None
+    assert window.statusBar().currentMessage() == "Página 1 de 11"
