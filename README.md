@@ -50,6 +50,19 @@ as a reference. It is not required to run TBO 2.
 
 ## Running TBO 2
 
+The easiest option is to use the launcher from the repository root:
+
+```bash
+./tbo.sh
+```
+
+You can pass a document path to open it directly, even when running the launcher
+from another directory:
+
+```bash
+/path/to/TBO/tbo.sh /path/to/comic.tbo
+```
+
 Run directly from the repository without installing the package:
 
 ```bash

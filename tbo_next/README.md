@@ -5,6 +5,18 @@ C/GTK del directorio raíz se conserva como referencia de compatibilidad.
 
 ## Ejecutar desde el repositorio
 
+Desde la raíz del repositorio puedes utilizar el launcher:
+
+```bash
+./tbo.sh
+./tbo.sh data/tut.tbo
+```
+
+El script configura automáticamente `PYTHONPATH` y también funciona al
+invocarlo desde otro directorio.
+
+La ejecución equivalente sin el launcher es:
+
 ```bash
 cd tbo_next
 PYTHONPATH=src python -m tbo ../data/tut.tbo
