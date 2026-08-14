@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PyQt6.QtGui import QAction, QKeySequence
+from PyQt6.QtGui import QAction, QImageReader, QKeySequence
+from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import QDialog, QFileDialog, QMainWindow, QMessageBox
 
-from tbo.document.model import Comic, Page
+from tbo.document.model import Color, Comic, ImageObject, Page, SvgObject, TextObject
 from tbo.formats.tbo_v1 import TboFormatError, load, save
 from tbo.ui.canvas import ComicCanvas
 from tbo.ui.new_comic_dialog import NewComicDialog
+from tbo.ui.text_object_dialog import TextObjectDialog
 
 
 class MainWindow(QMainWindow):
@@ -77,6 +79,20 @@ class MainWindow(QMainWindow):
         self.leave_frame_action.setShortcut("Escape")
         self.leave_frame_action.triggered.connect(self.leave_frame)
         edit_menu.addAction(self.leave_frame_action)
+
+        edit_menu.addSeparator()
+        self.add_text_action = QAction(self.tr("Add &Text…"), self)
+        self.add_text_action.setShortcut("T")
+        self.add_text_action.triggered.connect(self.add_text_dialog)
+        edit_menu.addAction(self.add_text_action)
+
+        self.add_image_action = QAction(self.tr("Add &Image…"), self)
+        self.add_image_action.triggered.connect(self.add_image_dialog)
+        edit_menu.addAction(self.add_image_action)
+
+        self.add_svg_action = QAction(self.tr("Add &SVG…"), self)
+        self.add_svg_action.triggered.connect(self.add_svg_dialog)
+        edit_menu.addAction(self.add_svg_action)
 
         for shortcut, dx, dy in (
             ("Left", -5, 0),
@@ -297,6 +313,111 @@ class MainWindow(QMainWindow):
     def leave_frame(self) -> None:
         self.canvas.leave_frame()
 
+    def add_text_dialog(self) -> None:
+        if self.canvas.editing_frame is None:
+            return
+        dialog = TextObjectDialog(self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        text, font, qt_color = dialog.values()
+        frame = self.canvas.editing_frame
+        if frame is None:
+            return
+        width = min(300, max(1, frame.width - 40))
+        height = min(120, max(1, frame.height - 40))
+        x, y = self._centered_position(width, height)
+        self.canvas.add_graphic_object(
+            TextObject(
+                x=x,
+                y=y,
+                width=width,
+                height=height,
+                text=text,
+                font=font,
+                color=Color(qt_color.redF(), qt_color.greenF(), qt_color.blueF()),
+            )
+        )
+
+    def add_image_dialog(self) -> None:
+        filename, _ = QFileDialog.getOpenFileName(
+            self,
+            self.tr("Add Image"),
+            "",
+            self.tr("Images (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;All Files (*)"),
+        )
+        if filename and not self.add_image_from_path(Path(filename)):
+            QMessageBox.warning(
+                self,
+                self.tr("Could Not Add Image"),
+                self.tr("The selected file is not a supported or readable image."),
+            )
+
+    def add_svg_dialog(self) -> None:
+        filename, _ = QFileDialog.getOpenFileName(
+            self, self.tr("Add SVG"), "", self.tr("SVG Files (*.svg);;All Files (*)")
+        )
+        if filename and not self.add_svg_from_path(Path(filename)):
+            QMessageBox.warning(
+                self,
+                self.tr("Could Not Add SVG"),
+                self.tr("The selected file is not a valid SVG image."),
+            )
+
+    def add_image_from_path(self, filename: Path) -> bool:
+        if self.canvas.editing_frame is None:
+            return False
+        reader = QImageReader(str(filename))
+        if not reader.canRead():
+            return False
+        size = reader.size()
+        width, height = self._fitted_object_size(size.width(), size.height())
+        x, y = self._centered_position(width, height)
+        return self.canvas.add_graphic_object(
+            ImageObject(
+                x=x,
+                y=y,
+                width=width,
+                height=height,
+                path=filename.resolve(),
+            )
+        )
+
+    def add_svg_from_path(self, filename: Path) -> bool:
+        if self.canvas.editing_frame is None:
+            return False
+        renderer = QSvgRenderer(str(filename))
+        if not renderer.isValid():
+            return False
+        size = renderer.defaultSize()
+        width, height = self._fitted_object_size(size.width(), size.height())
+        x, y = self._centered_position(width, height)
+        return self.canvas.add_graphic_object(
+            SvgObject(
+                x=x,
+                y=y,
+                width=width,
+                height=height,
+                path=filename.resolve(),
+            )
+        )
+
+    def _fitted_object_size(self, natural_width: int, natural_height: int) -> tuple[int, int]:
+        frame = self.canvas.editing_frame
+        if frame is None:
+            return 1, 1
+        width = max(1, natural_width)
+        height = max(1, natural_height)
+        maximum_width = max(1, int(frame.width * 0.7))
+        maximum_height = max(1, int(frame.height * 0.7))
+        scale = min(1.0, maximum_width / width, maximum_height / height)
+        return max(1, round(width * scale)), max(1, round(height * scale))
+
+    def _centered_position(self, width: int, height: int) -> tuple[int, int]:
+        frame = self.canvas.editing_frame
+        if frame is None:
+            return 0, 0
+        return (frame.width - width) // 2, (frame.height - height) // 2
+
     def _on_mode_changed(self, editing: bool) -> None:
         self._update_page_actions()
         self._update_edit_actions()
@@ -326,6 +447,9 @@ class MainWindow(QMainWindow):
             self.tr("Clone Object") if editing else self.tr("Clone Panel")
         )
         self.leave_frame_action.setEnabled(editing)
+        self.add_text_action.setEnabled(editing)
+        self.add_image_action.setEnabled(editing)
+        self.add_svg_action.setEnabled(editing)
 
     def _update_page_actions(self, *args) -> None:
         index = self.canvas.page_index

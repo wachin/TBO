@@ -446,6 +446,16 @@ class ComicCanvas(QGraphicsView):
         self.select_object(clone)
         return clone
 
+    def add_graphic_object(self, graphic_object: GraphicObject) -> bool:
+        frame = self._editing_frame
+        if frame is None:
+            return False
+        self.undo_stack.push(
+            AddObjectCommand(frame, graphic_object, self._refresh_current_page)
+        )
+        self.select_object(graphic_object)
+        return True
+
     def delete_selected_object(self) -> bool:
         frame = self._editing_frame
         graphic_object = self.selected_object()

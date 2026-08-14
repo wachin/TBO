@@ -23,6 +23,8 @@ TBO 2 currently supports:
 - creating, deleting, navigating, and reordering pages;
 - creating, selecting, moving, resizing, cloning, and deleting panels;
 - entering a panel and moving, cloning, or deleting its text, images, and SVGs;
+- adding new text with a selected font and color;
+- importing raster images and SVG files into a panel;
 - undoing and redoing the editing operations implemented so far;
 - navigation, fit-to-window, and zoom controls;
 - detecting pending changes before creating, opening, or closing a document;
@@ -30,7 +32,6 @@ TBO 2 currently supports:
 
 Features still pending include:
 
-- adding new text, images, and SVGs from the interface;
 - resizing, rotating, and flipping objects;
 - editing text and color properties;
 - exporting to PNG, PDF, and SVG;

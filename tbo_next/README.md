@@ -44,6 +44,7 @@ format.
 - `1`: return to actual size;
 - `2`: fit the page to the window;
 - `F`: add a panel;
+- `T`: add text while editing a panel;
 - drag a selected panel: move it;
 - drag its yellow bottom-right handle: resize it;
 - arrow keys: move the selection in 5-pixel increments;
@@ -59,8 +60,9 @@ changes.
 Double-click a panel to edit its contents. In this mode, you can select and drag
 text, images, or SVGs, clone them with `Ctrl+D`, move them with the arrow keys,
 and delete them with `Delete`. These operations support undo/redo and persist in
-the `.tbo` file. Press `Esc` to return to page editing; other panels are dimmed
-while a panel is being edited.
+the `.tbo` file. The Edit menu also lets you add formatted text or import raster
+images and SVG files. Press `Esc` to return to page editing; other panels are
+dimmed while a panel is being edited.
 
 TBO 2 currently writes the unversioned v1 format for compatibility with the
 historical application. Use **Save As** while the new implementation remains in

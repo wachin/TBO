@@ -198,8 +198,8 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Crear, eliminar, navegar y reordenar páginas mediante comandos reversibles.
 - [x] Crear, eliminar, clonar, mover y redimensionar viñetas.
 - [ ] Añadir, seleccionar, mover, redimensionar, rotar, voltear, clonar y eliminar objetos (seleccionar, mover, clonar y eliminar listos para objetos existentes).
-- [ ] Implementar edición de texto, tipografía y color.
-- [ ] Implementar importación de imágenes y SVG.
+- [ ] Implementar edición de texto, tipografía y color (alta de texto con tipografía y color lista; edición posterior pendiente).
+- [x] Implementar importación de imágenes y SVG.
 - [ ] Integrar biblioteca de doodles y bocadillos con búsqueda y categorías.
 - [ ] Garantizar undo/redo para cada operación, incluidas acciones compuestas y drag continuo (cubierto para páginas, viñetas y primeras operaciones de objetos).
 - [ ] Añadir atajos de teclado y actualizar el estado de acciones según la selección.
