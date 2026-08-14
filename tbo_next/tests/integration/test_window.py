@@ -76,3 +76,51 @@ def test_frame_edits_are_undoable_and_mark_document_modified(qtbot, tmp_path: Pa
     assert len(restored.pages[0].frames) == original_count + 1
     assert (restored.pages[0].frames[-1].x, restored.pages[0].frames[-1].y) == saved_position
     assert window.windowTitle() == "edited — TBO 2"
+
+
+def test_frame_clone_resize_and_nudge_are_undoable(qtbot) -> None:
+    window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
+    qtbot.addWidget(window)
+    assert window.open_document(REPOSITORY_ROOT / "data" / "tut.tbo")
+    page = window.canvas.current_page
+    assert page is not None
+    source = page.frames[0]
+    assert window.canvas.select_frame(source)
+
+    clone = window.canvas.clone_selected_frame()
+    assert clone is not None
+    assert clone is not source
+    assert clone.objects is not source.objects
+    assert (clone.x, clone.y) == (source.x + 10, source.y + 10)
+
+    original_size = (clone.width, clone.height)
+    assert window.canvas.resize_frame(clone, (clone.width + 50, clone.height + 25))
+    assert (clone.width, clone.height) == (original_size[0] + 50, original_size[1] + 25)
+
+    assert window.canvas.select_frame(clone)
+    old_position = (clone.x, clone.y)
+    assert window.canvas.nudge_selected_frame(5, -5)
+    assert (clone.x, clone.y) == (old_position[0] + 5, old_position[1] - 5)
+
+    window.canvas.undo_stack.undo()
+    assert (clone.x, clone.y) == old_position
+    window.canvas.undo_stack.undo()
+    assert (clone.width, clone.height) == original_size
+    window.canvas.undo_stack.undo()
+    assert all(frame is not clone for frame in page.frames)
+
+
+def test_zoom_controls_change_and_reset_view(qtbot) -> None:
+    window = MainWindow(asset_root=REPOSITORY_ROOT / "data" / "doodle")
+    qtbot.addWidget(window)
+    assert window.open_document(REPOSITORY_ROOT / "data" / "tut.tbo")
+    window.canvas.reset_zoom()
+
+    window.canvas.zoom_in()
+    assert window.canvas.transform().m11() == 1.2
+    window.canvas.zoom_out()
+    assert round(window.canvas.transform().m11(), 7) == 1.0
+
+    window.canvas.zoom_in()
+    window.canvas.reset_zoom()
+    assert window.canvas.transform().m11() == 1.0

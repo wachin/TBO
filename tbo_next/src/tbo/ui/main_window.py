@@ -59,6 +59,24 @@ class MainWindow(QMainWindow):
         self.delete_frame_action.triggered.connect(self.delete_frame)
         edit_menu.addAction(self.delete_frame_action)
 
+        self.clone_frame_action = QAction("&Clonar viñeta", self)
+        self.clone_frame_action.setShortcut("Ctrl+D")
+        self.clone_frame_action.triggered.connect(self.clone_frame)
+        edit_menu.addAction(self.clone_frame_action)
+
+        for shortcut, dx, dy in (
+            ("Left", -5, 0),
+            ("Right", 5, 0),
+            ("Up", 0, -5),
+            ("Down", 0, 5),
+        ):
+            action = QAction(self)
+            action.setShortcut(shortcut)
+            action.triggered.connect(
+                lambda checked=False, x=dx, y=dy: self.nudge_selected_frame(x, y)
+            )
+            self.addAction(action)
+
         navigate_menu = self.menuBar().addMenu("&Página")
         self.previous_page_action = QAction("Página &anterior", self)
         self.previous_page_action.setShortcut("PageUp")
@@ -75,6 +93,21 @@ class MainWindow(QMainWindow):
         fit_action.setShortcut("2")
         fit_action.triggered.connect(self.canvas.fit_page)
         view_menu.addAction(fit_action)
+
+        zoom_in_action = QAction("Acercar", self)
+        zoom_in_action.setShortcut("+")
+        zoom_in_action.triggered.connect(self.canvas.zoom_in)
+        view_menu.addAction(zoom_in_action)
+
+        zoom_out_action = QAction("Alejar", self)
+        zoom_out_action.setShortcut("-")
+        zoom_out_action.triggered.connect(self.canvas.zoom_out)
+        view_menu.addAction(zoom_out_action)
+
+        reset_zoom_action = QAction("Tamaño real", self)
+        reset_zoom_action.setShortcut("1")
+        reset_zoom_action.triggered.connect(self.canvas.reset_zoom)
+        view_menu.addAction(reset_zoom_action)
 
     def open_dialog(self) -> None:
         filename, _ = QFileDialog.getOpenFileName(
@@ -154,6 +187,13 @@ class MainWindow(QMainWindow):
         if self.canvas.delete_selected_frame():
             self._update_edit_actions()
 
+    def clone_frame(self) -> None:
+        if self.canvas.clone_selected_frame() is not None:
+            self._update_edit_actions()
+
+    def nudge_selected_frame(self, dx: int, dy: int) -> None:
+        self.canvas.nudge_selected_frame(dx, dy)
+
     def _on_clean_changed(self, clean: bool) -> None:
         self._update_window_title()
 
@@ -169,6 +209,7 @@ class MainWindow(QMainWindow):
         has_page = self.canvas.current_page is not None
         self.add_frame_action.setEnabled(has_page)
         self.delete_frame_action.setEnabled(self.canvas.selected_frame() is not None)
+        self.clone_frame_action.setEnabled(self.canvas.selected_frame() is not None)
 
     def _update_page_actions(self) -> None:
         index = self.canvas.page_index

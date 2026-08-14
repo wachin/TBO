@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
 
-from PyQt6.QtCore import QRectF, Qt
+from PyQt6.QtCore import QPointF, QRectF, Qt
 from PyQt6.QtGui import (
     QBrush,
     QColor,
@@ -19,13 +20,22 @@ from PyQt6.QtWidgets import (
     QGraphicsPixmapItem,
     QGraphicsRectItem,
     QGraphicsScene,
+    QGraphicsSceneHoverEvent,
     QGraphicsSceneMouseEvent,
     QGraphicsTextItem,
     QGraphicsView,
 )
 
 from tbo.document.model import Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
-from tbo.ui.commands import AddFrameCommand, DeleteFrameCommand, MoveFrameCommand
+from tbo.ui.commands import (
+    AddFrameCommand,
+    DeleteFrameCommand,
+    MoveFrameCommand,
+    ResizeFrameCommand,
+)
+
+RESIZE_HANDLE_SIZE = 12.0
+MIN_FRAME_SIZE = 20
 
 
 class FrameGraphicsItem(QGraphicsRectItem):
@@ -34,23 +44,81 @@ class FrameGraphicsItem(QGraphicsRectItem):
         self.frame = frame
         self._canvas = canvas
         self._drag_start = (frame.x, frame.y)
+        self._resizing = False
+        self._resize_start = (frame.width, frame.height)
+        self._resize_scene_start = QPointF()
         self.setFlags(
             QGraphicsItem.GraphicsItemFlag.ItemIsMovable
             | QGraphicsItem.GraphicsItemFlag.ItemIsSelectable
             | QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape
         )
+        self.setAcceptHoverEvents(True)
+
+    def _resize_handle(self) -> QRectF:
+        rectangle = self.rect()
+        return QRectF(
+            rectangle.right() - RESIZE_HANDLE_SIZE,
+            rectangle.bottom() - RESIZE_HANDLE_SIZE,
+            RESIZE_HANDLE_SIZE,
+            RESIZE_HANDLE_SIZE,
+        )
+
+    def paint(self, painter, option, widget=None) -> None:
+        super().paint(painter, option, widget)
+        if self.isSelected():
+            painter.fillRect(self._resize_handle(), QColor("#f4c430"))
+            painter.setPen(QPen(QColor("#6b5600"), 1))
+            painter.drawRect(self._resize_handle())
 
     def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton and self._resize_handle().contains(
+            event.pos()
+        ):
+            self.setSelected(True)
+            self._resizing = True
+            self._resize_start = (self.frame.width, self.frame.height)
+            self._resize_scene_start = event.scenePos()
+            event.accept()
+            return
         self._drag_start = (self.frame.x, self.frame.y)
         super().mousePressEvent(event)
 
+    def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if self._resizing:
+            delta = event.scenePos() - self._resize_scene_start
+            width = max(MIN_FRAME_SIZE, round(self._resize_start[0] + delta.x()))
+            height = max(MIN_FRAME_SIZE, round(self._resize_start[1] + delta.y()))
+            self.setRect(0, 0, width, height)
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
     def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if self._resizing:
+            self._resizing = False
+            destination = (round(self.rect().width()), round(self.rect().height()))
+            self._canvas.resize_frame(self.frame, destination, old_size=self._resize_start)
+            event.accept()
+            return
         super().mouseReleaseEvent(event)
         destination = (round(self.pos().x()), round(self.pos().y()))
         if destination == self._drag_start:
             self.setPos(*self._drag_start)
             return
         self._canvas.move_frame(self.frame, destination, old_position=self._drag_start)
+
+    def hoverMoveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
+        cursor = (
+            Qt.CursorShape.SizeFDiagCursor
+            if self._resize_handle().contains(event.pos())
+            else Qt.CursorShape.ArrowCursor
+        )
+        self.setCursor(cursor)
+        super().hoverMoveEvent(event)
+
+    def hoverLeaveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
+        self.unsetCursor()
+        super().hoverLeaveEvent(event)
 
 
 class ComicCanvas(QGraphicsView):
@@ -158,6 +226,27 @@ class ComicCanvas(QGraphicsView):
         self.undo_stack.push(DeleteFrameCommand(page, frame, self._refresh_current_page))
         return True
 
+    def clone_selected_frame(self) -> Frame | None:
+        page = self.current_page
+        source = self.selected_frame()
+        if page is None or source is None:
+            return None
+        clone = deepcopy(source)
+        clone.x += 10
+        clone.y += 10
+        source_index = next(index for index, frame in enumerate(page.frames) if frame is source)
+        self.undo_stack.push(
+            AddFrameCommand(
+                page,
+                clone,
+                self._refresh_current_page,
+                index=source_index + 1,
+                text="Clonar viñeta",
+            )
+        )
+        self.select_frame(clone)
+        return clone
+
     def selected_frame(self) -> Frame | None:
         for item in self.scene.selectedItems():
             if isinstance(item, FrameGraphicsItem):
@@ -188,6 +277,32 @@ class ComicCanvas(QGraphicsView):
         )
         return True
 
+    def nudge_selected_frame(self, dx: int, dy: int) -> bool:
+        frame = self.selected_frame()
+        if frame is None:
+            return False
+        return self.move_frame(frame, (frame.x + dx, frame.y + dy))
+
+    def resize_frame(
+        self,
+        frame: Frame,
+        new_size: tuple[int, int],
+        *,
+        old_size: tuple[int, int] | None = None,
+    ) -> bool:
+        destination = (
+            max(MIN_FRAME_SIZE, new_size[0]),
+            max(MIN_FRAME_SIZE, new_size[1]),
+        )
+        origin = old_size if old_size is not None else (frame.width, frame.height)
+        if origin == destination:
+            self._sync_frame_geometry(frame)
+            return False
+        self.undo_stack.push(
+            ResizeFrameCommand(frame, origin, destination, self._sync_frame_geometry)
+        )
+        return True
+
     def _refresh_current_page(self) -> None:
         if self.current_page is not None:
             self.show_page(self._page_index)
@@ -196,6 +311,20 @@ class ComicCanvas(QGraphicsView):
         item = self._frame_items.get(id(frame))
         if item is not None:
             item.setPos(frame.x, frame.y)
+
+    def _sync_frame_geometry(self, frame: Frame) -> None:
+        item = self._frame_items.get(id(frame))
+        if item is not None:
+            item.setRect(0, 0, frame.width, frame.height)
+
+    def zoom_in(self) -> None:
+        self.scale(1.2, 1.2)
+
+    def zoom_out(self) -> None:
+        self.scale(1 / 1.2, 1 / 1.2)
+
+    def reset_zoom(self) -> None:
+        self.resetTransform()
 
     def fit_page(self) -> None:
         if self._comic is not None:

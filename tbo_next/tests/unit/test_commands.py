@@ -1,5 +1,10 @@
 from tbo.document.model import Frame, Page
-from tbo.ui.commands import AddFrameCommand, DeleteFrameCommand, MoveFrameCommand
+from tbo.ui.commands import (
+    AddFrameCommand,
+    DeleteFrameCommand,
+    MoveFrameCommand,
+    ResizeFrameCommand,
+)
 
 
 def test_move_frame_command_round_trip() -> None:
@@ -39,3 +44,15 @@ def test_delete_frame_command_restores_original_index() -> None:
     assert page.frames == [first, last]
     command.undo()
     assert page.frames == [first, deleted, last]
+
+
+def test_resize_frame_command_round_trip() -> None:
+    frame = Frame(10, 20, 100, 80)
+    changed: list[Frame] = []
+    command = ResizeFrameCommand(frame, (100, 80), (150, 120), changed.append)
+
+    command.redo()
+    assert (frame.width, frame.height) == (150, 120)
+    command.undo()
+    assert (frame.width, frame.height) == (100, 80)
+    assert changed == [frame, frame]

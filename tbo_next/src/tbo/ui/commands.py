@@ -43,11 +43,19 @@ class MoveFrameCommand(QUndoCommand):
 
 
 class AddFrameCommand(QUndoCommand):
-    def __init__(self, page: Page, frame: Frame, on_change: ChangeCallback) -> None:
-        super().__init__("Añadir viñeta")
+    def __init__(
+        self,
+        page: Page,
+        frame: Frame,
+        on_change: ChangeCallback,
+        *,
+        index: int | None = None,
+        text: str = "Añadir viñeta",
+    ) -> None:
+        super().__init__(text)
         self._page = page
         self._frame = frame
-        self._index = len(page.frames)
+        self._index = len(page.frames) if index is None else index
         self._on_change = on_change
 
     def redo(self) -> None:
@@ -77,3 +85,28 @@ class DeleteFrameCommand(QUndoCommand):
     def undo(self) -> None:
         self._page.frames.insert(min(self._index, len(self._page.frames)), self._frame)
         self._on_change()
+
+
+class ResizeFrameCommand(QUndoCommand):
+    def __init__(
+        self,
+        frame: Frame,
+        old_size: tuple[int, int],
+        new_size: tuple[int, int],
+        on_change: MoveCallback,
+    ) -> None:
+        super().__init__("Redimensionar viñeta")
+        self._frame = frame
+        self._old_size = old_size
+        self._new_size = new_size
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new_size)
+
+    def undo(self) -> None:
+        self._apply(self._old_size)
+
+    def _apply(self, size: tuple[int, int]) -> None:
+        self._frame.width, self._frame.height = size
+        self._on_change(self._frame)

@@ -16,18 +16,23 @@ representar las páginas, viñetas, textos y recursos SVG del formato histórico
 Controles disponibles:
 
 - `PageUp` / `PageDown`: página anterior o siguiente;
+- `+` / `-`: acercar o alejar;
+- `1`: volver al tamaño real;
 - `2`: ajustar la página a la ventana;
 - `Ctrl+O`: abrir un documento;
 - `Ctrl+S`: guardar de forma atómica;
 - `Ctrl+Shift+S`: guardar una copia;
 - `F`: añadir una viñeta;
 - arrastrar una viñeta seleccionada: moverla;
+- arrastrar el tirador amarillo inferior derecho: redimensionarla;
+- flechas: mover la viñeta seleccionada en pasos de 5 píxeles;
+- `Ctrl+D`: clonar la viñeta seleccionada;
 - `Supr`: eliminar la viñeta seleccionada;
 - `Ctrl+Z` / `Ctrl+Shift+Z`: deshacer o rehacer.
 
-Las operaciones de añadir, mover y eliminar viñetas ya modifican el modelo del
-documento y quedan registradas en el historial de deshacer. Un `*` en el título
-indica que existen cambios sin guardar.
+Las operaciones de añadir, clonar, mover, redimensionar y eliminar viñetas
+modifican el modelo del documento y quedan registradas en el historial de
+deshacer. Un `*` en el título indica que existen cambios sin guardar.
 
 TBO 2 escribe por ahora el formato v1 sin versión para mantener compatibilidad
 con el programa histórico. Conviene utilizar **Guardar como** mientras la nueva

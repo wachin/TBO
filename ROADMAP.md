@@ -181,7 +181,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Crear adaptadores visuales iniciales para página, viñeta, texto, imagen y SVG.
 - [ ] Mantener identificadores estables entre objetos del modelo y elementos gráficos.
 - [x] Representar transformaciones existentes: posición, tamaño, rotación y volteo.
-- [x] Añadir ajuste a ventana, desplazamiento y navegación entre páginas; queda pendiente el control de zoom explícito.
+- [x] Añadir zoom, tamaño real, ajuste a ventana, desplazamiento y navegación entre páginas.
 - [ ] Implementar un renderer compartido para pantalla y exportación, evitando dos interpretaciones del documento.
 - [ ] Exportar PNG, PDF y SVG con dimensiones y nombres de salida comprobados.
 - [ ] Crear pruebas visuales con imágenes de referencia y tolerancia documentada.
@@ -194,7 +194,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 **Objetivo:** alcanzar paridad funcional mediante operaciones reversibles.
 
 - [ ] Implementar `QUndoStack` y un comando por operación de documento (`QUndoStack` y primeros comandos listos).
-- [ ] Crear, eliminar, clonar, mover y redimensionar viñetas (crear, eliminar y mover listos).
+- [x] Crear, eliminar, clonar, mover y redimensionar viñetas.
 - [ ] Añadir, seleccionar, mover, redimensionar, rotar, voltear, clonar y eliminar objetos.
 - [ ] Implementar edición de texto, tipografía y color.
 - [ ] Implementar importación de imágenes y SVG.
