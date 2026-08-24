@@ -138,28 +138,43 @@ class AssetsDock(QDockWidget):
         self.setObjectName("assets_dock")
         self.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)
 
-        character_categories, doodle_categories = self._split_character(catalog)
+        character_categories, accessories_categories, doodle_categories = (
+            self._split_categories(catalog)
+        )
 
         self.tabs = QTabWidget()
         self._doodles_tab = _LibraryTab(doodle_categories)
         self._character_tab = _LibraryTab(character_categories)
+        self._accessories_tab = _LibraryTab(accessories_categories)
         self._bubbles_tab = _LibraryTab(catalog.bubble_categories)
-        for tab in (self._doodles_tab, self._character_tab, self._bubbles_tab):
+        for tab in (
+            self._doodles_tab,
+            self._character_tab,
+            self._accessories_tab,
+            self._bubbles_tab,
+        ):
             tab.assetActivated.connect(self.assetActivated)
         self.tabs.addTab(self._doodles_tab, self.tr("Doodles"))
         self.tabs.addTab(self._character_tab, self.tr("Character"))
+        self.tabs.addTab(self._accessories_tab, self.tr("Accessories"))
         self.tabs.addTab(self._bubbles_tab, self.tr("Bubbles"))
         self.setWidget(self.tabs)
 
-    def _split_character(
+    def _split_categories(
         self, catalog: AssetCatalog
-    ) -> tuple[list, list]:
+    ) -> tuple[list, list, list]:
         head_root = catalog.root / "head"
+        accessories_root = catalog.root / "accesories"
         character: list = []
+        accessories: list = []
         regular: list = []
         for category in catalog.doodle_categories:
             if any(head_root in entry.path.parents for entry in category.entries):
                 character.append(category)
+            elif any(
+                accessories_root in entry.path.parents for entry in category.entries
+            ):
+                accessories.append(category)
             else:
                 regular.append(category)
-        return character, regular
+        return character, accessories, regular
