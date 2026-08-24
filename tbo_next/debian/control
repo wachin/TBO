@@ -1,0 +1,28 @@
+Source: tbo
+Section: graphics
+Priority: optional
+Maintainer: TBO contributors <tbo-project@example.org>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-setuptools,
+               python3-pyqt6
+Standards-Version: 4.6.2
+Homepage: https://github.com/tbo-project/tbo
+Vcs-Git: https://github.com/tbo-project/tbo.git
+Vcs-Browser: https://github.com/tbo-project/tbo
+
+Package: tbo
+Architecture: all
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3-pyqt6,
+         python3-pyqt6.qtsvg
+Recommends: python3-pyqt6.qtpdf
+Description: Modern comic editor compatible with legacy TBO documents
+ TBO is a comic and cartoon editor. This is the Python/PyQt6
+ reimplementation of the original GNOME application.
+ .
+ It reads and writes the legacy .tbo format, offers an interactive canvas with
+ pages and panels, supports text, image and SVG objects, provides a library of
+ doodles and speech bubbles, and exports to PNG, PDF and SVG.

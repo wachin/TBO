@@ -119,6 +119,19 @@ xvfb-run -a python3 -m pytest
 is torn down, depending on the Qt build. The unit tests (`tests/unit`) never
 touch the view and always run headless.
 
+### Platform support
+
+Tested with:
+
+| Plugin    | Environment            | Status          |
+|-----------|------------------------|-----------------|
+| xcb       | X11 (`DISPLAY=:0`)     | Working         |
+| wayland   | Wayland compositor     | Plugin available |
+| offscreen | Headless (CI/tests)    | Working         |
+
+Run `./test_platforms.sh` in the source checkout to verify the available
+backends start and exit cleanly.
+
 Editable development installation:
 
 ```bash
@@ -146,6 +159,20 @@ Flatpak/deb build is expected to install the doodle tree there.
   checksums and a dependency list, and verifies a clean install.
 - `update_translations.sh`: extracts strings to `translations/*.ts` with
   `pylupdate6`/`lupdate` and compiles `.qm` files with `lrelease`.
+
+### Building the Debian package
+
+The `debian/` directory in the source root produces a binary `.deb`:
+
+```bash
+cd tbo_next
+dpkg-buildpackage -b -uc -us
+```
+
+Build dependencies: `debhelper-compat (= 13)`, `dh-python`, `pybuild-plugin-pyproject`,
+`python3`, `python3-setuptools`, `python3-pyqt6`. The generated package installs the
+application, the doodle library under `/usr/share/tbo/doodle`, the desktop entry,
+AppStream metadata, and the application icon.
 
 ```bash
 ./packaging/build.sh

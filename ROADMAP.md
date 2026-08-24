@@ -221,7 +221,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Mejorar teclado, orden de foco, lectores de pantalla, contraste, tema oscuro y escalado HiDPI.
 - [x] Extraer textos traducibles y recuperar las traducciones existentes cuando sigan siendo válidas.
 - [x] Actualizar README, tutorial, capturas, iconos, `.desktop` y metadatos AppStream.
-- [ ] Probar Wayland y X11; documentar otras plataformas como experimentales hasta tener CI y responsable.
+- [x] Probar Wayland y X11; documentar otras plataformas como experimentales hasta tener CI y responsable.
 
 **Criterio de salida:** checklist completo de flujos de usuario; cero pérdidas de datos conocidas; accesibilidad básica verificada; recuperación probada después de cierre forzado.
 

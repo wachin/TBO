@@ -1,0 +1,28 @@
+Format: 1.8
+Date: Mon, 24 Aug 2026 12:00:00 +0000
+Source: tbo
+Binary: tbo
+Architecture: all
+Version: 2.0.0.dev0-1
+Distribution: unstable
+Urgency: medium
+Maintainer: TBO contributors <tbo-project@example.org>
+Changed-By: TBO contributors <tbo-project@example.org>
+Description:
+ tbo        - Modern comic editor compatible with legacy TBO documents
+Changes:
+ tbo (2.0.0.dev0-1) unstable; urgency=medium
+ .
+   * Initial packaging of the Python/PyQt6 reimplementation.
+   * Reads and writes the legacy .tbo format, interactive canvas, object
+     editing, undo/redo, asset library, and PNG/PDF/SVG export.
+   * Ships the doodle and speech bubble library under /usr/share/tbo/doodle.
+Checksums-Sha1:
+ 937f86071ac4ff9202eb00ab1874327640ec57c6 308852 tbo_2.0.0.dev0-1_all.deb
+ 5a3465017495f2b08625330bfdb4d6ae18f0e2a7 10111 tbo_2.0.0.dev0-1_amd64.buildinfo
+Checksums-Sha256:
+ 5b4d9eff3fae873be40156a6de0c2cce65f5b79286c28522deb643abd5bc2b45 308852 tbo_2.0.0.dev0-1_all.deb
+ 0c756ec50bbfc2d2eddd0f354f2e16aece0b55beff76c11b4ddc9d6995211b9c 10111 tbo_2.0.0.dev0-1_amd64.buildinfo
+Files:
+ f96eb47f2b305409b13715b206a5345e 308852 graphics optional tbo_2.0.0.dev0-1_all.deb
+ 1d5040b83ff067ae9df9fd17d1927c7c 10111 graphics optional tbo_2.0.0.dev0-1_amd64.buildinfo
