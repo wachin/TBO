@@ -26,3 +26,17 @@ def find_asset_root() -> Path | None:
         if candidate.is_dir():
             return candidate
     return None
+
+
+def find_icon() -> Path | None:
+    """Locate the application icon bundled with the package.
+
+    Prefers the PNG for window/taskbar use; the SVG is returned when the PNG
+    is not shipped.
+    """
+    resources_dir = Path(__file__).resolve().parent / "resources"
+    for name in ("icon.png", "icon.svg"):
+        candidate = resources_dir / name
+        if candidate.is_file():
+            return candidate
+    return None

@@ -18,6 +18,15 @@ def test_find_asset_root_located_from_repository(monkeypatch) -> None:
     assert (find_asset_root() / "doodle1").is_dir()
 
 
+def test_find_icon_returns_existing_file() -> None:
+    from tbo.resources import find_icon
+
+    icon = find_icon()
+    assert icon is not None
+    assert icon.is_file()
+    assert icon.suffix in (".png", ".svg")
+
+
 def test_find_asset_root_returns_none_when_missing(monkeypatch, tmp_path: Path) -> None:
     from tbo.resources import _candidate_roots
 

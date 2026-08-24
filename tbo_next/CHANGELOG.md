@@ -59,6 +59,8 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - The asset library is split into four tabs: Doodles (original assets),
   Character (the buildable head parts), Accessories (actions/devices/emotes/pcs)
   and Bubbles.
+- The application icon is bundled inside the package (`tbo/resources/`) and set
+  on the window and the application.
 - GitHub Actions CI (`ci.yml`): lint, unit/integration tests under Xvfb, coverage.
 - Manual build workflow (`build.yml`, `workflow_dispatch`) producing wheel, sdist,
   `.deb`, and Flatpak artifacts.

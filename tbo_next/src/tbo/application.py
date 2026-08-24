@@ -4,9 +4,10 @@ import sys
 from pathlib import Path
 
 from PyQt6.QtCore import QCoreApplication, QLocale, QLibraryInfo, QTranslator, Qt
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
 
-from tbo.resources import find_asset_root
+from tbo.resources import find_asset_root, find_icon
 from tbo.ui.main_window import MainWindow
 from tbo.ui.preferences import Preferences
 from tbo.ui.theme import apply_theme
@@ -45,6 +46,11 @@ def main(argv: list[str] | None = None) -> int:
     apply_theme(application, Preferences().theme())
 
     window = MainWindow(asset_root=find_asset_root())
+    icon_path = find_icon()
+    if icon_path is not None:
+        icon = QIcon(str(icon_path))
+        application.setWindowIcon(icon)
+        window.setWindowIcon(icon)
     if len(arguments) > 1:
         window.open_document(Path(arguments[1]))
     else:
