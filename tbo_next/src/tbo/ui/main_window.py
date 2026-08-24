@@ -236,12 +236,14 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.reset_zoom_action)
         toolbar.addAction(self.fit_page_action)
 
+    def _directory_hint(self) -> Path:
+        return self.preferences.last_directory() or Path.home()
+
     def open_dialog(self) -> None:
-        directory = str(self.preferences.last_directory() or Path.home())
         filename, _ = QFileDialog.getOpenFileName(
             self,
             self.tr("Open Comic"),
-            directory,
+            str(self._directory_hint()),
             self.tr("TBO Files (*.tbo);;All Files (*)"),
         )
         if filename and self._confirm_replacing_modified_document():
@@ -291,9 +293,8 @@ class MainWindow(QMainWindow):
     def save_as_dialog(self) -> bool:
         if self.canvas.comic is None:
             return False
-        default_directory = self.preferences.last_directory() or Path.home()
         suggested = str(
-            self._filename or Path(default_directory) / f"{self.canvas.comic.title}.tbo"
+            self._filename or Path(self._directory_hint()) / f"{self.canvas.comic.title}.tbo"
         )
         filename, _ = QFileDialog.getSaveFileName(
             self, self.tr("Save Comic"), suggested, self.tr("TBO Files (*.tbo)")
@@ -308,10 +309,13 @@ class MainWindow(QMainWindow):
     def export_dialog(self) -> None:
         if self.canvas.comic is None:
             return
+        default_name = (
+            self._filename.stem if self._filename is not None else self.canvas.comic.title
+        )
         filename, selected_filter = QFileDialog.getSaveFileName(
             self,
             self.tr("Export Comic"),
-            str(self._filename or Path(f"{self.canvas.comic.title}")),
+            str(Path(self._directory_hint()) / default_name),
             self.tr("PNG Images (*.png);;PDF Document (*.pdf);;SVG Image (*.svg)"),
         )
         if not filename:
@@ -335,6 +339,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, self.tr("Could Not Export"), str(error))
             return
         if written:
+            self.preferences.set_last_directory(target.parent.resolve())
             self.statusBar().showMessage(
                 self.tr("Exported {count} file(s)").format(count=len(written)), 5000
             )
@@ -562,26 +567,37 @@ class MainWindow(QMainWindow):
         filename, _ = QFileDialog.getOpenFileName(
             self,
             self.tr("Add Image"),
-            "",
+            str(self._directory_hint()),
             self.tr("Images (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;All Files (*)"),
         )
-        if filename and not self.add_image_from_path(Path(filename)):
-            QMessageBox.warning(
-                self,
-                self.tr("Could Not Add Image"),
-                self.tr("The selected file is not a supported or readable image."),
-            )
+        if filename:
+            selected = Path(filename)
+            if self.add_image_from_path(selected):
+                self.preferences.set_last_directory(selected.parent.resolve())
+            else:
+                QMessageBox.warning(
+                    self,
+                    self.tr("Could Not Add Image"),
+                    self.tr("The selected file is not a supported or readable image."),
+                )
 
     def add_svg_dialog(self) -> None:
         filename, _ = QFileDialog.getOpenFileName(
-            self, self.tr("Add SVG"), "", self.tr("SVG Files (*.svg);;All Files (*)")
+            self,
+            self.tr("Add SVG"),
+            str(self._directory_hint()),
+            self.tr("SVG Files (*.svg);;All Files (*)"),
         )
-        if filename and not self.add_svg_from_path(Path(filename)):
-            QMessageBox.warning(
-                self,
-                self.tr("Could Not Add SVG"),
-                self.tr("The selected file is not a valid SVG image."),
-            )
+        if filename:
+            selected = Path(filename)
+            if self.add_svg_from_path(selected):
+                self.preferences.set_last_directory(selected.parent.resolve())
+            else:
+                QMessageBox.warning(
+                    self,
+                    self.tr("Could Not Add SVG"),
+                    self.tr("The selected file is not a valid SVG image."),
+                )
 
     def add_image_from_path(self, filename: Path) -> bool:
         if self.canvas.editing_frame is None:
