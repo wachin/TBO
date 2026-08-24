@@ -125,5 +125,16 @@ Editable development installation:
 python3 -m pip install -e '.[dev]'
 ```
 
+## Resources and packaging
+
+The application resolves its asset library through `tbo.resources`. In a source
+checkout it uses `data/doodle` from the repository root. When installed as a
+package, it also looks in `share/tbo/doodle` under the installation prefix; the
+Flatpak/deb build is expected to install the doodle tree there.
+
+- Versioning, changelog, and support policy are defined in `CHANGELOG.md`.
+- `pyproject.toml` declares the package, its `tbo` entry point, dev
+  dependencies, and `package-data` for future `translations/*.qm` catalogs.
+
 The `.tbo` format is treated as untrusted input. Do not relax its validation or
 limits without adding a regression test first.

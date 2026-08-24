@@ -6,6 +6,7 @@ from pathlib import Path
 from PyQt6.QtCore import QCoreApplication, QLocale, QLibraryInfo, QTranslator, Qt
 from PyQt6.QtWidgets import QApplication
 
+from tbo.resources import find_asset_root
 from tbo.ui.main_window import MainWindow
 from tbo.ui.preferences import Preferences
 
@@ -41,9 +42,7 @@ def main(argv: list[str] | None = None) -> int:
     application = QApplication(arguments)
     _install_translator()
 
-    repository_root = Path(__file__).resolve().parents[3]
-    asset_root = repository_root / "data" / "doodle"
-    window = MainWindow(asset_root=asset_root if asset_root.is_dir() else None)
+    window = MainWindow(asset_root=find_asset_root())
     if len(arguments) > 1:
         window.open_document(Path(arguments[1]))
     else:

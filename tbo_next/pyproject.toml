@@ -9,7 +9,27 @@ description = "A modern comic editor compatible with legacy TBO documents"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "GPL-3.0-or-later"
+authors = [
+    { name = "TBO contributors" },
+]
+keywords = ["comics", "comic-editor", "pyqt6", "tbo"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Graphics :: Editors",
+]
 dependencies = ["PyQt6>=6.6"]
+
+[project.urls]
+Homepage = "https://github.com/tbo-project/tbo"
+Documentation = "https://github.com/tbo-project/tbo/blob/master/ROADMAP.md"
+Source = "https://github.com/tbo-project/tbo"
 
 [project.optional-dependencies]
 dev = [
@@ -25,6 +45,9 @@ tbo = "tbo.application:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"tbo" = ["translations/*.qm"]
+
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"
 testpaths = ["tests"]
@@ -36,4 +59,3 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
-
