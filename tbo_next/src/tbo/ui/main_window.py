@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import QDialog, QFileDialog, QLabel, QMainWindow, QMessageB
 from tbo.assets import AssetCatalog
 from tbo.document.model import Color, Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
 from tbo.formats.tbo_v1 import TboFormatError, load, save
-from tbo.rendering import ExportError, export_comic
+from tbo.rendering import ExportError, export_comic, export_page
 from tbo.ui.assets_dock import AssetsDock
 from tbo.ui.canvas import ComicCanvas
 from tbo.ui.new_comic_dialog import NewComicDialog
@@ -262,6 +262,11 @@ class MainWindow(QMainWindow):
         self.reset_zoom_action.triggered.connect(self.canvas.reset_zoom)
         view_menu.addAction(self.reset_zoom_action)
 
+        self.present_action = QAction(self.tr("&Presentation…"), self)
+        self.present_action.setShortcut("F5")
+        self.present_action.triggered.connect(self.start_presentation)
+        view_menu.addAction(self.present_action)
+
         help_menu = self.menuBar().addMenu(self.tr("&Help"))
         help_action = QAction(self.tr("&Help Contents"), self)
         help_action.setShortcut(QKeySequence.StandardKey.HelpContents)
@@ -386,32 +391,51 @@ class MainWindow(QMainWindow):
     def export_dialog(self) -> None:
         if self.canvas.comic is None:
             return
+        from tbo.ui.export_dialog import ExportDialog
+
+        options = ExportDialog(
+            self,
+            page_count=self.canvas.page_count,
+            current_page=self.canvas.page_index,
+        )
+        if options.exec() != QDialog.DialogCode.Accepted:
+            return
+        fmt_key, current_only, scale = options.values()
         default_name = (
             self._filename.stem if self._filename is not None else self.canvas.comic.title
         )
-        filename, selected_filter = QFileDialog.getSaveFileName(
+        filter_label = {
+            "png": "PNG Images (*.png)",
+            "pdf": "PDF Document (*.pdf)",
+            "svg": "SVG Image (*.svg)",
+        }[fmt_key]
+        filename, _ = QFileDialog.getSaveFileName(
             self,
             self.tr("Export Comic"),
             str(Path(self._directory_hint()) / default_name),
-            self.tr("PNG Images (*.png);;PDF Document (*.pdf);;SVG Image (*.svg)"),
+            filter_label,
         )
         if not filename:
             return
         target = Path(filename)
-        fmt = {
-            "PNG Images (*.png)": "png",
-            "PDF Document (*.pdf)": "pdf",
-            "SVG Image (*.svg)": "svg",
-        }.get(selected_filter)
-        if fmt is None:
-            fmt = target.suffix.lstrip(".") or "png"
         try:
-            written = export_comic(
-                self.canvas.comic,
-                target,
-                fmt=fmt,
-                asset_root=self._asset_root(),
-            )
+            if current_only and fmt_key != "pdf":
+                written = [export_page(
+                    self.canvas.current_page,
+                    self.canvas.comic,
+                    target,
+                    fmt=fmt_key,
+                    asset_root=self._asset_root(),
+                    scale=scale / 100.0,
+                )]
+            else:
+                written = export_comic(
+                    self.canvas.comic,
+                    target,
+                    fmt=fmt_key,
+                    asset_root=self._asset_root(),
+                    scale=scale / 100.0,
+                )
         except ExportError as error:
             QMessageBox.critical(self, self.tr("Could Not Export"), str(error))
             return
@@ -423,6 +447,19 @@ class MainWindow(QMainWindow):
 
     def _asset_root(self) -> Path | None:
         return self.canvas._asset_root
+
+    def start_presentation(self) -> None:
+        if self.canvas.comic is None:
+            return
+        from tbo.ui.presentation import PresentationDialog
+
+        dialog = PresentationDialog(
+            self.canvas.comic,
+            start_page=self.canvas.page_index,
+            parent=self,
+            asset_root=self._asset_root(),
+        )
+        dialog.exec()
 
     def _refresh_recent_files(self) -> None:
         self.recent_menu.clear()

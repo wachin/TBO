@@ -65,6 +65,15 @@ página o viñeta actual.
 Además de hacer clic en una miniatura, puedes **arrastrarla** desde el panel
 **Biblioteca de recursos** y soltarla dentro de la viñeta que estás editando.
 
+## Presentación y exportación
+
+- Pulsa **`F5`** (menú **Ver ▸ Presentación**) para leer el cómic a pantalla
+  completa. Navega con las flechas, `Espacio` o `Re Pág`/`Av Pág`, y sal con
+  `Esc`.
+- **Exportar** (`Ctrl+E`) ahora te deja elegir el formato, si quieres **todas
+  las páginas** o **solo la página actual**, y la **escala** (resolución) para
+  PNG (hasta 1000 %).
+
 ## Atajos útiles
 
 | Atajo | Acción |
@@ -85,6 +94,7 @@ Además de hacer clic en una miniatura, puedes **arrastrarla** desde el panel
 | `[` / `]` | Rotar objeto a la izquierda / derecha |
 | `H` / `V` | Voltear objeto horizontal / vertical |
 | `Ctrl` + rueda o `+` / `-` / `1` / `2` | Zoom in / out / tamaño real / ajustar página |
+| `F5` | Modo presentación a pantalla completa |
 | `Ctrl+Z` / `Ctrl+Shift+Z` | Deshacer / rehacer |
 """
 

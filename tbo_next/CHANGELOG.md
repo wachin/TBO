@@ -46,4 +46,6 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Panel alignment and distribution actions (Edit ▸ Align / Distribute).
 - Copy/paste of panels and objects across pages (`Ctrl+C`/`Ctrl+V`).
 - Drag & drop of assets from the library into the editing panel.
+- Full-screen presentation mode (F5) with keyboard navigation.
+- Export dialog with format, page range (all/current), and PNG scale up to 1000 %.
 - Pytest suite (unit and integration tests).

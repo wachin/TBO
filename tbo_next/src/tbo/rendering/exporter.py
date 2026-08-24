@@ -27,17 +27,28 @@ def _validate_format(fmt: str) -> str:
     return normalized
 
 
-def export_page(page: Page, comic: Comic, target: Path, *, fmt: str | None = None, asset_root: Path | None = None) -> Path:
+def export_page(
+    page: Page,
+    comic: Comic,
+    target: Path,
+    *,
+    fmt: str | None = None,
+    asset_root: Path | None = None,
+    scale: float = 1.0,
+) -> Path:
     fmt = _validate_format(fmt or target.suffix)
     destination = target.with_suffix(f".{fmt}")
     renderer = ComicRenderer(asset_root=asset_root)
 
     if fmt == "png":
-        image = QImage(comic.width, comic.height, QImage.Format.Format_ARGB32)
+        width = max(1, round(comic.width * scale))
+        height = max(1, round(comic.height * scale))
+        image = QImage(width, height, QImage.Format.Format_ARGB32)
         image.fill(Qt.GlobalColor.white)
         painter = QPainter()
         if not painter.begin(image):
             raise ExportError(f"Could not open {destination} for writing")
+        painter.scale(scale, scale)
         _render_with(painter, renderer, page, comic)
         if not painter.end():
             raise ExportError(f"Could not finalize {destination}")
@@ -64,7 +75,14 @@ def _render_with(painter: QPainter, renderer: ComicRenderer, page: Page, comic: 
     renderer.paint_page(painter, page, comic)
 
 
-def export_comic(comic: Comic, target: Path, *, fmt: str | None = None, asset_root: Path | None = None) -> list[Path]:
+def export_comic(
+    comic: Comic,
+    target: Path,
+    *,
+    fmt: str | None = None,
+    asset_root: Path | None = None,
+    scale: float = 1.0,
+) -> list[Path]:
     fmt = _validate_format(fmt or target.suffix)
     if fmt == "pdf":
         return [_export_pdf(comic, target, asset_root=asset_root)]
@@ -77,6 +95,7 @@ def export_comic(comic: Comic, target: Path, *, fmt: str | None = None, asset_ro
                 target.with_name(f"{stem}-{index + 1}").with_suffix(f".{fmt}"),
                 fmt=fmt,
                 asset_root=asset_root,
+                scale=scale,
             )
             for index, page in enumerate(comic.pages)
         ]

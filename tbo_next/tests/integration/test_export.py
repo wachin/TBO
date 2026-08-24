@@ -28,6 +28,23 @@ def test_export_page_png_produces_file(qtbot, tmp_path: Path) -> None:
     assert (image.width(), image.height()) == (400, 200)
 
 
+def test_export_page_png_with_scale(qtbot, tmp_path: Path) -> None:
+    comic = _sample_comic()
+    target = export_page(comic.pages[0], comic, tmp_path / "page@2x.png", scale=2.0)
+    assert target.is_file()
+    image = QImage(str(target))
+    assert (image.width(), image.height()) == (800, 400)
+
+
+def test_export_comic_png_with_scale_writes_per_page(qtbot, tmp_path: Path) -> None:
+    comic = _sample_comic()
+    comic.pages.append(Page())
+    written = export_comic(comic, tmp_path / "book.png", scale=1.5)
+    assert len(written) == 2
+    image = QImage(str(written[0]))
+    assert (image.width(), image.height()) == (600, 300)
+
+
 def test_export_comic_png_writes_one_file_per_page(qtbot, tmp_path: Path) -> None:
     comic = _sample_comic()
     comic.pages.append(Page())

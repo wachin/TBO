@@ -101,7 +101,8 @@ never replaces the document or removes its undo/redo history.
 
 Use **File ▸ Export…** (`Ctrl+E`) to render the document to image files. The same
 renderer draws the on-screen canvas and the exported files, so the output matches
-the editor.
+the editor. The export dialog lets you choose the format, whether to export all
+pages or only the current page, and the output scale (up to 1000 %) for PNG.
 
 - **PNG**: one file per page, named `name-1.png`, `name-2.png`, ….
 - **PDF**: a single multi-page document.
@@ -109,6 +110,11 @@ the editor.
 
 Missing raster or SVG resources are drawn as a dashed red rectangle rather than
 aborting the export.
+
+## Presentation mode
+
+Press **`F5`** (View ▸ Presentation) to read the comic in full screen. Navigate
+with the arrow keys, `Space`, or `PageUp`/`PageDown`; press `Esc` to leave.
 
 ## Tests
 
