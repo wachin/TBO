@@ -72,6 +72,19 @@ When there are pending changes, TBO asks whether to save, discard, or cancel
 before creating another document, opening one, or closing the window. Canceling
 never replaces the document or removes its undo/redo history.
 
+## Exporting
+
+Use **File ▸ Export…** (`Ctrl+E`) to render the document to image files. The same
+renderer draws the on-screen canvas and the exported files, so the output matches
+the editor.
+
+- **PNG**: one file per page, named `name-1.png`, `name-2.png`, ….
+- **PDF**: a single multi-page document.
+- **SVG**: one vector file per page.
+
+Missing raster or SVG resources are drawn as a dashed red rectangle rather than
+aborting the export.
+
 ## Tests
 
 ```bash

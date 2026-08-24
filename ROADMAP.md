@@ -183,10 +183,10 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [ ] Mantener identificadores estables entre objetos del modelo y elementos gráficos.
 - [x] Representar transformaciones existentes: posición, tamaño, rotación y volteo.
 - [x] Añadir zoom, tamaño real, ajuste a ventana, desplazamiento y navegación entre páginas.
-- [ ] Implementar un renderer compartido para pantalla y exportación, evitando dos interpretaciones del documento.
-- [ ] Exportar PNG, PDF y SVG con dimensiones y nombres de salida comprobados.
+- [x] Implementar un renderer compartido para pantalla y exportación, evitando dos interpretaciones del documento.
+- [x] Exportar PNG, PDF y SVG con dimensiones y nombres de salida comprobados.
 - [ ] Crear pruebas visuales con imágenes de referencia y tolerancia documentada.
-- [ ] Probar recursos faltantes, SVG inválidos, imágenes grandes, HiDPI y fuentes no instaladas.
+- [x] Probar recursos faltantes, SVG inválidos, imágenes grandes, HiDPI y fuentes no instaladas.
 
 **Criterio de salida:** los fixtures se representan y exportan con paridad visual aceptada; el render puede ejecutarse sin mostrar la interfaz; las diferencias conocidas están documentadas.
 

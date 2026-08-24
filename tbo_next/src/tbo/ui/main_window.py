@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QDialog, QFileDialog, QMainWindow, QMessageBox
 
 from tbo.document.model import Color, Comic, ImageObject, Page, SvgObject, TextObject
 from tbo.formats.tbo_v1 import TboFormatError, load, save
+from tbo.rendering import ExportError, export_comic, export_page
 from tbo.ui.canvas import ComicCanvas
 from tbo.ui.new_comic_dialog import NewComicDialog
 from tbo.ui.text_object_dialog import TextObjectDialog
@@ -51,6 +52,12 @@ class MainWindow(QMainWindow):
         self.save_as_action.setEnabled(False)
         self.save_as_action.triggered.connect(self.save_as_dialog)
         file_menu.addAction(self.save_as_action)
+
+        self.export_action = QAction(self.tr("&Export…"), self)
+        self.export_action.setShortcut("Ctrl+E")
+        self.export_action.setEnabled(False)
+        self.export_action.triggered.connect(self.export_dialog)
+        file_menu.addAction(self.export_action)
 
         edit_menu = self.menuBar().addMenu(self.tr("&Edit"))
         self.undo_action = self.canvas.undo_stack.createUndoAction(self, self.tr("&Undo"))
@@ -196,6 +203,7 @@ class MainWindow(QMainWindow):
         self._filename = filename
         self.save_action.setEnabled(True)
         self.save_as_action.setEnabled(True)
+        self.export_action.setEnabled(True)
         self._update_page_actions()
         self._update_edit_actions()
         self._update_window_title()
@@ -219,6 +227,43 @@ class MainWindow(QMainWindow):
         if target.suffix.lower() != ".tbo":
             target = target.with_suffix(".tbo")
         return self._save_to(target)
+
+    def export_dialog(self) -> None:
+        if self.canvas.comic is None:
+            return
+        filename, selected_filter = QFileDialog.getSaveFileName(
+            self,
+            self.tr("Export Comic"),
+            str(self._filename or Path(f"{self.canvas.comic.title}")),
+            self.tr("PNG Images (*.png);;PDF Document (*.pdf);;SVG Image (*.svg)"),
+        )
+        if not filename:
+            return
+        target = Path(filename)
+        fmt = {
+            "PNG Images (*.png)": "png",
+            "PDF Document (*.pdf)": "pdf",
+            "SVG Image (*.svg)": "svg",
+        }.get(selected_filter)
+        if fmt is None:
+            fmt = target.suffix.lstrip(".") or "png"
+        try:
+            written = export_comic(
+                self.canvas.comic,
+                target,
+                fmt=fmt,
+                asset_root=self._asset_root(),
+            )
+        except ExportError as error:
+            QMessageBox.critical(self, self.tr("Could Not Export"), str(error))
+            return
+        if written:
+            self.statusBar().showMessage(
+                self.tr("Exported {count} file(s)").format(count=len(written)), 5000
+            )
+
+    def _asset_root(self) -> Path | None:
+        return self.canvas._asset_root
 
     def _save_to(self, filename: Path) -> bool:
         comic = self.canvas.comic
