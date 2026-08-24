@@ -67,8 +67,8 @@ Además de hacer clic en una miniatura, puedes **arrastrarla** desde el panel
 
 ## Personaje armable
 
-En la pestaña **Doodles** hay un personaje de ejemplo formado por partes
-independientes que puedes combinar a tu gusto:
+En la pestaña **Character** de la biblioteca hay un personaje de ejemplo
+formado por partes independientes que puedes combinar a tu gusto:
 
 - **Cabeza**: un rostro vacío (sin ojos, orejas ni boca).
 - **Ojos**: normal, alegre, triste, cerrado, sorprendido…

@@ -138,11 +138,28 @@ class AssetsDock(QDockWidget):
         self.setObjectName("assets_dock")
         self.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)
 
+        character_categories, doodle_categories = self._split_character(catalog)
+
         self.tabs = QTabWidget()
-        self._doodles_tab = _LibraryTab(catalog.doodle_categories)
+        self._doodles_tab = _LibraryTab(doodle_categories)
+        self._character_tab = _LibraryTab(character_categories)
         self._bubbles_tab = _LibraryTab(catalog.bubble_categories)
-        self._doodles_tab.assetActivated.connect(self.assetActivated)
-        self._bubbles_tab.assetActivated.connect(self.assetActivated)
+        for tab in (self._doodles_tab, self._character_tab, self._bubbles_tab):
+            tab.assetActivated.connect(self.assetActivated)
         self.tabs.addTab(self._doodles_tab, self.tr("Doodles"))
+        self.tabs.addTab(self._character_tab, self.tr("Character"))
         self.tabs.addTab(self._bubbles_tab, self.tr("Bubbles"))
         self.setWidget(self.tabs)
+
+    def _split_character(
+        self, catalog: AssetCatalog
+    ) -> tuple[list, list]:
+        head_root = catalog.root / "head"
+        character: list = []
+        regular: list = []
+        for category in catalog.doodle_categories:
+            if any(head_root in entry.path.parents for entry in category.entries):
+                character.append(category)
+            else:
+                regular.append(category)
+        return character, regular
