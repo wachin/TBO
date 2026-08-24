@@ -58,3 +58,28 @@ class Preferences:
     def locale(self) -> str:
         value = self._settings.value("locale")
         return value if isinstance(value, str) and value else "en"
+
+    def theme(self) -> str:
+        value = self._settings.value("theme")
+        return value if value in {"system", "dark", "light"} else "system"
+
+    def set_theme(self, mode: str) -> None:
+        if mode in {"system", "dark", "light"}:
+            self._settings.setValue("theme", mode)
+
+    def last_filename(self) -> Path | None:
+        value = self._settings.value("session/lastFilename")
+        if not isinstance(value, str) or not value:
+            return None
+        path = Path(value)
+        return path if path.is_file() else None
+
+    def set_last_filename(self, filename: Path | None) -> None:
+        if filename is not None:
+            self._settings.setValue("session/lastFilename", str(filename))
+
+    def snap_to_grid(self) -> bool:
+        return self._settings.value("view/snapToGrid", False) in (True, "true")
+
+    def set_snap_to_grid(self, enabled: bool) -> None:
+        self._settings.setValue("view/snapToGrid", bool(enabled))

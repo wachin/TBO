@@ -113,6 +113,12 @@ class FrameGraphicsItem(QGraphicsRectItem):
             event.accept()
             return
         super().mouseMoveEvent(event)
+        if self._canvas._snap_to_grid:
+            grid = self._canvas._grid_size
+            self.setPos(
+                round(self.pos().x() / grid) * grid,
+                round(self.pos().y() / grid) * grid,
+            )
 
     def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         if self._resizing:
@@ -285,6 +291,8 @@ class ComicCanvas(QGraphicsView):
         self._frame_items: dict[int, FrameGraphicsItem] = {}
         self._object_items: dict[int, ObjectGraphicsItem] = {}
         self._editing_frame: Frame | None = None
+        self._snap_to_grid = False
+        self._grid_size = 10
         self.undo_stack = QUndoStack(self)
         self.setRenderHints(
             QPainter.RenderHint.Antialiasing
@@ -317,6 +325,14 @@ class ComicCanvas(QGraphicsView):
     @property
     def editing_frame(self) -> Frame | None:
         return self._editing_frame
+
+    def set_snap_to_grid(self, enabled: bool) -> None:
+        self._snap_to_grid = enabled
+
+    def _snap_value(self, value: int) -> int:
+        if not self._snap_to_grid:
+            return value
+        return round(value / self._grid_size) * self._grid_size
 
     def set_comic(self, comic: Comic) -> None:
         self._comic = comic
@@ -752,11 +768,12 @@ class ComicCanvas(QGraphicsView):
         old_position: tuple[int, int] | None = None,
     ) -> bool:
         origin = old_position if old_position is not None else (frame.x, frame.y)
-        if origin == new_position:
+        snapped = (self._snap_value(new_position[0]), self._snap_value(new_position[1]))
+        if origin == snapped:
             self._sync_frame_position(frame)
             return False
         self.undo_stack.push(
-            MoveFrameCommand(frame, origin, new_position, self._sync_frame_position)
+            MoveFrameCommand(frame, origin, snapped, self._sync_frame_position)
         )
         return True
 
@@ -774,8 +791,8 @@ class ComicCanvas(QGraphicsView):
         old_size: tuple[int, int] | None = None,
     ) -> bool:
         destination = (
-            max(MIN_FRAME_SIZE, new_size[0]),
-            max(MIN_FRAME_SIZE, new_size[1]),
+            max(MIN_FRAME_SIZE, self._snap_value(new_size[0])),
+            max(MIN_FRAME_SIZE, self._snap_value(new_size[1])),
         )
         origin = old_size if old_size is not None else (frame.width, frame.height)
         if origin == destination:

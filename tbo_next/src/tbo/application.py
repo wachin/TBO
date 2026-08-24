@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import QApplication
 from tbo.resources import find_asset_root
 from tbo.ui.main_window import MainWindow
 from tbo.ui.preferences import Preferences
+from tbo.ui.theme import apply_theme
 
 TRANSLATION_DIRS = (
     Path(__file__).resolve().parent.parent / "translations",
@@ -41,11 +42,18 @@ def main(argv: list[str] | None = None) -> int:
     arguments = list(sys.argv if argv is None else argv)
     application = QApplication(arguments)
     _install_translator()
+    apply_theme(application, Preferences().theme())
 
     window = MainWindow(asset_root=find_asset_root())
     if len(arguments) > 1:
         window.open_document(Path(arguments[1]))
     else:
-        window.new_document(QCoreApplication.translate("Application", "Untitled"), 800, 450)
+        last = Preferences().last_filename()
+        if last is not None:
+            window.open_document(last)
+        else:
+            window.new_document(
+                QCoreApplication.translate("Application", "Untitled"), 800, 450
+            )
     window.show()
     return application.exec()

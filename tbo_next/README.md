@@ -56,7 +56,16 @@ format.
 - `Ctrl+Z` / `Ctrl+Shift+Z`: undo or redo;
 - `Esc`: leave panel editing mode;
 - `[` / `]`: rotate selected object left / right;
-- `H` / `V`: flip selected object horizontally / vertically.
+- `H` / `V`: flip selected object horizontally / vertically;
+- `F5`: full-screen presentation mode.
+
+## Preferences, theme and session
+
+- **Theme** (View ▸ Theme): System / Dark / Light, remembered between runs.
+- **Snap to Grid** (View ▸ Snap to Grid): aligns panels to a 10 px grid while
+  moving or resizing them.
+- The application **reopens the last document** it had open when it exits, so
+  you can pick up where you left off.
 
 Adding, cloning, moving, resizing, and deleting panels changes the document
 model and is recorded in the undo history. Creating, deleting, and reordering

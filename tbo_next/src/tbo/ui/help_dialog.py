@@ -74,6 +74,15 @@ Además de hacer clic en una miniatura, puedes **arrastrarla** desde el panel
   las páginas** o **solo la página actual**, y la **escala** (resolución) para
   PNG (hasta 1000 %).
 
+## Tema, rejilla y sesión
+
+- **Ver ▸ Tema**: elige entre **Sistema**, **Oscuro** o **Claro**. La elección
+  se recuerda entre sesiones.
+- **Ver ▸ Ajustar a rejilla**: cuando está activo, las viñetas se alinean a una
+  rejilla de 10 px al moverlas o redimensionarlas (útil para alinearlas con
+  precisión). También se recuerda.
+- El programa **reabre el último documento** que tenías abierto al cerrar.
+
 ## Atajos útiles
 
 | Atajo | Acción |

@@ -5,9 +5,9 @@ from copy import deepcopy
 from pathlib import Path
 
 from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtGui import QAction, QColor, QFont, QImageReader, QKeySequence
+from PyQt6.QtGui import QAction, QActionGroup, QColor, QFont, QImageReader, QKeySequence
 from PyQt6.QtSvg import QSvgRenderer
-from PyQt6.QtWidgets import QDialog, QFileDialog, QLabel, QMainWindow, QMessageBox
+from PyQt6.QtWidgets import QApplication, QDialog, QFileDialog, QLabel, QMainWindow, QMessageBox
 
 from tbo.assets import AssetCatalog
 from tbo.document.model import Color, Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
@@ -15,6 +15,7 @@ from tbo.formats.tbo_v1 import TboFormatError, load, save
 from tbo.rendering import ExportError, export_comic, export_page
 from tbo.ui.assets_dock import AssetsDock
 from tbo.ui.canvas import ComicCanvas
+from tbo.ui.theme import apply_theme
 from tbo.ui.new_comic_dialog import NewComicDialog
 from tbo.ui.preferences import Preferences
 from tbo.ui.text_object_dialog import TextObjectDialog
@@ -46,6 +47,7 @@ class MainWindow(QMainWindow):
         self.canvas.scene.selectionChanged.connect(self._update_edit_actions)
         self.canvas.assetDropped.connect(self.add_svg_from_path)
         self.canvas.zoomChanged.connect(self._update_zoom_label)
+        self.canvas.set_snap_to_grid(self.preferences.snap_to_grid())
         self.zoom_label = QLabel(self.tr("100%"))
         self.statusBar().addPermanentWidget(self.zoom_label)
         self._update_edit_actions()
@@ -266,6 +268,30 @@ class MainWindow(QMainWindow):
         self.present_action.setShortcut("F5")
         self.present_action.triggered.connect(self.start_presentation)
         view_menu.addAction(self.present_action)
+
+        self.snap_action = QAction(self.tr("S&nap to Grid"), self)
+        self.snap_action.setCheckable(True)
+        self.snap_action.setChecked(self.preferences.snap_to_grid())
+        self.snap_action.toggled.connect(self._on_snap_toggled)
+        view_menu.addAction(self.snap_action)
+
+        theme_menu = view_menu.addMenu(self.tr("&Theme"))
+        self._theme_group = QActionGroup(self)
+        self._theme_group.setExclusive(True)
+        self._theme_actions: dict[str, QAction] = {}
+        for mode, label in (
+            ("system", self.tr("System")),
+            ("dark", self.tr("Dark")),
+            ("light", self.tr("Light")),
+        ):
+            action = QAction(label, self)
+            action.setCheckable(True)
+            action.triggered.connect(lambda checked=False, m=mode: self._set_theme(m))
+            self._theme_group.addAction(action)
+            self._theme_actions[mode] = action
+            theme_menu.addAction(action)
+        current = self.preferences.theme()
+        self._set_theme(current)
 
         help_menu = self.menuBar().addMenu(self.tr("&Help"))
         help_action = QAction(self.tr("&Help Contents"), self)
@@ -558,6 +584,9 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event) -> None:
         if self._confirm_replacing_modified_document():
+            self.preferences.set_last_filename(
+                self._filename.resolve() if self._filename is not None else None
+            )
             self._save_window_state()
             event.accept()
         else:
@@ -865,6 +894,19 @@ class MainWindow(QMainWindow):
 
     def _update_zoom_label(self, percent: int) -> None:
         self.zoom_label.setText(self.tr("{percent}%").format(percent=percent))
+
+    def _on_snap_toggled(self, enabled: bool) -> None:
+        self.preferences.set_snap_to_grid(enabled)
+        self.canvas.set_snap_to_grid(enabled)
+
+    def _set_theme(self, mode: str) -> None:
+        self.preferences.set_theme(mode)
+        application = QApplication.instance()
+        if application is not None:
+            apply_theme(application, mode)
+        action = self._theme_actions.get(mode)
+        if action is not None:
+            action.setChecked(True)
 
     def _update_page_actions(self, *args) -> None:
         index = self.canvas.page_index
