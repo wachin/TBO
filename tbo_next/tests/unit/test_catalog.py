@@ -10,10 +10,9 @@ DOODLE_ROOT = REPOSITORY_ROOT / "data" / "doodle"
 def test_catalog_indexes_doodle_and_bubble_categories() -> None:
     catalog = AssetCatalog(DOODLE_ROOT)
     doodle_names = {category.name for category in catalog.doodle_categories}
-    assert "eyes" in doodle_names
-    assert "mouth" in doodle_names
-    assert "ears" in doodle_names
+    assert "doodle1" in doodle_names
     assert "head" in doodle_names
+    assert "accesories" in doodle_names
     assert "bubble" not in doodle_names
     bubble_names = {category.name for category in catalog.bubble_categories}
     assert "square" in bubble_names
@@ -34,10 +33,22 @@ def test_catalog_character_head_has_face_parts() -> None:
     )
     assert head is not None
     assert any(entry.name == "head" for entry in head.entries)
-    parts = {category.name: len(category.entries) for category in catalog.doodle_categories}
+    parts = {category.name: len(category.entries) for category in catalog.split_by_subdirectory(head)}
     assert parts.get("eyes", 0) >= 1
     assert parts.get("mouth", 0) >= 1
     assert parts.get("ears", 0) >= 1
+    assert parts.get("head", 0) == 1
+
+
+def test_catalog_accessories_split() -> None:
+    catalog = AssetCatalog(DOODLE_ROOT)
+    accessories = next(
+        (category for category in catalog.doodle_categories if category.name == "accesories"),
+        None,
+    )
+    assert accessories is not None
+    parts = {category.name for category in catalog.split_by_subdirectory(accessories)}
+    assert {"actions", "devices", "emotes", "pcs"} <= parts
 
 
 def test_catalog_search_filters_by_name_and_category() -> None:

@@ -66,7 +66,9 @@ class AssetCatalog:
         for directory in sorted(self._root.iterdir()):
             if not directory.is_dir() or directory == bubble_root:
                 continue
-            self._scan_doodle_directory(directory)
+            category = self._category_from(directory)
+            if category is not None:
+                self._doodle_categories.append(category)
         if bubble_root.is_dir():
             subdirectories = sorted(
                 child for child in bubble_root.iterdir() if child.is_dir()
@@ -83,26 +85,9 @@ class AssetCatalog:
                 if category is not None:
                     self._bubble_categories.append(category)
 
-    def _scan_doodle_directory(self, directory: Path) -> None:
-        direct = self._category_from(directory, recursive=False)
-        if direct is not None:
-            self._doodle_categories.append(direct)
-        subdirectories = sorted(
-            child for child in directory.iterdir() if child.is_dir()
-        )
-        for subdirectory in subdirectories:
-            category = self._category_from(
-                subdirectory, prefix=f"{directory.name}/{subdirectory.name}"
-            )
-            if category is not None:
-                self._doodle_categories.append(category)
-
-    def _category_from(
-        self, directory: Path, prefix: str = "", *, recursive: bool = True
-    ) -> AssetCategory | None:
-        pattern = "**/*.svg" if recursive else "*.svg"
+    def _category_from(self, directory: Path, prefix: str = "") -> AssetCategory | None:
         entries: list[AssetEntry] = []
-        for path in sorted(directory.glob(pattern)):
+        for path in sorted(directory.rglob("*.svg")):
             if not path.is_file():
                 continue
             category_name = prefix or directory.name
@@ -111,3 +96,31 @@ class AssetCatalog:
             return None
         display_name = prefix.rsplit("/", 1)[-1] if prefix else directory.name
         return AssetCategory(name=display_name, entries=entries)
+
+    def split_by_subdirectory(self, category: AssetCategory) -> list[AssetCategory]:
+        """Split a flat category into subcategories by immediate subdirectory.
+
+        Used to expose separately-organized parts (e.g. the character's eyes,
+        mouth and ears) while keeping the original top-level grouping intact.
+        """
+        groups: dict[str, list[AssetEntry]] = {}
+        for entry in category.entries:
+            relative = entry.path.parent.relative_to(self._root / category.name)
+            part = relative.parts[0] if relative.parts else category.name
+            groups.setdefault(part, []).append(entry)
+        result: list[AssetCategory] = []
+        for part in sorted(groups):
+            result.append(
+                AssetCategory(
+                    name=part,
+                    entries=[
+                        AssetEntry(
+                            name=entry.name,
+                            path=entry.path,
+                            category=f"{category.name}/{part}",
+                        )
+                        for entry in groups[part]
+                    ],
+                )
+            )
+        return result

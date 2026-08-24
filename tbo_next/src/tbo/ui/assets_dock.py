@@ -163,18 +163,14 @@ class AssetsDock(QDockWidget):
     def _split_categories(
         self, catalog: AssetCatalog
     ) -> tuple[list, list, list]:
-        head_root = catalog.root / "head"
-        accessories_root = catalog.root / "accesories"
         character: list = []
         accessories: list = []
         regular: list = []
         for category in catalog.doodle_categories:
-            if any(head_root in entry.path.parents for entry in category.entries):
-                character.append(category)
-            elif any(
-                accessories_root in entry.path.parents for entry in category.entries
-            ):
-                accessories.append(category)
+            if category.name == "head":
+                character.extend(catalog.split_by_subdirectory(category))
+            elif category.name == "accesories":
+                accessories.extend(catalog.split_by_subdirectory(category))
             else:
                 regular.append(category)
         return character, accessories, regular
