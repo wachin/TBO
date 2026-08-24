@@ -28,6 +28,21 @@ def find_asset_root() -> Path | None:
     return None
 
 
+def user_asset_roots() -> list[Path]:
+    """Return the user data directories where custom SVG assets may live.
+
+    Mirrors the legacy application, which looked in ``~/.tbo/doodle`` and the
+    XDG user data directory. Only directories that already exist are returned;
+    the application does not create them.
+    """
+    home = Path.home()
+    candidates = [
+        home / ".tbo" / "doodle",
+        home / ".local" / "share" / "tbo" / "doodle",
+    ]
+    return [candidate for candidate in candidates if candidate.is_dir()]
+
+
 def find_icon() -> Path | None:
     """Locate the application icon bundled with the package.
 

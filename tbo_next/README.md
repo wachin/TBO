@@ -79,6 +79,13 @@ format.
   categories with several expressions. Drop each part onto a panel and arrange
   them freely. The generator script is `tools/generate_character_parts.py`.
 
+### Custom assets
+
+The library also scans user data directories, so you can add your own SVG
+drawings without converting anything. Place your files under `~/.tbo/doodle/`
+or `~/.local/share/tbo/doodle/`, organized by folder (e.g.
+`head/eyes/my_eyes.svg`), and they are merged into the matching categories.
+
 Adding, cloning, moving, resizing, and deleting panels changes the document
 model and is recorded in the undo history. Creating, deleting, and reordering
 pages is reversible as well. An asterisk in the window title indicates unsaved

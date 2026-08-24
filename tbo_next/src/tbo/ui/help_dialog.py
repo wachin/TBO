@@ -65,6 +65,22 @@ página o viñeta actual.
 Además de hacer clic en una miniatura, puedes **arrastrarla** desde el panel
 **Biblioteca de recursos** y soltarla dentro de la viñeta que estás editando.
 
+## Añadir tus propios dibujos (SVG)
+
+Puedes crear tus propios ojos, bocas, orejas, narices, cejas, pestañas,
+labios, o cualquier otro elemento en **SVG** y el programa los cargará
+automáticamente. No hay que convertir nada: el programa usa SVGs directamente.
+
+Solo tienes que colocar tus archivos **.svg** en una de estas carpetas
+(el programa no las crea, debes hacerlo tú):
+
+- `~/.tbo/doodle/` (por ejemplo: `~/.tbo/doodle/head/eyes/mis_ojos.svg`)
+- `~/.local/share/tbo/doodle/`
+
+Organízalos por carpetas igual que el personaje de ejemplo (p. ej.
+`cabeza/ojos/`, `cabeza/bocas/`, `narices/`). El programa los mezclará con los
+recursos incluidos y los mostrará en la pestaña correspondiente.
+
 ## Personaje armable
 
 En la pestaña **Character** de la biblioteca hay un personaje de ejemplo

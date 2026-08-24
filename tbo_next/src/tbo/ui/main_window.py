@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import QApplication, QDialog, QFileDialog, QLabel, QMainWin
 
 from tbo.assets import AssetCatalog
 from tbo.document.model import Color, Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
+from tbo.resources import user_asset_roots
 from tbo.formats.tbo_v1 import TboFormatError, load, save
 from tbo.rendering import ExportError, export_comic, export_page
 from tbo.ui.assets_dock import AssetsDock
@@ -34,7 +35,9 @@ class MainWindow(QMainWindow):
         self.canvas = ComicCanvas(asset_root=asset_root)
         self.setCentralWidget(self.canvas)
         self._restore_window_state()
-        self.assets_catalog = AssetCatalog(asset_root) if asset_root is not None else None
+        self.asset_roots = [asset_root] if asset_root is not None else []
+        self.asset_roots.extend(user_asset_roots())
+        self.assets_catalog = AssetCatalog(self.asset_roots) if self.asset_roots else None
         self.assets_dock: AssetsDock | None = None
         if self.assets_catalog is not None:
             self.assets_dock = AssetsDock(self.assets_catalog, self)

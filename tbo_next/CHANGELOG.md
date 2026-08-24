@@ -61,6 +61,9 @@ overwrites the only copy of a user document without confirmation or a safe copy.
   and Bubbles.
 - The application icon is bundled inside the package (`tbo/resources/`) and set
   on the window and the application.
+- The asset catalog scans user data directories (`~/.tbo/doodle`,
+  `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
+  categories.
 - GitHub Actions CI (`ci.yml`): lint, unit/integration tests under Xvfb, coverage.
 - Manual build workflow (`build.yml`, `workflow_dispatch`) producing wheel, sdist,
   `.deb`, and Flatpak artifacts.
