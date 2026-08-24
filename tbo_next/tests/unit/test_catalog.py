@@ -10,7 +10,10 @@ DOODLE_ROOT = REPOSITORY_ROOT / "data" / "doodle"
 def test_catalog_indexes_doodle_and_bubble_categories() -> None:
     catalog = AssetCatalog(DOODLE_ROOT)
     doodle_names = {category.name for category in catalog.doodle_categories}
-    assert "doodle1" in doodle_names
+    assert "eyes" in doodle_names
+    assert "mouth" in doodle_names
+    assert "ears" in doodle_names
+    assert "head" in doodle_names
     assert "bubble" not in doodle_names
     bubble_names = {category.name for category in catalog.bubble_categories}
     assert "square" in bubble_names
@@ -23,11 +26,25 @@ def test_catalog_counts_assets() -> None:
     assert len(catalog.entries(bubbles=True)) >= 10
 
 
+def test_catalog_character_head_has_face_parts() -> None:
+    catalog = AssetCatalog(DOODLE_ROOT)
+    head = next(
+        (category for category in catalog.doodle_categories if category.name == "head"),
+        None,
+    )
+    assert head is not None
+    assert any(entry.name == "head" for entry in head.entries)
+    parts = {category.name: len(category.entries) for category in catalog.doodle_categories}
+    assert parts.get("eyes", 0) >= 1
+    assert parts.get("mouth", 0) >= 1
+    assert parts.get("ears", 0) >= 1
+
+
 def test_catalog_search_filters_by_name_and_category() -> None:
     catalog = AssetCatalog(DOODLE_ROOT)
     eyes = catalog.search("eyes", bubbles=False)
     assert eyes
-    assert all("eyes" in entry.name for entry in eyes)
+    assert all("eyes" in entry.name or "eyes" in entry.category for entry in eyes)
     squares = catalog.search("square", bubbles=True)
     assert squares
     assert all(entry.category.startswith("bubble/") for entry in squares)

@@ -54,6 +54,10 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Session restore: the last opened document is reopened on startup.
 - Pages dock with per-page thumbnails for quick navigation.
 - Find text dialog (`Ctrl+F`) that locates matches and navigates to them.
+- A buildable character asset set (blank head + eyes/mouth/ears with
+  expressions) added under `data/doodle/head/`, with a generator script.
+- Asset catalog now groups doodle parts by subdirectory (eyes, mouth, ears)
+  instead of flattening them.
 - GitHub Actions CI (`ci.yml`): lint, unit/integration tests under Xvfb, coverage.
 - Manual build workflow (`build.yml`, `workflow_dispatch`) producing wheel, sdist,
   `.deb`, and Flatpak artifacts.

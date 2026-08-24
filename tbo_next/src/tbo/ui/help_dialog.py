@@ -65,6 +65,20 @@ página o viñeta actual.
 Además de hacer clic en una miniatura, puedes **arrastrarla** desde el panel
 **Biblioteca de recursos** y soltarla dentro de la viñeta que estás editando.
 
+## Personaje armable
+
+En la pestaña **Doodles** hay un personaje de ejemplo formado por partes
+independientes que puedes combinar a tu gusto:
+
+- **Cabeza**: un rostro vacío (sin ojos, orejas ni boca).
+- **Ojos**: normal, alegre, triste, cerrado, sorprendido…
+- **Boca**: sonrisa, neutra, triste, abierta, con lengua…
+- **Orejas**: normales, puntiagudas…
+
+Coloca primero la cabeza y luego arrastra cada parte hasta la posición deseada.
+Puedes usar **Rotar** (`[` / `]`), **Voltear** (`H` / `V`), **Redimensionar**
+(arrastra el asa inferior derecha) y las expresiones que quieras.
+
 ## Presentación y exportación
 
 - Pulsa **`F5`** (menú **Ver ▸ Presentación**) para leer el cómic a pantalla

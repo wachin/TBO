@@ -74,6 +74,10 @@ format.
   jump to it. Thumbnails refresh as the comic is edited.
 - **Edit ▸ Find Text…** (`Ctrl+F`) searches every text object in the document
   and navigates to the page and panel containing a match.
+- The **Doodles** tab includes a buildable character made of separate SVG parts:
+  a blank head plus `eyes`, `mouth` and `ears` categories with several
+  expressions. Drop each part onto a panel and arrange them freely. The
+  generator script is `tools/generate_character_parts.py`.
 
 Adding, cloning, moving, resizing, and deleting panels changes the document
 model and is recorded in the undo history. Creating, deleting, and reordering

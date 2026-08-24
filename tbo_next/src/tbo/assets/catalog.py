@@ -66,16 +66,16 @@ class AssetCatalog:
         for directory in sorted(self._root.iterdir()):
             if not directory.is_dir() or directory == bubble_root:
                 continue
-            category = self._category_from(directory)
-            if category is not None:
-                self._doodle_categories.append(category)
+            self._scan_doodle_directory(directory)
         if bubble_root.is_dir():
             subdirectories = sorted(
                 child for child in bubble_root.iterdir() if child.is_dir()
             )
             if subdirectories:
                 for subdirectory in subdirectories:
-                    category = self._category_from(subdirectory, prefix=f"bubble/{subdirectory.name}")
+                    category = self._category_from(
+                        subdirectory, prefix=f"bubble/{subdirectory.name}"
+                    )
                     if category is not None:
                         self._bubble_categories.append(category)
             else:
@@ -83,9 +83,26 @@ class AssetCatalog:
                 if category is not None:
                     self._bubble_categories.append(category)
 
-    def _category_from(self, directory: Path, prefix: str = "") -> AssetCategory | None:
+    def _scan_doodle_directory(self, directory: Path) -> None:
+        direct = self._category_from(directory, recursive=False)
+        if direct is not None:
+            self._doodle_categories.append(direct)
+        subdirectories = sorted(
+            child for child in directory.iterdir() if child.is_dir()
+        )
+        for subdirectory in subdirectories:
+            category = self._category_from(
+                subdirectory, prefix=f"{directory.name}/{subdirectory.name}"
+            )
+            if category is not None:
+                self._doodle_categories.append(category)
+
+    def _category_from(
+        self, directory: Path, prefix: str = "", *, recursive: bool = True
+    ) -> AssetCategory | None:
+        pattern = "**/*.svg" if recursive else "*.svg"
         entries: list[AssetEntry] = []
-        for path in sorted(directory.rglob("*.svg")):
+        for path in sorted(directory.glob(pattern)):
             if not path.is_file():
                 continue
             category_name = prefix or directory.name
