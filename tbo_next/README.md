@@ -64,6 +64,12 @@ the `.tbo` file. The Edit menu also lets you add formatted text or import raster
 images and SVG files. Press `Esc` to return to page editing; other panels are
 dimmed while a panel is being edited.
 
+While editing a panel, the **Asset Library** dock on the right offers the SVG
+doodles and speech bubbles shipped with the application. The **Doodles** and
+**Bubbles** tabs group assets by category with a search box; clicking a preview
+inserts the asset into the current panel as an `SvgObject` that is undoable and
+persists in the `.tbo` file. The dock is disabled outside panel editing mode.
+
 TBO 2 currently writes the unversioned v1 format for compatibility with the
 historical application. Use **Save As** while the new implementation remains in
 development.

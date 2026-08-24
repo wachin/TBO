@@ -200,7 +200,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Añadir, seleccionar, mover, redimensionar, rotar, voltear, clonar y eliminar objetos (seleccionar, mover, clonar y eliminar listos para objetos existentes).
 - [x] Implementar edición de texto, tipografía y color (alta de texto con tipografía y color lista; edición posterior pendiente).
 - [x] Implementar importación de imágenes y SVG.
-- [ ] Integrar biblioteca de doodles y bocadillos con búsqueda y categorías.
+- [x] Integrar biblioteca de doodles y bocadillos con búsqueda y categorías.
 - [x] Garantizar undo/redo para cada operación, incluidas acciones compuestas y drag continuo (cubierto para páginas, viñetas y primeras operaciones de objetos).
 - [x] Añadir atajos de teclado y actualizar el estado de acciones según la selección.
 - [x] Marcar el documento como modificado solo cuando su estado cambie realmente.

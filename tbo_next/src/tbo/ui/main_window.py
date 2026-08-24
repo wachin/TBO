@@ -2,13 +2,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction, QColor, QFont, QImageReader, QKeySequence
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import QDialog, QFileDialog, QMainWindow, QMessageBox
 
+from tbo.assets import AssetCatalog
 from tbo.document.model import Color, Comic, ImageObject, Page, SvgObject, TextObject
 from tbo.formats.tbo_v1 import TboFormatError, load, save
 from tbo.rendering import ExportError, export_comic
+from tbo.ui.assets_dock import AssetsDock
 from tbo.ui.canvas import ComicCanvas
 from tbo.ui.new_comic_dialog import NewComicDialog
 from tbo.ui.text_object_dialog import TextObjectDialog
@@ -22,6 +25,12 @@ class MainWindow(QMainWindow):
         self._filename: Path | None = None
         self.canvas = ComicCanvas(asset_root=asset_root)
         self.setCentralWidget(self.canvas)
+        self.assets_catalog = AssetCatalog(asset_root) if asset_root is not None else None
+        self.assets_dock: AssetsDock | None = None
+        if self.assets_catalog is not None:
+            self.assets_dock = AssetsDock(self.assets_catalog, self)
+            self.assets_dock.assetActivated.connect(self.add_svg_from_path)
+            self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.assets_dock)
         self._create_actions()
         self.canvas.undo_stack.cleanChanged.connect(self._on_clean_changed)
         self.canvas.pageChanged.connect(self._update_page_actions)
@@ -551,6 +560,8 @@ class MainWindow(QMainWindow):
         self.add_text_action.setEnabled(editing)
         self.add_image_action.setEnabled(editing)
         self.add_svg_action.setEnabled(editing)
+        if self.assets_dock is not None:
+            self.assets_dock.setEnabled(editing)
         selected_object = self.canvas.selected_object()
         object_selected = editing and selected_object is not None
         self.rotate_left_action.setEnabled(object_selected)
