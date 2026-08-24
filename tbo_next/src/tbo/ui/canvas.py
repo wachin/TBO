@@ -3,7 +3,7 @@ from __future__ import annotations
 from copy import deepcopy
 from pathlib import Path
 
-from PyQt6.QtCore import QPointF, QRectF, Qt, pyqtSignal
+from PyQt6.QtCore import QPointF, QRectF, Qt, QUrl, pyqtSignal
 from PyQt6.QtGui import (
     QBrush,
     QColor,
@@ -31,6 +31,7 @@ from tbo.ui.commands import (
     AddFrameCommand,
     AddObjectCommand,
     AddPageCommand,
+    AlignFramesCommand,
     DeleteFrameCommand,
     DeleteObjectCommand,
     DeletePageCommand,
@@ -271,6 +272,8 @@ class ObjectGraphicsItem(QGraphicsRectItem):
 class ComicCanvas(QGraphicsView):
     pageChanged = pyqtSignal(int, int)
     modeChanged = pyqtSignal(bool)
+    zoomChanged = pyqtSignal(int)
+    assetDropped = pyqtSignal(Path)
 
     def __init__(self, asset_root: Path | None = None) -> None:
         super().__init__()
@@ -291,6 +294,7 @@ class ComicCanvas(QGraphicsView):
         self.setBackgroundBrush(QColor("#707070"))
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
+        self.setAcceptDrops(True)
 
     @property
     def comic(self) -> Comic | None:
@@ -437,6 +441,7 @@ class ComicCanvas(QGraphicsView):
             QRectF(frame.x, frame.y, frame.width, frame.height),
             Qt.AspectRatioMode.KeepAspectRatio,
         )
+        self.zoomChanged.emit(self.zoom_percent())
         self.modeChanged.emit(True)
         return True
 
@@ -465,12 +470,71 @@ class ComicCanvas(QGraphicsView):
         self.select_frame(frame)
         return frame
 
+    def selected_frames(self) -> list[Frame]:
+        return [
+            item.frame
+            for item in self.scene.selectedItems()
+            if isinstance(item, FrameGraphicsItem)
+        ]
+
+    def add_frames(self, frames: list[Frame]) -> bool:
+        page = self.current_page
+        if page is None or not frames:
+            return False
+        self.undo_stack.beginMacro(self.tr("Paste panels"))
+        for frame in frames:
+            self.undo_stack.push(AddFrameCommand(page, frame, self._refresh_current_page))
+        self.undo_stack.endMacro()
+        return True
+
+    def add_objects(self, objects: list[GraphicObject]) -> bool:
+        frame = self._editing_frame
+        if frame is None or not objects:
+            return False
+        self.undo_stack.beginMacro(self.tr("Paste objects"))
+        for graphic_object in objects:
+            self.undo_stack.push(
+                AddObjectCommand(frame, graphic_object, self._refresh_current_page)
+            )
+        self.undo_stack.endMacro()
+        return True
+
     def delete_selected_frame(self) -> bool:
         page = self.current_page
-        frame = self.selected_frame()
-        if page is None or frame is None:
+        frames = self.selected_frames()
+        if page is None or not frames:
             return False
-        self.undo_stack.push(DeleteFrameCommand(page, frame, self._refresh_current_page))
+        self.undo_stack.beginMacro(self.tr("Delete panels"))
+        for frame in frames:
+            self.undo_stack.push(DeleteFrameCommand(page, frame, self._refresh_current_page))
+        self.undo_stack.endMacro()
+        return True
+
+    def align_selected_frames(self, mode: str) -> bool:
+        frames = self.selected_frames()
+        if len(frames) < 2:
+            return False
+        target = _alignment_target(frames, mode)
+        old_positions = [(frame.x, frame.y) for frame in frames]
+        new_positions = [target(frame) for frame in frames]
+        self.undo_stack.push(
+            AlignFramesCommand(
+                frames, old_positions, new_positions, self._refresh_current_page
+            )
+        )
+        return True
+
+    def distribute_selected_frames(self, axis: str) -> bool:
+        frames = self.selected_frames()
+        if len(frames) < 3:
+            return False
+        old_positions = [(frame.x, frame.y) for frame in frames]
+        new_positions = _distribution_positions(frames, axis)
+        self.undo_stack.push(
+            AlignFramesCommand(
+                frames, old_positions, new_positions, self._refresh_current_page
+            )
+        )
         return True
 
     def clone_selected_frame(self) -> Frame | None:
@@ -541,14 +605,24 @@ class ComicCanvas(QGraphicsView):
         self.select_object(graphic_object)
         return True
 
+    def selected_objects(self) -> list[GraphicObject]:
+        return [
+            item.graphic_object
+            for item in self.scene.selectedItems()
+            if isinstance(item, ObjectGraphicsItem)
+        ]
+
     def delete_selected_object(self) -> bool:
         frame = self._editing_frame
-        graphic_object = self.selected_object()
-        if frame is None or graphic_object is None:
+        objects = self.selected_objects()
+        if frame is None or not objects:
             return False
-        self.undo_stack.push(
-            DeleteObjectCommand(frame, graphic_object, self._refresh_current_page)
-        )
+        self.undo_stack.beginMacro(self.tr("Delete objects"))
+        for graphic_object in objects:
+            self.undo_stack.push(
+                DeleteObjectCommand(frame, graphic_object, self._refresh_current_page)
+            )
+        self.undo_stack.endMacro()
         return True
 
     def rotate_selected_object(self, delta_degrees: float) -> bool:
@@ -756,17 +830,70 @@ class ComicCanvas(QGraphicsView):
         item.setTransform(transform)
 
     def zoom_in(self) -> None:
-        self.scale(1.2, 1.2)
+        self._zoom_by(1.2)
 
     def zoom_out(self) -> None:
-        self.scale(1 / 1.2, 1 / 1.2)
+        self._zoom_by(1 / 1.2)
 
     def reset_zoom(self) -> None:
         self.resetTransform()
+        self.zoomChanged.emit(self.zoom_percent())
 
     def fit_page(self) -> None:
         if self._comic is not None:
             self.fitInView(self.scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+            self.zoomChanged.emit(self.zoom_percent())
+
+    def zoom_percent(self) -> int:
+        return round(self.transform().m11() * 100)
+
+    def _zoom_by(self, factor: float) -> None:
+        center = self.viewport().rect().center()
+        self._zoom_at(QPointF(center), factor)
+
+    def _zoom_at(self, view_position: QPointF, factor: float) -> None:
+        scene_before = self.mapToScene(view_position.toPoint())
+        self.scale(factor, factor)
+        scene_after = self.mapToScene(view_position.toPoint())
+        delta = scene_after - scene_before
+        self.translate(delta.x(), delta.y())
+        self.zoomChanged.emit(self.zoom_percent())
+
+    def wheelEvent(self, event) -> None:
+        pixel_delta = event.pixelDelta()
+        if pixel_delta is not None and (pixel_delta.x() or pixel_delta.y()):
+            super().wheelEvent(event)
+            return
+        angle_delta = event.angleDelta()
+        if angle_delta.y() == 0:
+            return
+        factor = 1.15 if angle_delta.y() > 0 else 1 / 1.15
+        self._zoom_at(event.position(), factor)
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key.Key_Control:
+            self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
+        super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event) -> None:
+        if event.key() == Qt.Key.Key_Control:
+            self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        super().keyReleaseEvent(event)
+
+    def dragEnterEvent(self, event) -> None:
+        if self._editing_frame is not None and event.mimeData().hasUrls():
+            event.acceptProposedAction()
+            return
+        super().dragEnterEvent(event)
+
+    def dropEvent(self, event) -> None:
+        if self._editing_frame is None:
+            return
+        urls = event.mimeData().urls()
+        for url in urls:
+            if url.isLocalFile():
+                self.assetDropped.emit(Path(url.toLocalFile()))
+        event.acceptProposedAction()
 
     def _add_object(
         self,
@@ -845,3 +972,49 @@ def _missing_asset_item(obj: GraphicObject, parent: QGraphicsItem) -> QGraphicsR
     item.setPen(QPen(QColor("#b00020"), 2, Qt.PenStyle.DashLine))
     item.setBrush(QColor(255, 220, 220, 100))
     return item
+
+
+def _alignment_target(frames: list[Frame], mode: str):
+    if mode == "left":
+        target = min(frame.x for frame in frames)
+        return lambda frame: (target, frame.y)
+    if mode == "right":
+        target = max(frame.x + frame.width for frame in frames)
+        return lambda frame: (target - frame.width, frame.y)
+    if mode == "hcenter":
+        centers = [frame.x + frame.width / 2 for frame in frames]
+        target = sum(centers) / len(centers)
+        return lambda frame: (round(target - frame.width / 2), frame.y)
+    if mode == "top":
+        target = min(frame.y for frame in frames)
+        return lambda frame: (frame.x, target)
+    if mode == "bottom":
+        target = max(frame.y + frame.height for frame in frames)
+        return lambda frame: (frame.x, target - frame.height)
+    if mode == "vcenter":
+        centers = [frame.y + frame.height / 2 for frame in frames]
+        target = sum(centers) / len(centers)
+        return lambda frame: (frame.x, round(target - frame.height / 2))
+    raise ValueError(f"unknown alignment mode {mode!r}")
+
+
+def _distribution_positions(frames: list[Frame], axis: str) -> list[tuple[int, int]]:
+    if axis == "horizontal":
+        ordered = sorted(frames, key=lambda frame: frame.x + frame.width / 2)
+        centers = [frame.x + frame.width / 2 for frame in ordered]
+        start, end = centers[0], centers[-1]
+        step = (end - start) / (len(ordered) - 1) if len(ordered) > 1 else 0
+        return [
+            (round(start + index * step - frame.width / 2), frame.y)
+            for index, frame in enumerate(ordered)
+        ]
+    if axis == "vertical":
+        ordered = sorted(frames, key=lambda frame: frame.y + frame.height / 2)
+        centers = [frame.y + frame.height / 2 for frame in ordered]
+        start, end = centers[0], centers[-1]
+        step = (end - start) / (len(ordered) - 1) if len(ordered) > 1 else 0
+        return [
+            (frame.x, round(start + index * step - frame.height / 2))
+            for index, frame in enumerate(ordered)
+        ]
+    raise ValueError(f"unknown distribution axis {axis!r}")

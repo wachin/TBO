@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import shutil
+from copy import deepcopy
 from pathlib import Path
 
 from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtGui import QAction, QColor, QFont, QImageReader, QKeySequence
 from PyQt6.QtSvg import QSvgRenderer
-from PyQt6.QtWidgets import QDialog, QFileDialog, QMainWindow, QMessageBox
+from PyQt6.QtWidgets import QDialog, QFileDialog, QLabel, QMainWindow, QMessageBox
 
 from tbo.assets import AssetCatalog
-from tbo.document.model import Color, Comic, ImageObject, Page, SvgObject, TextObject
+from tbo.document.model import Color, Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
 from tbo.formats.tbo_v1 import TboFormatError, load, save
 from tbo.rendering import ExportError, export_comic
 from tbo.ui.assets_dock import AssetsDock
@@ -25,6 +26,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("TBO 2")
         self.resize(1000, 700)
         self._filename: Path | None = None
+        self._clipboard: list = []
+        self._clipboard_is_objects = False
         self.preferences = Preferences()
         self.canvas = ComicCanvas(asset_root=asset_root)
         self.setCentralWidget(self.canvas)
@@ -41,6 +44,10 @@ class MainWindow(QMainWindow):
         self.canvas.pageChanged.connect(self._update_page_actions)
         self.canvas.modeChanged.connect(self._on_mode_changed)
         self.canvas.scene.selectionChanged.connect(self._update_edit_actions)
+        self.canvas.assetDropped.connect(self.add_svg_from_path)
+        self.canvas.zoomChanged.connect(self._update_zoom_label)
+        self.zoom_label = QLabel(self.tr("100%"))
+        self.statusBar().addPermanentWidget(self.zoom_label)
         self._update_edit_actions()
         self.autosave_timer = QTimer(self)
         self.autosave_timer.setInterval(30_000)
@@ -90,6 +97,16 @@ class MainWindow(QMainWindow):
         self.redo_action.setShortcut(QKeySequence.StandardKey.Redo)
         edit_menu.addAction(self.redo_action)
 
+        self.copy_action = QAction(self.tr("&Copy"), self)
+        self.copy_action.setShortcut(QKeySequence.StandardKey.Copy)
+        self.copy_action.triggered.connect(self.copy_selection)
+        edit_menu.addAction(self.copy_action)
+        self.paste_action = QAction(self.tr("&Paste"), self)
+        self.paste_action.setShortcut(QKeySequence.StandardKey.Paste)
+        self.paste_action.setEnabled(False)
+        self.paste_action.triggered.connect(self.paste_clipboard)
+        edit_menu.addAction(self.paste_action)
+
         edit_menu.addSeparator()
         self.add_frame_action = QAction(self.tr("Add &Panel"), self)
         self.add_frame_action.setShortcut("F")
@@ -109,6 +126,35 @@ class MainWindow(QMainWindow):
         self.leave_frame_action.setShortcut("Escape")
         self.leave_frame_action.triggered.connect(self.leave_frame)
         edit_menu.addAction(self.leave_frame_action)
+
+        align_menu = edit_menu.addMenu(self.tr("Ali&gn"))
+        self.align_left_action = QAction(self.tr("Left"), self)
+        self.align_left_action.triggered.connect(lambda: self.canvas.align_selected_frames("left"))
+        align_menu.addAction(self.align_left_action)
+        self.align_hcenter_action = QAction(self.tr("Horizontal Center"), self)
+        self.align_hcenter_action.triggered.connect(lambda: self.canvas.align_selected_frames("hcenter"))
+        align_menu.addAction(self.align_hcenter_action)
+        self.align_right_action = QAction(self.tr("Right"), self)
+        self.align_right_action.triggered.connect(lambda: self.canvas.align_selected_frames("right"))
+        align_menu.addAction(self.align_right_action)
+        align_menu.addSeparator()
+        self.align_top_action = QAction(self.tr("Top"), self)
+        self.align_top_action.triggered.connect(lambda: self.canvas.align_selected_frames("top"))
+        align_menu.addAction(self.align_top_action)
+        self.align_vcenter_action = QAction(self.tr("Vertical Center"), self)
+        self.align_vcenter_action.triggered.connect(lambda: self.canvas.align_selected_frames("vcenter"))
+        align_menu.addAction(self.align_vcenter_action)
+        self.align_bottom_action = QAction(self.tr("Bottom"), self)
+        self.align_bottom_action.triggered.connect(lambda: self.canvas.align_selected_frames("bottom"))
+        align_menu.addAction(self.align_bottom_action)
+
+        distribute_menu = edit_menu.addMenu(self.tr("&Distribute"))
+        self.distribute_h_action = QAction(self.tr("Horizontally"), self)
+        self.distribute_h_action.triggered.connect(lambda: self.canvas.distribute_selected_frames("horizontal"))
+        distribute_menu.addAction(self.distribute_h_action)
+        self.distribute_v_action = QAction(self.tr("Vertically"), self)
+        self.distribute_v_action.triggered.connect(lambda: self.canvas.distribute_selected_frames("vertical"))
+        distribute_menu.addAction(self.distribute_v_action)
 
         edit_menu.addSeparator()
         self.add_text_action = QAction(self.tr("Add &Text…"), self)
@@ -560,6 +606,39 @@ class MainWindow(QMainWindow):
         if cloned is not None:
             self._update_edit_actions()
 
+    def copy_selection(self) -> None:
+        if self.canvas.editing_frame is not None:
+            objects = self.canvas.selected_objects()
+            if not objects:
+                return
+            self._clipboard = [deepcopy(obj) for obj in objects]
+            self._clipboard_is_objects = True
+        else:
+            frames = self.canvas.selected_frames()
+            if not frames:
+                return
+            self._clipboard = [deepcopy(frame) for frame in frames]
+            self._clipboard_is_objects = False
+        for item in self._clipboard:
+            item.x += 10
+            item.y += 10
+        self.paste_action.setEnabled(True)
+
+    def paste_clipboard(self) -> None:
+        if not self._clipboard:
+            return
+        if self._clipboard_is_objects:
+            objects = [deepcopy(item) for item in self._clipboard]
+            if self.canvas.editing_frame is None:
+                return
+            self.canvas.add_objects(objects)
+        else:
+            frames = [deepcopy(item) for item in self._clipboard]
+            if self.canvas.editing_frame is not None:
+                return
+            self.canvas.add_frames(frames)
+        self._update_edit_actions()
+
     def nudge_selected_frame(self, dx: int, dy: int) -> None:
         if self.canvas.editing_frame is not None:
             self.canvas.nudge_selected_object(dx, dy)
@@ -719,6 +798,20 @@ class MainWindow(QMainWindow):
         self.add_svg_action.setEnabled(editing)
         if self.assets_dock is not None:
             self.assets_dock.setEnabled(editing)
+        frame_count = len(self.canvas.selected_frames()) if not editing else 0
+        can_align = frame_count >= 2
+        can_distribute = frame_count >= 3
+        for action in (
+            self.align_left_action,
+            self.align_hcenter_action,
+            self.align_right_action,
+            self.align_top_action,
+            self.align_vcenter_action,
+            self.align_bottom_action,
+        ):
+            action.setEnabled(can_align)
+        self.distribute_h_action.setEnabled(can_distribute)
+        self.distribute_v_action.setEnabled(can_distribute)
         selected_object = self.canvas.selected_object()
         object_selected = editing and selected_object is not None
         self.rotate_left_action.setEnabled(object_selected)
@@ -726,6 +819,15 @@ class MainWindow(QMainWindow):
         self.flip_horizontal_action.setEnabled(object_selected)
         self.flip_vertical_action.setEnabled(object_selected)
         self.edit_text_action.setEnabled(object_selected and isinstance(selected_object, TextObject))
+        has_selection = bool(self.canvas.selected_objects()) if editing else frame_count > 0
+        self.copy_action.setEnabled(has_selection)
+        clipboard_matches = (
+            editing == self._clipboard_is_objects if self._clipboard else False
+        )
+        self.paste_action.setEnabled(bool(self._clipboard) and clipboard_matches)
+
+    def _update_zoom_label(self, percent: int) -> None:
+        self.zoom_label.setText(self.tr("{percent}%").format(percent=percent))
 
     def _update_page_actions(self, *args) -> None:
         index = self.canvas.page_index

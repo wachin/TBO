@@ -40,4 +40,10 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Session recovery: `.bak` backups and a 30-second `.autosave`.
 - Preferences via `QSettings`: window geometry, last directory, recent files.
 - Main toolbar, HiDPI scaling, and Qt translator loading.
+- Help menu with user documentation (Help Contents, F1).
+- Mouse-wheel zoom centered on the cursor with a zoom percentage in the status bar.
+- Multi-selection via `Ctrl`+click or rubber-band drag, with batch delete.
+- Panel alignment and distribution actions (Edit ▸ Align / Distribute).
+- Copy/paste of panels and objects across pages (`Ctrl+C`/`Ctrl+V`).
+- Drag & drop of assets from the library into the editing panel.
 - Pytest suite (unit and integration tests).

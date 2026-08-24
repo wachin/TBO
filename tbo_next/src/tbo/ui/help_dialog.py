@@ -45,6 +45,26 @@ como**, **Exportar**, **Añadir imagen** o **Añadir SVG**, el diálogo empezar�
 esa carpeta. La primera vez, al no haber historial, empieza en tu carpeta
 personal (`~`).
 
+## Selección múltiple, alineación y distribución
+
+Mantén **`Ctrl`** mientras haces clic en varias viñetas u objetos (o arrastra un
+rectángulo) para seleccionarlos a la vez. Con varios seleccionados puedes:
+
+- Pulsar **`Supr`** para eliminarlos todos en un solo paso (reversible con
+  deshacer).
+- Usar el menú **Editar ▸ Alinear** (izquierda, centro, derecha, arriba, etc.)
+  para alinear las viñetas seleccionadas.
+- Usar **Editar ▸ Distribuir** para repartir el espacio de forma uniforme.
+
+Para **copiar y pegar** entre páginas usa **`Ctrl+C`** y **`Ctrl+V`**: copia las
+viñetas (en la página) o los objetos (dentro de una viñeta) y pégalos en la
+página o viñeta actual.
+
+## Arrastrar desde la biblioteca
+
+Además de hacer clic en una miniatura, puedes **arrastrarla** desde el panel
+**Biblioteca de recursos** y soltarla dentro de la viñeta que estás editando.
+
 ## Atajos útiles
 
 | Atajo | Acción |
@@ -59,10 +79,12 @@ personal (`~`).
 | `T` | Añadir texto (editando viñeta) |
 | `Esc` | Salir de la edición de viñeta |
 | `Ctrl+D` | Clonar viñeta u objeto seleccionado |
+| `Ctrl+C` / `Ctrl+V` | Copiar / pegar viñetas u objetos |
+| `Ctrl` + clic / arrastre | Selección múltiple |
 | `Delete` | Eliminar viñeta u objeto seleccionado |
 | `[` / `]` | Rotar objeto a la izquierda / derecha |
 | `H` / `V` | Voltear objeto horizontal / vertical |
-| `+` / `-` / `1` / `2` | Zoom in / out / tamaño real / ajustar página |
+| `Ctrl` + rueda o `+` / `-` / `1` / `2` | Zoom in / out / tamaño real / ajustar página |
 | `Ctrl+Z` / `Ctrl+Shift+Z` | Deshacer / rehacer |
 """
 

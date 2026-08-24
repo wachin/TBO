@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PyQt6.QtCore import QRectF, QSize, Qt, pyqtSignal
-from PyQt6.QtGui import QIcon, QImage, QPainter, QPixmap
+from PyQt6.QtCore import QMimeData, QRectF, QSize, QUrl, Qt, pyqtSignal
+from PyQt6.QtGui import QDrag, QIcon, QImage, QPainter, QPixmap
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (
+    QAbstractItemView,
     QDockWidget,
     QLineEdit,
     QListWidget,
@@ -19,6 +20,23 @@ from PyQt6.QtWidgets import (
 from tbo.assets import AssetCatalog, AssetEntry
 
 ICON_SIZE = 64
+
+
+class _DraggableListWidget(QListWidget):
+    def mimeData(self, items):
+        data = QMimeData()
+        urls = []
+        texts = []
+        for item in items:
+            raw = item.data(Qt.ItemDataRole.UserRole)
+            if raw:
+                urls.append(QUrl.fromLocalFile(raw))
+                texts.append(raw)
+        if urls:
+            data.setUrls(urls)
+        if texts:
+            data.setText("\n".join(texts))
+        return data
 
 
 class _LibraryTab(QWidget):
@@ -37,12 +55,14 @@ class _LibraryTab(QWidget):
         self.toolbox = QToolBox()
         self._pages: list[QListWidget] = []
         for category in self._categories:
-            list_widget = QListWidget()
+            list_widget = _DraggableListWidget()
             list_widget.setViewMode(QListWidget.ViewMode.IconMode)
             list_widget.setIconSize(QSize(ICON_SIZE, ICON_SIZE))
             list_widget.setResizeMode(QListWidget.ResizeMode.Adjust)
             list_widget.setMovement(QListWidget.Movement.Static)
             list_widget.setWordWrap(True)
+            list_widget.setDragEnabled(True)
+            list_widget.setDragDropMode(QAbstractItemView.DragDropMode.DragOnly)
             list_widget.itemClicked.connect(self._on_item_clicked)
             self.toolbox.addItem(list_widget, category.name)
             self._pages.append(list_widget)

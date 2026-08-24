@@ -36,11 +36,12 @@ format.
 - `Ctrl+O`: open a document;
 - `Ctrl+S`: save atomically;
 - `Ctrl+Shift+S`: save a copy;
+- `Ctrl+E`: export;
 - `PageUp` / `PageDown`: previous or next page;
 - `Ctrl+Shift+N`: add a page after the current page;
 - `Ctrl+Delete`: delete the current page;
 - `Ctrl+PageUp` / `Ctrl+PageDown`: move the current page left or right;
-- `+` / `-`: zoom in or out;
+- `Ctrl+wheel`, `+` / `-`: zoom in / out (centered on cursor);
 - `1`: return to actual size;
 - `2`: fit the page to the window;
 - `F`: add a panel;
@@ -49,8 +50,13 @@ format.
 - drag its yellow bottom-right handle: resize it;
 - arrow keys: move the selection in 5-pixel increments;
 - `Ctrl+D`: clone the selected panel or object;
-- `Delete`: delete the selected panel or object;
-- `Ctrl+Z` / `Ctrl+Shift+Z`: undo or redo.
+- `Ctrl+C` / `Ctrl+V`: copy / paste panels or objects;
+- `Ctrl` + click / drag: multi-select;
+- `Delete`: delete the selected panel or objects;
+- `Ctrl+Z` / `Ctrl+Shift+Z`: undo or redo;
+- `Esc`: leave panel editing mode;
+- `[` / `]`: rotate selected object left / right;
+- `H` / `V`: flip selected object horizontally / vertically.
 
 Adding, cloning, moving, resizing, and deleting panels changes the document
 model and is recorded in the undo history. Creating, deleting, and reordering

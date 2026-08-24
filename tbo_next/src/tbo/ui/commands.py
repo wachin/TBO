@@ -133,6 +133,32 @@ class ResizeFrameCommand(QUndoCommand):
         self._on_change(self._frame)
 
 
+class AlignFramesCommand(QUndoCommand):
+    def __init__(
+        self,
+        frames: list[Frame],
+        old_positions: list[tuple[int, int]],
+        new_positions: list[tuple[int, int]],
+        on_change: ChangeCallback,
+    ) -> None:
+        super().__init__(_tr("Align panels"))
+        self._frames = frames
+        self._old_positions = old_positions
+        self._new_positions = new_positions
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new_positions)
+
+    def undo(self) -> None:
+        self._apply(self._old_positions)
+
+    def _apply(self, positions: list[tuple[int, int]]) -> None:
+        for frame, (x, y) in zip(self._frames, positions):
+            frame.x, frame.y = x, y
+        self._on_change()
+
+
 class AddPageCommand(QUndoCommand):
     def __init__(
         self,
