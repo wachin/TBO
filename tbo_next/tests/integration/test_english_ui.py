@@ -9,7 +9,7 @@ def test_primary_interface_language_is_english(qtbot) -> None:
     qtbot.addWidget(dialog)
 
     menu_titles = [action.text() for action in window.menuBar().actions()]
-    assert menu_titles == ["&File", "&Edit", "&Page", "&View"]
+    assert menu_titles == ["&File", "&Edit", "&Page", "&View", "&Help"]
     assert window.save_action.text() == "&Save"
     assert window.add_frame_action.text() == "Add &Panel"
     assert dialog.windowTitle() == "New comic"

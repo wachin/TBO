@@ -216,6 +216,37 @@ class MainWindow(QMainWindow):
         self.reset_zoom_action.triggered.connect(self.canvas.reset_zoom)
         view_menu.addAction(self.reset_zoom_action)
 
+        help_menu = self.menuBar().addMenu(self.tr("&Help"))
+        help_action = QAction(self.tr("&Help Contents"), self)
+        help_action.setShortcut(QKeySequence.StandardKey.HelpContents)
+        help_action.triggered.connect(self._show_help)
+        help_menu.addAction(help_action)
+
+        about_action = QAction(self.tr("&About TBO"), self)
+        about_action.triggered.connect(self._show_about)
+        help_menu.addAction(about_action)
+
+    def _show_help(self) -> None:
+        from tbo.ui.help_dialog import HelpDialog
+
+        dialog = HelpDialog(self)
+        dialog.exec()
+
+    def _show_about(self) -> None:
+        from tbo import __version__
+
+        QMessageBox.about(
+            self,
+            self.tr("About TBO"),
+            self.tr(
+                "TBO {version}\n\n"
+                "A modern comic editor compatible with legacy TBO documents.\n\n"
+                "Copyright 2010 Daniel Garcia Moreno\n"
+                "Copyright 2026 TBO contributors\n\n"
+                "License: GPL-3.0-or-later"
+            ).format(version=__version__),
+        )
+
     def _create_toolbar(self) -> None:
         toolbar = self.addToolBar(self.tr("Main Toolbar"))
         toolbar.setObjectName("main_toolbar")
