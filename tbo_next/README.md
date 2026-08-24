@@ -78,6 +78,19 @@ When there are pending changes, TBO asks whether to save, discard, or cancel
 before creating another document, opening one, or closing the window. Canceling
 never replaces the document or removes its undo/redo history.
 
+## Session recovery and preferences
+
+- **Recovery**: saving a file keeps a `.bak` copy of the previous version. A
+  background timer also writes an `.autosave` copy of a modified document every
+  30 seconds; the copy is removed as soon as the file is saved. The original
+  document is never overwritten without an explicit save.
+- **Preferences** are persisted with `QSettings` and kept separate from `.tbo`
+  documents: window geometry, the last directory used, and the list of recent
+  files (**File ▸ Recent Files**). No sensitive paths are written to logs.
+- **HiDPI**: the application enables high-DPI scaling and loads Qt translations
+  for the configured locale. Interface strings are already marked for Qt
+  Linguist; translation catalogs will be added once the terminology stabilizes.
+
 ## Exporting
 
 Use **File ▸ Export…** (`Ctrl+E`) to render the document to image files. The same

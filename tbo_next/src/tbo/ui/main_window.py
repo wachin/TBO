@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtGui import QAction, QColor, QFont, QImageReader, QKeySequence
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import QDialog, QFileDialog, QMainWindow, QMessageBox
@@ -14,6 +15,7 @@ from tbo.rendering import ExportError, export_comic
 from tbo.ui.assets_dock import AssetsDock
 from tbo.ui.canvas import ComicCanvas
 from tbo.ui.new_comic_dialog import NewComicDialog
+from tbo.ui.preferences import Preferences
 from tbo.ui.text_object_dialog import TextObjectDialog
 
 
@@ -23,8 +25,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("TBO 2")
         self.resize(1000, 700)
         self._filename: Path | None = None
+        self.preferences = Preferences()
         self.canvas = ComicCanvas(asset_root=asset_root)
         self.setCentralWidget(self.canvas)
+        self._restore_window_state()
         self.assets_catalog = AssetCatalog(asset_root) if asset_root is not None else None
         self.assets_dock: AssetsDock | None = None
         if self.assets_catalog is not None:
@@ -32,23 +36,28 @@ class MainWindow(QMainWindow):
             self.assets_dock.assetActivated.connect(self.add_svg_from_path)
             self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.assets_dock)
         self._create_actions()
+        self._create_toolbar()
         self.canvas.undo_stack.cleanChanged.connect(self._on_clean_changed)
         self.canvas.pageChanged.connect(self._update_page_actions)
         self.canvas.modeChanged.connect(self._on_mode_changed)
         self.canvas.scene.selectionChanged.connect(self._update_edit_actions)
         self._update_edit_actions()
+        self.autosave_timer = QTimer(self)
+        self.autosave_timer.setInterval(30_000)
+        self.autosave_timer.timeout.connect(self._autosave)
+        self.autosave_timer.start()
 
     def _create_actions(self) -> None:
         file_menu = self.menuBar().addMenu(self.tr("&File"))
-        new_action = QAction(self.tr("&New…"), self)
-        new_action.setShortcut(QKeySequence.StandardKey.New)
-        new_action.triggered.connect(self.new_document_dialog)
-        file_menu.addAction(new_action)
+        self.new_action = QAction(self.tr("&New…"), self)
+        self.new_action.setShortcut(QKeySequence.StandardKey.New)
+        self.new_action.triggered.connect(self.new_document_dialog)
+        file_menu.addAction(self.new_action)
 
-        open_action = QAction(self.tr("&Open…"), self)
-        open_action.setShortcut(QKeySequence.StandardKey.Open)
-        open_action.triggered.connect(self.open_dialog)
-        file_menu.addAction(open_action)
+        self.open_action = QAction(self.tr("&Open…"), self)
+        self.open_action.setShortcut(QKeySequence.StandardKey.Open)
+        self.open_action.triggered.connect(self.open_dialog)
+        file_menu.addAction(self.open_action)
 
         self.save_action = QAction(self.tr("&Save"), self)
         self.save_action.setShortcut(QKeySequence.StandardKey.Save)
@@ -67,6 +76,11 @@ class MainWindow(QMainWindow):
         self.export_action.setEnabled(False)
         self.export_action.triggered.connect(self.export_dialog)
         file_menu.addAction(self.export_action)
+
+        file_menu.addSeparator()
+        self.recent_menu = file_menu.addMenu(self.tr("&Recent Files"))
+        self.recent_menu.menuAction().setEnabled(False)
+        self._refresh_recent_files()
 
         edit_menu = self.menuBar().addMenu(self.tr("&Edit"))
         self.undo_action = self.canvas.undo_stack.createUndoAction(self, self.tr("&Undo"))
@@ -182,31 +196,52 @@ class MainWindow(QMainWindow):
         navigate_menu.addAction(self.move_page_right_action)
 
         view_menu = self.menuBar().addMenu(self.tr("&View"))
-        fit_action = QAction(self.tr("Fit Page"), self)
-        fit_action.setShortcut("2")
-        fit_action.triggered.connect(self.canvas.fit_page)
-        view_menu.addAction(fit_action)
+        self.fit_page_action = QAction(self.tr("Fit Page"), self)
+        self.fit_page_action.setShortcut("2")
+        self.fit_page_action.triggered.connect(self.canvas.fit_page)
+        view_menu.addAction(self.fit_page_action)
 
-        zoom_in_action = QAction(self.tr("Zoom In"), self)
-        zoom_in_action.setShortcut("+")
-        zoom_in_action.triggered.connect(self.canvas.zoom_in)
-        view_menu.addAction(zoom_in_action)
+        self.zoom_in_action = QAction(self.tr("Zoom In"), self)
+        self.zoom_in_action.setShortcut("+")
+        self.zoom_in_action.triggered.connect(self.canvas.zoom_in)
+        view_menu.addAction(self.zoom_in_action)
 
-        zoom_out_action = QAction(self.tr("Zoom Out"), self)
-        zoom_out_action.setShortcut("-")
-        zoom_out_action.triggered.connect(self.canvas.zoom_out)
-        view_menu.addAction(zoom_out_action)
+        self.zoom_out_action = QAction(self.tr("Zoom Out"), self)
+        self.zoom_out_action.setShortcut("-")
+        self.zoom_out_action.triggered.connect(self.canvas.zoom_out)
+        view_menu.addAction(self.zoom_out_action)
 
-        reset_zoom_action = QAction(self.tr("Actual Size"), self)
-        reset_zoom_action.setShortcut("1")
-        reset_zoom_action.triggered.connect(self.canvas.reset_zoom)
-        view_menu.addAction(reset_zoom_action)
+        self.reset_zoom_action = QAction(self.tr("Actual Size"), self)
+        self.reset_zoom_action.setShortcut("1")
+        self.reset_zoom_action.triggered.connect(self.canvas.reset_zoom)
+        view_menu.addAction(self.reset_zoom_action)
+
+    def _create_toolbar(self) -> None:
+        toolbar = self.addToolBar(self.tr("Main Toolbar"))
+        toolbar.setObjectName("main_toolbar")
+        toolbar.setMovable(False)
+        toolbar.addAction(self.new_action)
+        toolbar.addAction(self.open_action)
+        toolbar.addAction(self.save_action)
+        toolbar.addAction(self.save_as_action)
+        toolbar.addSeparator()
+        toolbar.addAction(self.undo_action)
+        toolbar.addAction(self.redo_action)
+        toolbar.addSeparator()
+        toolbar.addAction(self.add_frame_action)
+        toolbar.addAction(self.add_text_action)
+        toolbar.addSeparator()
+        toolbar.addAction(self.zoom_in_action)
+        toolbar.addAction(self.zoom_out_action)
+        toolbar.addAction(self.reset_zoom_action)
+        toolbar.addAction(self.fit_page_action)
 
     def open_dialog(self) -> None:
+        directory = str(self.preferences.last_directory() or Path.home())
         filename, _ = QFileDialog.getOpenFileName(
             self,
             self.tr("Open Comic"),
-            "",
+            directory,
             self.tr("TBO Files (*.tbo);;All Files (*)"),
         )
         if filename and self._confirm_replacing_modified_document():
@@ -231,9 +266,13 @@ class MainWindow(QMainWindow):
             return False
 
         self._set_document(comic, filename=filename)
+        self.preferences.add_recent_file(filename.resolve())
+        self.preferences.set_last_directory(filename.parent.resolve())
+        self._refresh_recent_files()
         return True
 
     def _set_document(self, comic: Comic, *, filename: Path | None) -> None:
+        self._clear_autosave()
         self.canvas.set_comic(comic)
         self._filename = filename
         self.save_action.setEnabled(True)
@@ -252,7 +291,10 @@ class MainWindow(QMainWindow):
     def save_as_dialog(self) -> bool:
         if self.canvas.comic is None:
             return False
-        suggested = str(self._filename or Path(f"{self.canvas.comic.title}.tbo"))
+        default_directory = self.preferences.last_directory() or Path.home()
+        suggested = str(
+            self._filename or Path(default_directory) / f"{self.canvas.comic.title}.tbo"
+        )
         filename, _ = QFileDialog.getSaveFileName(
             self, self.tr("Save Comic"), suggested, self.tr("TBO Files (*.tbo)")
         )
@@ -300,11 +342,35 @@ class MainWindow(QMainWindow):
     def _asset_root(self) -> Path | None:
         return self.canvas._asset_root
 
+    def _refresh_recent_files(self) -> None:
+        self.recent_menu.clear()
+        recent = self.preferences.recent_files()
+        self.recent_menu.menuAction().setEnabled(bool(recent))
+        for filename in recent:
+            action = self.recent_menu.addAction(str(filename))
+            action.triggered.connect(
+                lambda checked=False, path=filename: self._open_recent_file(path)
+            )
+
+    def _open_recent_file(self, filename: Path) -> None:
+        if not filename.is_file():
+            self.preferences.remove_recent_file(filename)
+            self._refresh_recent_files()
+            QMessageBox.warning(
+                self,
+                self.tr("File Not Found"),
+                self.tr("{filename} no longer exists.").format(filename=filename),
+            )
+            return
+        if self._confirm_replacing_modified_document():
+            self.open_document(filename)
+
     def _save_to(self, filename: Path) -> bool:
         comic = self.canvas.comic
         if comic is None:
             return False
         try:
+            self._backup_existing(filename)
             save(comic, filename)
         except TboFormatError as error:
             QMessageBox.critical(self, self.tr("Could Not Save File"), str(error))
@@ -312,11 +378,46 @@ class MainWindow(QMainWindow):
         self._filename = filename
         comic.title = filename.stem
         self.canvas.undo_stack.setClean()
+        self._clear_autosave()
+        self.preferences.add_recent_file(filename.resolve())
+        self.preferences.set_last_directory(filename.parent.resolve())
+        self._refresh_recent_files()
         self._update_window_title()
         self.statusBar().showMessage(
             self.tr("Saved to {filename}").format(filename=filename), 5000
         )
         return True
+
+    def _backup_existing(self, filename: Path) -> None:
+        if not filename.is_file():
+            return
+        backup = filename.with_suffix(filename.suffix + ".bak")
+        try:
+            shutil.copy2(filename, backup)
+        except OSError:
+            pass
+
+    def _autosave_path(self, filename: Path) -> Path:
+        return filename.with_suffix(filename.suffix + ".autosave")
+
+    def _autosave(self) -> None:
+        if self._filename is None or self.canvas.undo_stack.isClean():
+            return
+        comic = self.canvas.comic
+        if comic is None:
+            return
+        try:
+            save(comic, self._autosave_path(self._filename))
+        except TboFormatError:
+            pass
+
+    def _clear_autosave(self) -> None:
+        if self._filename is None:
+            return
+        try:
+            self._autosave_path(self._filename).unlink()
+        except OSError:
+            pass
 
     def _confirm_replacing_modified_document(self) -> bool:
         if self.canvas.comic is None or self.canvas.undo_stack.isClean():
@@ -338,9 +439,18 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event) -> None:
         if self._confirm_replacing_modified_document():
+            self._save_window_state()
             event.accept()
         else:
             event.ignore()
+
+    def _restore_window_state(self) -> None:
+        geometry = self.preferences.window_geometry()
+        if geometry is not None:
+            self.restoreGeometry(geometry)
+
+    def _save_window_state(self) -> None:
+        self.preferences.set_window_geometry(self.saveGeometry())
 
     def previous_page(self) -> None:
         if self.canvas.previous_page():

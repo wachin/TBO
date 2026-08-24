@@ -274,7 +274,7 @@ class ComicCanvas(QGraphicsView):
 
     def __init__(self, asset_root: Path | None = None) -> None:
         super().__init__()
-        self.scene = QGraphicsScene()
+        self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
         self._asset_root = asset_root
         self._comic: Comic | None = None

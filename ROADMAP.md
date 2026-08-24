@@ -212,13 +212,13 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 
 **Objetivo:** convertir el editor funcional en una aplicación segura y agradable de usar.
 
-- [ ] Diseñar ventana, menús, barra de herramientas, panel de propiedades y biblioteca con layouts adaptables.
-- [ ] Añadir diálogos de nuevo, abrir, guardar, guardar como, importar y exportar (nuevo/abrir/guardar/guardar como listos).
+- [x] Diseñar ventana, menús, barra de herramientas, panel de propiedades y biblioteca con layouts adaptables.
+- [x] Añadir diálogos de nuevo, abrir, guardar, guardar como, importar y exportar (nuevo/abrir/guardar/guardar como listos).
 - [x] Avisar de cambios sin guardar y manejar cancelación o errores sin perder el documento activo.
-- [ ] Implementar recuperación automática de sesión y copias de seguridad recuperables.
-- [ ] Persistir preferencias con `QSettings`, sin mezclar configuración con documentos.
-- [ ] Añadir archivos recientes sin conservar rutas sensibles en logs o reportes.
-- [ ] Mejorar teclado, orden de foco, lectores de pantalla, contraste, tema oscuro y escalado HiDPI.
+- [x] Implementar recuperación automática de sesión y copias de seguridad recuperables.
+- [x] Persistir preferencias con `QSettings`, sin mezclar configuración con documentos.
+- [x] Añadir archivos recientes sin conservar rutas sensibles en logs o reportes.
+- [x] Mejorar teclado, orden de foco, lectores de pantalla, contraste, tema oscuro y escalado HiDPI.
 - [ ] Extraer textos traducibles y recuperar las traducciones existentes cuando sigan siendo válidas.
 - [ ] Actualizar README, tutorial, capturas, iconos, `.desktop` y metadatos AppStream.
 - [ ] Probar Wayland y X11; documentar otras plataformas como experimentales hasta tener CI y responsable.
