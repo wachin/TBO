@@ -219,8 +219,8 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Persistir preferencias con `QSettings`, sin mezclar configuración con documentos.
 - [x] Añadir archivos recientes sin conservar rutas sensibles en logs o reportes.
 - [x] Mejorar teclado, orden de foco, lectores de pantalla, contraste, tema oscuro y escalado HiDPI.
-- [ ] Extraer textos traducibles y recuperar las traducciones existentes cuando sigan siendo válidas.
-- [ ] Actualizar README, tutorial, capturas, iconos, `.desktop` y metadatos AppStream.
+- [x] Extraer textos traducibles y recuperar las traducciones existentes cuando sigan siendo válidas.
+- [x] Actualizar README, tutorial, capturas, iconos, `.desktop` y metadatos AppStream.
 - [ ] Probar Wayland y X11; documentar otras plataformas como experimentales hasta tener CI y responsable.
 
 **Criterio de salida:** checklist completo de flujos de usuario; cero pérdidas de datos conocidas; accesibilidad básica verificada; recuperación probada después de cierre forzado.
@@ -230,11 +230,11 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 **Objetivo:** publicar una versión que una persona no desarrolladora pueda instalar y actualizar.
 
 - [x] Definir versionado, changelog y política de soporte.
-- [ ] Crear paquetes reproducibles; Flatpak será el primer objetivo en Linux.
+- [x] Crear paquetes reproducibles; Flatpak será el primer objetivo en Linux.
 - [ ] Evaluar PyInstaller u otra herramienta solo para plataformas con mantenimiento confirmado.
-- [ ] Verificar que se incluyen Qt, plugins de plataforma, soporte SVG, traducciones y recursos necesarios.
-- [ ] Generar SBOM, checksums y artefactos firmados cuando la infraestructura lo permita.
-- [ ] Ejecutar pruebas de instalación, primera ejecución, actualización y desinstalación limpia.
+- [x] Verificar que se incluyen Qt, plugins de plataforma, soporte SVG, traducciones y recursos necesarios.
+- [x] Generar SBOM, checksums y artefactos firmados cuando la infraestructura lo permita.
+- [x] Ejecutar pruebas de instalación, primera ejecución, actualización y desinstalación limpia.
 - [ ] Publicar una beta con migración reversible: TBO 2 nunca modificará el único original sin confirmación o copia segura.
 - [ ] Resolver todos los bloqueos de seguridad, datos y compatibilidad antes de la versión estable.
 - [ ] Publicar `2.0.0` y archivar claramente las instrucciones del legado.

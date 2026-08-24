@@ -136,5 +136,22 @@ Flatpak/deb build is expected to install the doodle tree there.
 - `pyproject.toml` declares the package, its `tbo` entry point, dev
   dependencies, and `package-data` for future `translations/*.qm` catalogs.
 
+### Packaging helpers (`packaging/`)
+
+- `tbo.desktop` and `org.tbo.TBO.appdata.xml`: freedesktop metadata.
+- `org.tbo.TBO.json`: Flatpak manifest (installs the app, desktop entry,
+  AppStream data, icon, and the doodle tree under `share/tbo/doodle`).
+- `org.tbo.TBO.svg`: application icon.
+- `build.sh`: builds the sdist/wheel, runs lint and unit tests, generates
+  checksums and a dependency list, and verifies a clean install.
+- `update_translations.sh`: extracts strings to `translations/*.ts` with
+  `pylupdate6`/`lupdate` and compiles `.qm` files with `lrelease`.
+
+```bash
+./packaging/build.sh
+./packaging/update_translations.sh
+cd packaging && flatpak-builder build org.tbo.TBO.json --force-clean
+```
+
 The `.tbo` format is treated as untrusted input. Do not relax its validation or
 limits without adding a regression test first.
