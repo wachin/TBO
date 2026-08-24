@@ -290,6 +290,7 @@ class ComicCanvas(QGraphicsView):
         )
         self.setBackgroundBrush(QColor("#707070"))
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
 
     @property
     def comic(self) -> Comic | None:
