@@ -155,6 +155,7 @@ def _serialize_object(graphic_object: GraphicObject, context: str) -> ET.Element
     if isinstance(graphic_object, TextObject):
         if not graphic_object.text or len(graphic_object.text) > MAX_TEXT_LENGTH:
             raise TboFormatError(f"{context}: text must be non-empty and within the limit")
+        _validate_xml_text(graphic_object.text, "text", context)
         element = ET.Element(
             "text",
             {
@@ -229,7 +230,23 @@ def _validate_string(value: str, name: str, context: str) -> str:
         raise TboFormatError(f"{context}: {name} must not be empty")
     if len(value) > MAX_PATH_LENGTH:
         raise TboFormatError(f"{context}: {name} is too long")
+    _validate_xml_text(value, name, context)
     return value
+
+
+def _validate_xml_text(value: str, name: str, context: str) -> None:
+    for character in value:
+        code = ord(character)
+        valid = (
+            code in (0x9, 0xA, 0xD)
+            or 0x20 <= code <= 0xD7FF
+            or 0xE000 <= code <= 0xFFFD
+            or 0x10000 <= code <= 0x10FFFF
+        )
+        if not valid:
+            raise TboFormatError(
+                f"{context}: {name} contains a character that is not allowed in XML"
+            )
 
 
 def _parse_page(element: ET.Element, page_index: int) -> Page:

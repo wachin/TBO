@@ -48,4 +48,11 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Drag & drop of assets from the library into the editing panel.
 - Full-screen presentation mode (F5) with keyboard navigation.
 - Export dialog with format, page range (all/current), and PNG scale up to 1000 %.
+- GitHub Actions CI (`ci.yml`): lint, unit/integration tests under Xvfb, coverage.
+- Manual build workflow (`build.yml`, `workflow_dispatch`) producing wheel, sdist,
+  `.deb`, and Flatpak artifacts.
+- Fixture corpus under `tests/fixtures/` and property-based parser tests
+  (Hypothesis): fuzzing of arbitrary input and semantic round-trips.
+- Fixed: the writer now rejects XML-invalid control characters instead of
+  producing an unreadable file.
 - Pytest suite (unit and integration tests).

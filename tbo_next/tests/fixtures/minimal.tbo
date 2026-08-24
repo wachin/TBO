@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<tbo width="400" height="300">
+ <page>
+  <frame x="20" y="20" width="360" height="260" border="1" r="1.000000" g="1.000000" b="1.000000">
+   <text x="30" y="30" width="200" height="60" angle="0.000000" flipv="0" fliph="0" font="Sans 14" r="0.000000" g="0.000000" b="0.000000">Hello</text>
+   <svgimage x="250" y="30" width="60" height="60" angle="0.500000" flipv="0" fliph="1" path="assets/shape.svg"></svgimage>
+   <piximage x="30" y="120" width="80" height="60" angle="0.000000" flipv="0" fliph="0" path="assets/photo.png"></piximage>
+  </frame>
+ </page>
+</tbo>

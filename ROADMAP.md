@@ -131,7 +131,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 
 - [ ] Mantener la etiqueta histórica `1.0` y declarar el árbol C/GTK como `legacy`.
 - [ ] Confirmar responsables, licencia GPL-3.0-or-later y procedencia de los doodles, iconos y documentos incluidos.
-- [ ] Reunir en `tests/fixtures/` archivos `.tbo` reales anonimizados, ejemplos del repositorio y casos mínimos.
+- [x] Reunir en `tests/fixtures/` archivos `.tbo` reales anonimizados, ejemplos del repositorio y casos mínimos.
 - [ ] Añadir fixtures con Unicode, rutas largas, imágenes externas, SVG, transformaciones, varias páginas y recursos ausentes.
 - [ ] Documentar el formato observado en `docs/file-format-v1.md`, incluidos separadores decimales y manejo de rutas.
 - [ ] Crear una lista manual de comportamiento de TBO 1.0 y capturas de referencia.
@@ -147,9 +147,9 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Crear `tbo_next/` con distribución `src/`, `pyproject.toml` y un punto de entrada `tbo`.
 - [ ] Fijar una versión mínima de Python basada en las plataformas que se vayan a soportar.
 - [x] Declarar PyQt6 como dependencia y separar dependencias de ejecución y desarrollo.
-- [ ] Configurar pytest, pytest-qt, cobertura, Ruff y un comprobador de tipos.
+- [x] Configurar pytest, pytest-qt, cobertura, Ruff y un comprobador de tipos.
 - [ ] Adoptar un formateador automático y EditorConfig.
-- [ ] Añadir CI para Linux con las versiones mínima y actual de Python soportadas.
+- [x] Añadir CI para Linux con las versiones mínima y actual de Python soportadas.
 - [ ] Ejecutar las pruebas Qt en modo headless dentro de CI (ya funcionan localmente en modo headless).
 - [x] Crear una ventana mínima, mostrar una escena y verificar el arranque con una prueba de humo.
 - [x] Documentar instalación, entorno de desarrollo y comandos de calidad iniciales.
@@ -169,7 +169,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Guardar de forma atómica mediante archivo temporal, sincronización y reemplazo del destino.
 - [x] Producir mensajes útiles para archivos corruptos y representar recursos ausentes sin cerrar la aplicación.
 - [x] Añadir pruebas `abrir -> guardar -> abrir` que comparen documentos semánticamente.
-- [ ] Añadir property-based tests y fuzzing al lector cuando la base de pruebas sea estable.
+- [x] Añadir property-based tests y fuzzing al lector cuando la base de pruebas sea estable.
 - [x] Escribir inicialmente v1 compatible; queda pendiente formalizar la decisión mediante ADR.
 
 **Criterio de salida:** todo el corpus histórico válido se abre; el round-trip no pierde información; las entradas inválidas fallan de forma controlada; modelo y formato tienen cobertura mínima acordada —objetivo orientativo: 90 % en estos módulos críticos—.

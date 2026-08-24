@@ -150,6 +150,24 @@ Editable development installation:
 python3 -m pip install -e '.[dev]'
 ```
 
+## Continuous integration
+
+GitHub Actions workflows live in `.github/workflows/`:
+
+- **`ci.yml`** runs automatically on every push/PR: lint (`ruff`), unit tests,
+  integration tests under `xvfb`, and a coverage report (threshold 80 %) for
+  Python 3.11 and 3.12.
+- **`build.yml`** is **manual** (`workflow_dispatch`, triggered from the Actions
+  tab) and produces the distributable executables as artifacts: Python
+  wheel/sdist, a Debian `.deb`, and a Flatpak bundle.
+
+Coverage locally:
+
+```bash
+cd tbo_next
+python3 -m pytest tests/unit --cov=src/tbo --cov-report=term-missing
+```
+
 ## Resources and packaging
 
 The application resolves its asset library through `tbo.resources`. In a source
