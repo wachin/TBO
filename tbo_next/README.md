@@ -87,10 +87,18 @@ aborting the export.
 
 ## Tests
 
+The unit tests run without a display. The integration tests drive a real
+`QGraphicsView`, so they need a working Qt platform plugin. A virtual display
+such as `xvfb-run` is the most reliable option:
+
 ```bash
 cd tbo_next
-QT_QPA_PLATFORM=offscreen python3 -m pytest
+xvfb-run -a python3 -m pytest
 ```
+
+`QT_QPA_PLATFORM=offscreen` also works, but it can abort when the graphics view
+is torn down, depending on the Qt build. The unit tests (`tests/unit`) never
+touch the view and always run headless.
 
 Editable development installation:
 

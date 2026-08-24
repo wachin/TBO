@@ -34,14 +34,19 @@ from tbo.ui.commands import (
     DeleteFrameCommand,
     DeleteObjectCommand,
     DeletePageCommand,
+    EditTextObjectCommand,
+    FlipObjectCommand,
     MoveFrameCommand,
     MoveObjectCommand,
     MovePageCommand,
     ResizeFrameCommand,
+    ResizeObjectCommand,
+    RotateObjectCommand,
 )
 
 RESIZE_HANDLE_SIZE = 12.0
 MIN_FRAME_SIZE = 20
+MIN_OBJECT_SIZE = 8
 
 
 class FrameGraphicsItem(QGraphicsRectItem):
@@ -148,7 +153,11 @@ class ObjectGraphicsItem(QGraphicsRectItem):
         super().__init__(0, 0, graphic_object.width, graphic_object.height, parent)
         self.graphic_object = graphic_object
         self._canvas = canvas
+        self._content: QGraphicsItem | None = None
         self._drag_start = (graphic_object.x, graphic_object.y)
+        self._resizing = False
+        self._resize_start = (graphic_object.width, graphic_object.height)
+        self._resize_scene_start = QPointF()
         self.setPen(QPen(Qt.PenStyle.NoPen))
         self.setBrush(QBrush(QColor(0, 0, 0, 0)))
         self.setFlags(
@@ -161,18 +170,68 @@ class ObjectGraphicsItem(QGraphicsRectItem):
             Qt.MouseButton.LeftButton if editable else Qt.MouseButton.NoButton
         )
 
+    def _resize_handle(self) -> QRectF:
+        rectangle = self.rect()
+        return QRectF(
+            rectangle.right() - RESIZE_HANDLE_SIZE,
+            rectangle.bottom() - RESIZE_HANDLE_SIZE,
+            RESIZE_HANDLE_SIZE,
+            RESIZE_HANDLE_SIZE,
+        )
+
+    def set_content(self, content: QGraphicsItem) -> None:
+        self._content = content
+
+    def _content_item(self) -> QGraphicsItem | None:
+        children = self.childItems()
+        return children[0] if children else None
+
     def paint(self, painter, option, widget=None) -> None:
         super().paint(painter, option, widget)
         if self.isSelected():
             painter.setPen(QPen(QColor("#1677ff"), 2, Qt.PenStyle.DashLine))
             painter.setBrush(QBrush(Qt.BrushStyle.NoBrush))
             painter.drawRect(self.rect())
+            if self.flags() & QGraphicsItem.GraphicsItemFlag.ItemIsMovable:
+                painter.fillRect(self._resize_handle(), QColor("#f4c430"))
+                painter.setPen(QPen(QColor("#6b5600"), 1))
+                painter.drawRect(self._resize_handle())
 
     def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if (
+            self._canvas.editing_frame is not None
+            and event.button() == Qt.MouseButton.LeftButton
+            and self._resize_handle().contains(event.pos())
+        ):
+            self.setSelected(True)
+            self._resizing = True
+            self._resize_start = (self.graphic_object.width, self.graphic_object.height)
+            self._resize_scene_start = event.scenePos()
+            event.accept()
+            return
         self._drag_start = (self.graphic_object.x, self.graphic_object.y)
         super().mousePressEvent(event)
 
+    def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if self._resizing:
+            delta = event.scenePos() - self._resize_scene_start
+            width = max(MIN_OBJECT_SIZE, round(self._resize_start[0] + delta.x()))
+            height = max(MIN_OBJECT_SIZE, round(self._resize_start[1] + delta.y()))
+            self.setRect(0, 0, width, height)
+            self._scale_content(width, height)
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
     def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if self._resizing:
+            self._resizing = False
+            destination = (round(self.rect().width()), round(self.rect().height()))
+            self._canvas.resize_object(
+                self.graphic_object, destination, old_size=self._resize_start
+            )
+            event.accept()
+            return
         super().mouseReleaseEvent(event)
         destination = (round(self.pos().x()), round(self.pos().y()))
         if destination == self._drag_start:
@@ -184,14 +243,39 @@ class ObjectGraphicsItem(QGraphicsRectItem):
             old_position=self._drag_start,
         )
 
+    def hoverMoveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
+        cursor = (
+            Qt.CursorShape.SizeFDiagCursor
+            if self._resize_handle().contains(event.pos())
+            else Qt.CursorShape.ArrowCursor
+        )
+        self.setCursor(cursor)
+        super().hoverMoveEvent(event)
+
+    def hoverLeaveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
+        self.unsetCursor()
+        super().hoverLeaveEvent(event)
+
+    def _scale_content(self, width: int, height: int) -> None:
+        content = self._content_item()
+        if content is None:
+            return
+        if isinstance(content, QGraphicsTextItem):
+            content.setTextWidth(width)
+            return
+        scale_x = width / self.graphic_object.width if self.graphic_object.width else 1.0
+        scale_y = height / self.graphic_object.height if self.graphic_object.height else 1.0
+        content.setTransform(QTransform.fromScale(scale_x, scale_y))
+
 
 class ComicCanvas(QGraphicsView):
     pageChanged = pyqtSignal(int, int)
     modeChanged = pyqtSignal(bool)
 
     def __init__(self, asset_root: Path | None = None) -> None:
+        super().__init__()
         self.scene = QGraphicsScene()
-        super().__init__(self.scene)
+        self.setScene(self.scene)
         self._asset_root = asset_root
         self._comic: Comic | None = None
         self._page_index = 0
@@ -466,6 +550,78 @@ class ComicCanvas(QGraphicsView):
         )
         return True
 
+    def rotate_selected_object(self, delta_degrees: float) -> bool:
+        graphic_object = self.selected_object()
+        if graphic_object is None:
+            return False
+        old_angle = graphic_object.angle
+        new_angle = old_angle + delta_degrees * 3.141592653589793 / 180.0
+        self.undo_stack.push(
+            RotateObjectCommand(
+                graphic_object,
+                old_angle,
+                new_angle,
+                self._sync_object_transform,
+            )
+        )
+        return True
+
+    def flip_selected_object(self, axis: str) -> bool:
+        graphic_object = self.selected_object()
+        if graphic_object is None:
+            return False
+        self.undo_stack.push(
+            FlipObjectCommand(graphic_object, axis, self._sync_object_transform)
+        )
+        return True
+
+    def resize_object(
+        self,
+        graphic_object: GraphicObject,
+        new_size: tuple[int, int],
+        *,
+        old_size: tuple[int, int] | None = None,
+    ) -> bool:
+        origin = old_size if old_size is not None else (graphic_object.width, graphic_object.height)
+        destination = (max(1, new_size[0]), max(1, new_size[1]))
+        if origin == destination:
+            self._sync_object_geometry(graphic_object)
+            return False
+        self.undo_stack.push(
+            ResizeObjectCommand(graphic_object, origin, destination, self._sync_object_geometry)
+        )
+        return True
+
+    def edit_text_object(
+        self,
+        text_object: TextObject,
+        new_text: str,
+        new_font: str,
+        new_color: Color,
+    ) -> bool:
+        old_text = text_object.text
+        old_font = text_object.font
+        old_color = text_object.color
+        if (
+            new_text == old_text
+            and new_font == old_font
+            and new_color == old_color
+        ):
+            return False
+        self.undo_stack.push(
+            EditTextObjectCommand(
+                text_object,
+                old_text,
+                new_text,
+                old_font,
+                new_font,
+                old_color,
+                new_color,
+                lambda _object: self._refresh_current_page(),
+            )
+        )
+        return True
+
     def move_object(
         self,
         graphic_object: GraphicObject,
@@ -574,6 +730,30 @@ class ComicCanvas(QGraphicsView):
         if item is not None:
             item.setPos(graphic_object.x, graphic_object.y)
 
+    def _sync_object_geometry(self, graphic_object: GraphicObject) -> None:
+        item = self._object_items.get(id(graphic_object))
+        if item is not None:
+            item.setRect(0, 0, graphic_object.width, graphic_object.height)
+            self._apply_object_visual_transform(item, graphic_object)
+
+    def _sync_object_transform(self, graphic_object: GraphicObject) -> None:
+        item = self._object_items.get(id(graphic_object))
+        if item is not None:
+            self._apply_object_visual_transform(item, graphic_object)
+
+    def _apply_object_visual_transform(
+        self, item: ObjectGraphicsItem, graphic_object: GraphicObject
+    ) -> None:
+        item.setRect(0, 0, graphic_object.width, graphic_object.height)
+        item.setTransformOriginPoint(graphic_object.width / 2, graphic_object.height / 2)
+        transform = QTransform()
+        transform.rotate(graphic_object.angle * 180.0 / 3.141592653589793)
+        transform.scale(
+            -1.0 if graphic_object.flip_horizontal else 1.0,
+            -1.0 if graphic_object.flip_vertical else 1.0,
+        )
+        item.setTransform(transform)
+
     def zoom_in(self) -> None:
         self.scale(1.2, 1.2)
 
@@ -638,11 +818,8 @@ class ComicCanvas(QGraphicsView):
             return
 
         container.setPos(obj.x, obj.y)
-        container.setTransformOriginPoint(obj.width / 2, obj.height / 2)
-        container.setRotation(obj.angle * 180.0 / 3.141592653589793)
-        transform = container.transform()
-        transform.scale(-1.0 if obj.flip_horizontal else 1.0, -1.0 if obj.flip_vertical else 1.0)
-        container.setTransform(transform)
+        container.set_content(item)
+        self._apply_object_visual_transform(container, obj)
         item.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
 
     def _resolve_asset(self, asset_path: Path) -> Path | None:

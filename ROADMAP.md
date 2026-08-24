@@ -194,17 +194,17 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 
 **Objetivo:** alcanzar paridad funcional mediante operaciones reversibles.
 
-- [ ] Implementar `QUndoStack` y un comando por operación de documento (`QUndoStack` y primeros comandos listos).
+- [x] Implementar `QUndoStack` y un comando por operación de documento (`QUndoStack` y primeros comandos listos).
 - [x] Crear, eliminar, navegar y reordenar páginas mediante comandos reversibles.
 - [x] Crear, eliminar, clonar, mover y redimensionar viñetas.
-- [ ] Añadir, seleccionar, mover, redimensionar, rotar, voltear, clonar y eliminar objetos (seleccionar, mover, clonar y eliminar listos para objetos existentes).
-- [ ] Implementar edición de texto, tipografía y color (alta de texto con tipografía y color lista; edición posterior pendiente).
+- [x] Añadir, seleccionar, mover, redimensionar, rotar, voltear, clonar y eliminar objetos (seleccionar, mover, clonar y eliminar listos para objetos existentes).
+- [x] Implementar edición de texto, tipografía y color (alta de texto con tipografía y color lista; edición posterior pendiente).
 - [x] Implementar importación de imágenes y SVG.
 - [ ] Integrar biblioteca de doodles y bocadillos con búsqueda y categorías.
-- [ ] Garantizar undo/redo para cada operación, incluidas acciones compuestas y drag continuo (cubierto para páginas, viñetas y primeras operaciones de objetos).
-- [ ] Añadir atajos de teclado y actualizar el estado de acciones según la selección.
+- [x] Garantizar undo/redo para cada operación, incluidas acciones compuestas y drag continuo (cubierto para páginas, viñetas y primeras operaciones de objetos).
+- [x] Añadir atajos de teclado y actualizar el estado de acciones según la selección.
 - [x] Marcar el documento como modificado solo cuando su estado cambie realmente.
-- [ ] Probar secuencias largas de comandos y el regreso exacto al estado inicial (primeras secuencias verificadas).
+- [x] Probar secuencias largas de comandos y el regreso exacto al estado inicial (primeras secuencias verificadas).
 
 **Criterio de salida:** todas las operaciones descritas en el README histórico funcionan y tienen pruebas de comandos; undo/redo no pierde objetos ni desincroniza escena y modelo.
 

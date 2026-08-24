@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PyQt6.QtGui import QAction, QImageReader, QKeySequence
+from PyQt6.QtGui import QAction, QColor, QFont, QImageReader, QKeySequence
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import QDialog, QFileDialog, QMainWindow, QMessageBox
 
 from tbo.document.model import Color, Comic, ImageObject, Page, SvgObject, TextObject
 from tbo.formats.tbo_v1 import TboFormatError, load, save
-from tbo.rendering import ExportError, export_comic, export_page
+from tbo.rendering import ExportError, export_comic
 from tbo.ui.canvas import ComicCanvas
 from tbo.ui.new_comic_dialog import NewComicDialog
 from tbo.ui.text_object_dialog import TextObjectDialog
@@ -100,6 +100,32 @@ class MainWindow(QMainWindow):
         self.add_svg_action = QAction(self.tr("Add &SVG…"), self)
         self.add_svg_action.triggered.connect(self.add_svg_dialog)
         edit_menu.addAction(self.add_svg_action)
+
+        edit_menu.addSeparator()
+        self.rotate_left_action = QAction(self.tr("Rotate &Left"), self)
+        self.rotate_left_action.setShortcut("[")
+        self.rotate_left_action.triggered.connect(lambda: self.rotate_selected_object(-15))
+        edit_menu.addAction(self.rotate_left_action)
+
+        self.rotate_right_action = QAction(self.tr("Rotate &Right"), self)
+        self.rotate_right_action.setShortcut("]")
+        self.rotate_right_action.triggered.connect(lambda: self.rotate_selected_object(15))
+        edit_menu.addAction(self.rotate_right_action)
+
+        self.flip_horizontal_action = QAction(self.tr("Flip &Horizontally"), self)
+        self.flip_horizontal_action.setShortcut("H")
+        self.flip_horizontal_action.triggered.connect(lambda: self.flip_selected_object("horizontal"))
+        edit_menu.addAction(self.flip_horizontal_action)
+
+        self.flip_vertical_action = QAction(self.tr("Flip &Vertically"), self)
+        self.flip_vertical_action.setShortcut("V")
+        self.flip_vertical_action.triggered.connect(lambda: self.flip_selected_object("vertical"))
+        edit_menu.addAction(self.flip_vertical_action)
+
+        self.edit_text_action = QAction(self.tr("Edit &Text…"), self)
+        self.edit_text_action.setShortcut("E")
+        self.edit_text_action.triggered.connect(self.edit_text_dialog)
+        edit_menu.addAction(self.edit_text_action)
 
         for shortcut, dx, dy in (
             ("Left", -5, 0),
@@ -331,6 +357,36 @@ class MainWindow(QMainWindow):
         if frame is not None:
             self._update_edit_actions()
 
+    def rotate_selected_object(self, delta_degrees: float) -> None:
+        if self.canvas.rotate_selected_object(delta_degrees):
+            self._update_edit_actions()
+
+    def flip_selected_object(self, axis: str) -> None:
+        if self.canvas.flip_selected_object(axis):
+            self._update_edit_actions()
+
+    def edit_text_dialog(self) -> None:
+        selected = self.canvas.selected_object()
+        if not isinstance(selected, TextObject):
+            return
+        dialog = TextObjectDialog(self)
+        dialog.set_color(QColor.fromRgbF(selected.color.red, selected.color.green, selected.color.blue))
+        dialog.text_input.setPlainText(selected.text)
+        family, _, size = selected.font.rpartition(" ")
+        if family and size.isdigit():
+            dialog.font_input.setCurrentFont(QFont(family))
+            dialog.size_input.setValue(int(size))
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        text, font, qt_color = dialog.values()
+        if self.canvas.edit_text_object(
+            selected,
+            text,
+            font,
+            Color(qt_color.redF(), qt_color.greenF(), qt_color.blueF()),
+        ):
+            self._update_edit_actions()
+
     def delete_frame(self) -> None:
         deleted = (
             self.canvas.delete_selected_object()
@@ -495,6 +551,13 @@ class MainWindow(QMainWindow):
         self.add_text_action.setEnabled(editing)
         self.add_image_action.setEnabled(editing)
         self.add_svg_action.setEnabled(editing)
+        selected_object = self.canvas.selected_object()
+        object_selected = editing and selected_object is not None
+        self.rotate_left_action.setEnabled(object_selected)
+        self.rotate_right_action.setEnabled(object_selected)
+        self.flip_horizontal_action.setEnabled(object_selected)
+        self.flip_vertical_action.setEnabled(object_selected)
+        self.edit_text_action.setEnabled(object_selected and isinstance(selected_object, TextObject))
 
     def _update_page_actions(self, *args) -> None:
         index = self.canvas.page_index

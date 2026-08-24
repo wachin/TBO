@@ -2,7 +2,7 @@ from pathlib import Path
 
 from PyQt6.QtGui import QColor, QImage
 
-from tbo.document.model import ImageObject, SvgObject, TextObject
+from tbo.document.model import Color, ImageObject, SvgObject, TextObject
 from tbo.formats.tbo_v1 import load
 from tbo.ui.main_window import MainWindow
 
@@ -19,6 +19,10 @@ def _window_in_panel_mode(qtbot) -> tuple[MainWindow, object]:
     assert window.add_image_action.isEnabled()
     assert window.add_svg_action.isEnabled()
     return window, frame
+
+
+def _close(window: MainWindow) -> None:
+    window.close()
 
 
 def test_add_text_object_is_undoable_and_persistent(qtbot, tmp_path: Path) -> None:
@@ -76,3 +80,73 @@ def test_rejects_invalid_graphic_files(qtbot, tmp_path: Path) -> None:
     assert not window.add_svg_from_path(invalid)
     assert not frame.objects
     window.canvas.undo_stack.setClean()
+
+
+def test_rotate_and_flip_object_are_undoable(qtbot) -> None:
+    window, frame = _window_in_panel_mode(qtbot)
+    text = TextObject(x=10, y=20, width=200, height=80, text="Hi", font="Sans 14")
+    assert window.canvas.add_graphic_object(text)
+    assert window.canvas.select_object(text)
+
+    assert window.canvas.rotate_selected_object(15)
+    rotated = text.angle
+    assert rotated != 0.0
+    assert window.canvas.flip_selected_object("horizontal")
+    assert text.flip_horizontal
+    assert window.canvas.flip_selected_object("vertical")
+    assert text.flip_vertical
+
+    window.canvas.undo_stack.undo()
+    assert not text.flip_vertical
+    window.canvas.undo_stack.undo()
+    assert not text.flip_horizontal
+    window.canvas.undo_stack.undo()
+    assert text.angle == 0.0
+
+
+def test_resize_object_updates_model_and_is_undoable(qtbot) -> None:
+    window, frame = _window_in_panel_mode(qtbot)
+    text = TextObject(x=10, y=20, width=200, height=80, text="Hi", font="Sans 14")
+    assert window.canvas.add_graphic_object(text)
+    assert window.canvas.select_object(text)
+
+    assert window.canvas.resize_object(text, (240, 120))
+    assert (text.width, text.height) == (240, 120)
+    window.canvas.undo_stack.undo()
+    assert (text.width, text.height) == (200, 80)
+
+
+def test_edit_text_object_changes_content_and_is_undoable(qtbot) -> None:
+    window, frame = _window_in_panel_mode(qtbot)
+    text = TextObject(x=10, y=20, width=200, height=80, text="Hi", font="Sans 14")
+    assert window.canvas.add_graphic_object(text)
+    assert window.canvas.select_object(text)
+
+    assert window.canvas.edit_text_object(
+        text, "Bye", "Sans 20", Color(1.0, 0.0, 0.0)
+    )
+    assert text.text == "Bye"
+    assert text.font == "Sans 20"
+    assert (text.color.red, text.color.green, text.color.blue) == (1.0, 0.0, 0.0)
+
+    window.canvas.undo_stack.undo()
+    assert text.text == "Hi"
+    assert text.font == "Sans 14"
+    assert (text.color.red, text.color.green, text.color.blue) == (0.0, 0.0, 0.0)
+
+
+def test_edit_text_object_is_reflected_in_saved_file(qtbot, tmp_path: Path) -> None:
+    window, frame = _window_in_panel_mode(qtbot)
+    text = TextObject(x=10, y=20, width=200, height=80, text="Hi", font="Sans 14")
+    assert window.canvas.add_graphic_object(text)
+    assert window.canvas.edit_text_object(text, "Saved", "Sans 16", Color(0.0, 0.0, 1.0))
+    window.canvas.undo_stack.setClean()
+
+    target = tmp_path / "edited-text.tbo"
+    assert window._save_to(target)
+    restored = load(target).pages[0].frames[0].objects[0]
+    assert isinstance(restored, TextObject)
+    assert restored.text == "Saved"
+    assert restored.font == "Sans 16"
+    assert (restored.color.red, restored.color.green, restored.color.blue) == (0.0, 0.0, 1.0)
+

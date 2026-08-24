@@ -5,7 +5,7 @@ from collections.abc import Callable
 from PyQt6.QtCore import QCoreApplication
 from PyQt6.QtGui import QUndoCommand
 
-from tbo.document.model import Comic, Frame, GraphicObject, Page
+from tbo.document.model import Color, Comic, Frame, GraphicObject, Page, TextObject
 
 ChangeCallback = Callable[[], None]
 MoveCallback = Callable[[Frame], None]
@@ -286,3 +286,113 @@ class DeleteObjectCommand(QUndoCommand):
     def undo(self) -> None:
         self._frame.objects.insert(min(self._index, len(self._frame.objects)), self._object)
         self._on_change()
+
+
+class RotateObjectCommand(QUndoCommand):
+    def __init__(
+        self,
+        graphic_object: GraphicObject,
+        old_angle: float,
+        new_angle: float,
+        on_change: ObjectMoveCallback,
+    ) -> None:
+        super().__init__(_tr("Rotate object"))
+        self._object = graphic_object
+        self._old_angle = old_angle
+        self._new_angle = new_angle
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new_angle)
+
+    def undo(self) -> None:
+        self._apply(self._old_angle)
+
+    def _apply(self, angle: float) -> None:
+        self._object.angle = angle
+        self._on_change(self._object)
+
+
+class FlipObjectCommand(QUndoCommand):
+    def __init__(
+        self,
+        graphic_object: GraphicObject,
+        axis: str,
+        on_change: ObjectMoveCallback,
+    ) -> None:
+        if axis not in {"horizontal", "vertical"}:
+            raise ValueError("axis must be 'horizontal' or 'vertical'")
+        super().__init__(_tr("Flip object"))
+        self._object = graphic_object
+        self._axis = axis
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._toggle()
+
+    def undo(self) -> None:
+        self._toggle()
+
+    def _toggle(self) -> None:
+        if self._axis == "horizontal":
+            self._object.flip_horizontal = not self._object.flip_horizontal
+        else:
+            self._object.flip_vertical = not self._object.flip_vertical
+        self._on_change(self._object)
+
+
+class ResizeObjectCommand(QUndoCommand):
+    def __init__(
+        self,
+        graphic_object: GraphicObject,
+        old_size: tuple[int, int],
+        new_size: tuple[int, int],
+        on_change: ObjectMoveCallback,
+    ) -> None:
+        super().__init__(_tr("Resize object"))
+        self._object = graphic_object
+        self._old_size = old_size
+        self._new_size = new_size
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new_size)
+
+    def undo(self) -> None:
+        self._apply(self._old_size)
+
+    def _apply(self, size: tuple[int, int]) -> None:
+        self._object.width, self._object.height = size
+        self._on_change(self._object)
+
+
+class EditTextObjectCommand(QUndoCommand):
+    def __init__(
+        self,
+        text_object: TextObject,
+        old_text: str,
+        new_text: str,
+        old_font: str,
+        new_font: str,
+        old_color: Color,
+        new_color: Color,
+        on_change: ObjectMoveCallback,
+    ) -> None:
+        super().__init__(_tr("Edit text"))
+        self._object = text_object
+        self._old = (old_text, old_font, old_color)
+        self._new = (new_text, new_font, new_color)
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new)
+
+    def undo(self) -> None:
+        self._apply(self._old)
+
+    def _apply(self, state: tuple[str, str, Color]) -> None:
+        text, font, color = state
+        self._object.text = text
+        self._object.font = font
+        self._object.color = color
+        self._on_change(self._object)
