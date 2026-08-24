@@ -57,15 +57,23 @@ format.
 - `Esc`: leave panel editing mode;
 - `[` / `]`: rotate selected object left / right;
 - `H` / `V`: flip selected object horizontally / vertically;
-- `F5`: full-screen presentation mode.
+- `F5`: full-screen presentation mode;
+- `Ctrl+F`: find text in the document.
 
 ## Preferences, theme and session
 
 - **Theme** (View ▸ Theme): System / Dark / Light, remembered between runs.
 - **Snap to Grid** (View ▸ Snap to Grid): aligns panels to a 10 px grid while
-  moving or resizing them.
+  moving or resizing them, and shows the grid on the canvas.
 - The application **reopens the last document** it had open when it exits, so
   you can pick up where you left off.
+
+## Pages and search
+
+- The **Pages** dock on the left shows a thumbnail of every page; click one to
+  jump to it. Thumbnails refresh as the comic is edited.
+- **Edit ▸ Find Text…** (`Ctrl+F`) searches every text object in the document
+  and navigates to the page and panel containing a match.
 
 Adding, cloning, moving, resizing, and deleting panels changes the document
 model and is recorded in the undo history. Creating, deleting, and reordering

@@ -328,11 +328,31 @@ class ComicCanvas(QGraphicsView):
 
     def set_snap_to_grid(self, enabled: bool) -> None:
         self._snap_to_grid = enabled
+        self.viewport().update()
 
     def _snap_value(self, value: int) -> int:
         if not self._snap_to_grid:
             return value
         return round(value / self._grid_size) * self._grid_size
+
+    def drawBackground(self, painter, rect) -> None:
+        super().drawBackground(painter, rect)
+        if not self._snap_to_grid or self._grid_size <= 0:
+            return
+        left = int(rect.left() // self._grid_size) * self._grid_size
+        top = int(rect.top() // self._grid_size) * self._grid_size
+        right = int(rect.right())
+        bottom = int(rect.bottom())
+        pen = QPen(QColor(0, 0, 0, 40), 1)
+        painter.setPen(pen)
+        x = left
+        while x <= right:
+            painter.drawLine(x, int(rect.top()), x, bottom)
+            x += self._grid_size
+        y = top
+        while y <= bottom:
+            painter.drawLine(int(rect.left()), y, right, y)
+            y += self._grid_size
 
     def set_comic(self, comic: Comic) -> None:
         self._comic = comic

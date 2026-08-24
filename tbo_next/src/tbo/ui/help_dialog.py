@@ -79,9 +79,16 @@ Además de hacer clic en una miniatura, puedes **arrastrarla** desde el panel
 - **Ver ▸ Tema**: elige entre **Sistema**, **Oscuro** o **Claro**. La elección
   se recuerda entre sesiones.
 - **Ver ▸ Ajustar a rejilla**: cuando está activo, las viñetas se alinean a una
-  rejilla de 10 px al moverlas o redimensionarlas (útil para alinearlas con
-  precisión). También se recuerda.
+  rejilla de 10 px al moverlas o redimensionarlas, y la rejilla se muestra en el
+  lienzo. Útil para colocar viñetas con precisión. También se recuerda.
 - El programa **reabre el último documento** que tenías abierto al cerrar.
+
+## Páginas y búsqueda
+
+- El panel **Páginas** (a la izquierda) muestra una **miniatura** de cada página;
+  haz clic en una para ir a ella. Se actualiza al editar el cómic.
+- **Editar ▸ Buscar texto** (`Ctrl+F`): busca en todos los objetos de texto del
+  documento y te lleva a la página y la viñeta donde está la coincidencia.
 
 ## Atajos útiles
 
@@ -104,6 +111,7 @@ Además de hacer clic en una miniatura, puedes **arrastrarla** desde el panel
 | `H` / `V` | Voltear objeto horizontal / vertical |
 | `Ctrl` + rueda o `+` / `-` / `1` / `2` | Zoom in / out / tamaño real / ajustar página |
 | `F5` | Modo presentación a pantalla completa |
+| `Ctrl+F` | Buscar texto en el documento |
 | `Ctrl+Z` / `Ctrl+Shift+Z` | Deshacer / rehacer |
 """
 

@@ -15,6 +15,7 @@ from tbo.formats.tbo_v1 import TboFormatError, load, save
 from tbo.rendering import ExportError, export_comic, export_page
 from tbo.ui.assets_dock import AssetsDock
 from tbo.ui.canvas import ComicCanvas
+from tbo.ui.pages_dock import PagesDock
 from tbo.ui.theme import apply_theme
 from tbo.ui.new_comic_dialog import NewComicDialog
 from tbo.ui.preferences import Preferences
@@ -39,10 +40,15 @@ class MainWindow(QMainWindow):
             self.assets_dock = AssetsDock(self.assets_catalog, self)
             self.assets_dock.assetActivated.connect(self.add_svg_from_path)
             self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.assets_dock)
+        self.pages_dock = PagesDock(self, asset_root=asset_root)
+        self.pages_dock.pageSelected.connect(self._go_to_page)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.pages_dock)
         self._create_actions()
         self._create_toolbar()
         self.canvas.undo_stack.cleanChanged.connect(self._on_clean_changed)
+        self.canvas.undo_stack.indexChanged.connect(self._refresh_page_thumbnails)
         self.canvas.pageChanged.connect(self._update_page_actions)
+        self.canvas.pageChanged.connect(self.pages_dock.set_current_page)
         self.canvas.modeChanged.connect(self._on_mode_changed)
         self.canvas.scene.selectionChanged.connect(self._update_edit_actions)
         self.canvas.assetDropped.connect(self.add_svg_from_path)
@@ -197,6 +203,12 @@ class MainWindow(QMainWindow):
         self.edit_text_action.setShortcut("E")
         self.edit_text_action.triggered.connect(self.edit_text_dialog)
         edit_menu.addAction(self.edit_text_action)
+
+        edit_menu.addSeparator()
+        self.find_text_action = QAction(self.tr("&Find Text…"), self)
+        self.find_text_action.setShortcut(QKeySequence.StandardKey.Find)
+        self.find_text_action.triggered.connect(self._open_search_dialog)
+        edit_menu.addAction(self.find_text_action)
 
         for shortcut, dx, dy in (
             ("Left", -5, 0),
@@ -384,6 +396,7 @@ class MainWindow(QMainWindow):
     def _set_document(self, comic: Comic, *, filename: Path | None) -> None:
         self._clear_autosave()
         self.canvas.set_comic(comic)
+        self.pages_dock.set_comic(comic)
         self._filename = filename
         self.save_action.setEnabled(True)
         self.save_as_action.setEnabled(True)
@@ -473,6 +486,39 @@ class MainWindow(QMainWindow):
 
     def _asset_root(self) -> Path | None:
         return self.canvas._asset_root
+
+    def _go_to_page(self, index: int) -> None:
+        if index < 0 or index >= self.canvas.page_count:
+            return
+        if self.canvas.editing_frame is not None:
+            self.canvas.leave_frame()
+        self.canvas.show_page(index)
+        self.canvas.fit_page()
+        self._update_page_actions()
+
+    def _open_search_dialog(self) -> None:
+        if self.canvas.comic is None:
+            return
+        from tbo.ui.search_dialog import SearchDialog
+
+        dialog = SearchDialog(self.canvas.comic, self)
+        dialog.goTo.connect(self._go_to_search_result)
+        dialog.exec()
+
+    def _go_to_search_result(self, page_index: int, frame, graphic_object) -> None:
+        self.canvas.show_page(page_index)
+        self.canvas.fit_page()
+        if self.canvas.enter_frame(frame):
+            self.canvas.select_object(graphic_object)
+            item = self.canvas._object_items.get(id(graphic_object))
+            if item is not None:
+                self.canvas.centerOn(item)
+        self._update_page_actions()
+        self._update_edit_actions()
+
+    def _refresh_page_thumbnails(self, *args) -> None:
+        if self.canvas.comic is not None:
+            self.pages_dock._render_all()
 
     def start_presentation(self) -> None:
         if self.canvas.comic is None:

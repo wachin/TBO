@@ -49,8 +49,11 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Full-screen presentation mode (F5) with keyboard navigation.
 - Export dialog with format, page range (all/current), and PNG scale up to 1000 %.
 - Theme selection (System/Dark/Light) with a persistent preference.
-- Optional snap-to-grid (10 px) for panel movement and resizing.
+- Optional snap-to-grid (10 px) for panel movement and resizing, with a visible
+  grid on the canvas.
 - Session restore: the last opened document is reopened on startup.
+- Pages dock with per-page thumbnails for quick navigation.
+- Find text dialog (`Ctrl+F`) that locates matches and navigates to them.
 - GitHub Actions CI (`ci.yml`): lint, unit/integration tests under Xvfb, coverage.
 - Manual build workflow (`build.yml`, `workflow_dispatch`) producing wheel, sdist,
   `.deb`, and Flatpak artifacts.
