@@ -23,10 +23,10 @@ _APP_TRANSLATOR = QTranslator()
 _QT_TRANSLATOR = QTranslator()
 
 
-def _install_translator() -> None:
+def _install_translator(locale_override: str | None = None) -> None:
     """Install the Qt and application translators for the active locale."""
     preferences = Preferences()
-    locale_name = preferences.locale()
+    locale_name = locale_override or preferences.locale()
     if not locale_name or locale_name == "auto":
         locale = QLocale.system()
     else:
@@ -43,13 +43,30 @@ def _install_translator() -> None:
         QCoreApplication.installTranslator(_QT_TRANSLATOR)
 
 
+def _parse_language(arguments: list[str]) -> tuple[str | None, list[str]]:
+    override: str | None = None
+    clean: list[str] = []
+    index = 0
+    while index < len(arguments):
+        argument = arguments[index]
+        if argument in ("--lang", "--language"):
+            if index + 1 < len(arguments):
+                override = arguments[index + 1]
+                index += 2
+                continue
+        clean.append(argument)
+        index += 1
+    return override, clean
+
+
 def main(argv: list[str] | None = None) -> int:
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
     arguments = list(sys.argv if argv is None else argv)
+    language, arguments = _parse_language(arguments)
     application = QApplication(arguments)
-    _install_translator()
+    _install_translator(language)
     apply_theme(application, Preferences().theme())
 
     window = MainWindow(asset_root=find_asset_root())

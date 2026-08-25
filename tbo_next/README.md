@@ -3,9 +3,8 @@
 This directory contains the Python and PyQt6 reimplementation of TBO. The C/GTK
 code in the repository root is retained as a compatibility reference.
 
-English is the source language for the application. User-interface strings are
-marked for Qt translation, but translation catalogs will be introduced only
-after the functionality and terminology have stabilized.
+English is the source language for the application, with translations available
+for other languages (see [Translations](#translations)).
 
 ## Running from the repository
 
@@ -25,6 +24,20 @@ The equivalent command without the launcher is:
 cd tbo_next
 PYTHONPATH=src python3 -m tbo ../data/tut.tbo
 ```
+
+### Forcing a language
+
+The application follows the system language by default. To force a specific
+language (for example, to run it in English for tutorials or screenshots), pass
+`--lang <locale>`:
+
+```bash
+./tbo.sh --lang en
+./tbo.sh --lang es data/tut.tbo
+```
+
+`--language` is an alias for `--lang`. Without it, the saved preference (if any)
+or the system language is used.
 
 Omit the document path to create a new comic. The application can read and
 render pages, panels, text, images, and SVG resources from the historical
@@ -165,6 +178,10 @@ and `lrelease` to compile the `.qm` catalogs. The application loads
 saved preference it follows the system language.
 
 Available translations: **English** (`tbo_en`) and **Spanish** (`tbo_es`).
+
+To run the application in a specific language, use the `--lang <locale>`
+command-line option (e.g. `./tbo.sh --lang en`); see
+[Forcing a language](#forcing-a-language).
 
 To add or update a language:
 
