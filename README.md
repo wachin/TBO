@@ -251,7 +251,9 @@ GitHub Actions workflows live in `.github/workflows/`:
   Python 3.11 and 3.12.
 - **`build.yml`** is **manual** (`workflow_dispatch`, triggered from the Actions
   tab) and produces the distributable executables as artifacts: Python
-  wheel/sdist, a Debian `.deb`, and a Flatpak bundle.
+  wheel/sdist, a Debian `.deb`, a Flatpak bundle, and a **Windows standalone
+  `.exe`** compiled with [Nuitka](https://nuitka.net/) (including assets,
+  translations and icons).
 
 Coverage locally:
 

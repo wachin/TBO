@@ -83,6 +83,8 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Advanced text toolbar (third toolbar): font family, size, bold, italic,
   underline and color for the selected text object, based on ksnip-py's text
   property toolbar. Text objects now persist bold/italic/underline in `.tbo`.
+- Windows standalone `.exe` build with Nuitka added to the manual CI workflow
+  (`build-windows` job), including assets, translations and icons.
 - Text dialog: Ctrl+Enter accepts. The inline editor is based on ksnip's
   `InlineTextEditor` (https://github.com/wachin/ksnip/blob/master/ksnip_py/canvas.py).
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
