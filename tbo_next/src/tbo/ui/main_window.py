@@ -419,7 +419,7 @@ class MainWindow(QMainWindow):
 
         self.text_size_spin = QSpinBox()
         self.text_size_spin.setRange(6, 144)
-        self.text_size_spin.setValue(12)
+        self.text_size_spin.setValue(9)
         self.text_size_spin.setFixedWidth(56)
         self.text_size_spin.setSuffix(" pt")
         self.text_size_spin.setToolTip(self.tr("Font size"))
@@ -1044,8 +1044,8 @@ class MainWindow(QMainWindow):
             )
         ):
             return False
-        text_width = max(1, int(width * 0.7))
-        text_height = max(1, int(height * 0.5))
+        text_width = max(1, int(width * 0.8))
+        text_height = max(1, int(height * 0.65))
         self.canvas.add_graphic_object(
             TextObject(
                 x=x + (width - text_width) // 2,
@@ -1053,7 +1053,7 @@ class MainWindow(QMainWindow):
                 width=text_width,
                 height=text_height,
                 text=self.tr("Text"),
-                font="Sans 14",
+                font="Sans 9",
                 color=Color(0.0, 0.0, 0.0),
             )
         )
