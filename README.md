@@ -12,6 +12,14 @@ Use the launcher from the repository root:
 
 ```bash
 ./tbo.sh
+```
+
+![](images/TBO2-en-ezgif.com.gif)
+
+
+### With help
+
+```
 ./tbo.sh data/tut.tbo
 ```
 
@@ -30,8 +38,18 @@ The application follows the system language by default. To force a specific
 language (for example, to run it in English for tutorials or screenshots), pass
 `--lang <locale>`:
 
+
+#### Run on english
+
+If you are in your Linux on spanish language and you want open on english put:
+
 ```bash
 ./tbo.sh --lang en
+```
+
+in spanish with the tutorial:
+
+```bash
 ./tbo.sh --lang es data/tut.tbo
 ```
 
