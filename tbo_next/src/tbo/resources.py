@@ -46,11 +46,10 @@ def user_asset_roots() -> list[Path]:
 def find_icon() -> Path | None:
     """Locate the application icon bundled with the package.
 
-    Prefers the PNG for window/taskbar use; the SVG is returned when the PNG
-    is not shipped.
+    Prefers the SVG (vector, scales without loss) over the PNG.
     """
     resources_dir = Path(__file__).resolve().parent / "resources"
-    for name in ("icon.png", "icon.svg"):
+    for name in ("icon.svg", "icon.png"):
         candidate = resources_dir / name
         if candidate.is_file():
             return candidate

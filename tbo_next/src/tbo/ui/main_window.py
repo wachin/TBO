@@ -325,20 +325,10 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def _show_about(self) -> None:
-        from tbo import __version__
+        from tbo.ui.about_dialog import AboutDialog
 
-        QMessageBox.about(
-            self,
-            self.tr("About TBO"),
-            self.tr(
-                "TBO {version}\n\n"
-                "A modern comic editor compatible with legacy TBO documents.\n\n"
-                "Copyright 2010 Daniel Garcia Moreno\n"
-                "PyQt6 port:\n"
-                "Copyright 2026 Washington Indacochea Delgado\n\n"
-                "License: GPL-3.0-or-later"
-            ).format(version=__version__),
-        )
+        dialog = AboutDialog(self)
+        dialog.exec()
 
     def _create_toolbar(self) -> None:
         toolbar = self.addToolBar(self.tr("Main Toolbar"))
