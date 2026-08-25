@@ -7,6 +7,11 @@ The toolbar icons bundled with TBO 2 come from the Inkscape project:
   * `resources/icons/flip-vertical.svg`
   * `resources/icons/zoom-in.svg`
   * `resources/icons/zoom-out.svg`
+  * `resources/icons/document-new.svg`
+  * `resources/icons/document-open.svg`
+  * `resources/icons/document-save.svg`
+  * `resources/icons/edit-undo.svg`
+  * `resources/icons/edit-redo.svg`
 
 Source: https://github.com/inkscape/inkscape (share/icons/)
 License: GPL-2.0-or-later

@@ -69,6 +69,8 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Flip buttons added to the main toolbar for quick access.
 - Flip toolbar buttons now show icons (from Inkscape, GPL-2.0-or-later) with
   tooltips; attribution in `resources/icons/NOTICE`.
+- Icons and tooltips added to New, Open, Save, Save As, Undo and Redo
+  (Inkscape icons, GPL-2.0-or-later).
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.
