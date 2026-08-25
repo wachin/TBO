@@ -271,13 +271,22 @@ without touching VirusTotal false positives. It mirrors
 
 ### Windows with Nuitka
 
+> **Important**: with the `src/` layout, make the package importable by setting
+> the `PYTHONPATH` environment variable **before** running Nuitka. Nuitka has no
+> `--python-path` option. A flat `main.py` at the repository root does not need
+> this; a `src/` layout does.
+
 ```powershell
+# Make the src layout importable by Nuitka
+$env:PYTHONPATH = "$workspaceRoot\src"
+
 python -m nuitka `
   --standalone `
   --assume-yes-for-downloads `
   --remove-output `
   --msvc=latest `
   --enable-plugin=pyqt6 `
+  --include-package=tbo `
   --follow-import-to=tbo `
   --windows-console-mode=disable `
   --windows-icon-from-ico="path\to\icon.ico" `
@@ -290,7 +299,6 @@ python -m nuitka `
   --include-package-data=tbo `
   --include-data-dir="data\doodle=tbo\data\doodle" `
   --include-data-dir="translations=tbo\translations" `
-  --python-path="src" `
   --output-filename="TBO.exe" `
   src\tbo\__main__.py
 ```

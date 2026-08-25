@@ -35,6 +35,10 @@ my-project/
 - Do **NOT** create `setup.py`. Only `pyproject.toml` (PEP 517).
 - Do **NOT** create `setup.cfg`.
 - `__init__.py` must contain `__version__ = "x.y.z.dev0"`.
+- **Nuitka (Windows build)**: with a `src/` layout, set `$env:PYTHONPATH`
+  before running Nuitka so the package can be imported. Nuitka has no
+  `--python-path` option. A flat `main.py` at the root does not need this;
+  a `src/` layout does. See the Windows build script in `packaging/`.
 
 ---
 
