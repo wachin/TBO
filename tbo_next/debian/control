@@ -1,7 +1,7 @@
 Source: tbo
 Section: graphics
 Priority: optional
-Maintainer: TBO contributors <tbo-project@example.org>
+Maintainer: Washington Indacochea Delgado <linuxfrontier@proton.me>
 Build-Depends: debhelper-compat (= 13),
                dh-python,
                python3,

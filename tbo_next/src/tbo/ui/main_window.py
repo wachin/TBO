@@ -334,7 +334,8 @@ class MainWindow(QMainWindow):
                 "TBO {version}\n\n"
                 "A modern comic editor compatible with legacy TBO documents.\n\n"
                 "Copyright 2010 Daniel Garcia Moreno\n"
-                "Copyright 2026 TBO contributors\n\n"
+                "PyQt6 port:\n"
+                "Copyright 2026 Washington Indacochea Delgado\n\n"
                 "License: GPL-3.0-or-later"
             ).format(version=__version__),
         )

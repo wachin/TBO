@@ -5,4 +5,4 @@ tbo (2.0.0.dev0-1) unstable; urgency=medium
     editing, undo/redo, asset library, and PNG/PDF/SVG export.
   * Ships the doodle and speech bubble library under /usr/share/tbo/doodle.
 
- -- TBO contributors <tbo-project@example.org>  Mon, 24 Aug 2026 12:00:00 +0000
+ -- Washington Indacochea Delgado <linuxfrontier@proton.me>  Mon, 24 Aug 2026 12:00:00 +0000

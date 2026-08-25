@@ -17,10 +17,10 @@
     </p>
   </description>
   <launchable type="desktop-id">org.tbo.TBO.desktop</launchable>
-  <url type="homepage">https://github.com/tbo-project/tbo</url>
+  <url type="homepage">https://github.com/wachin/TBO</url>
   <screenshots>
     <screenshot type="default">
-      <image type="source">https://github.com/tbo-project/tbo/raw/master/images/tbo-logo-400.png</image>
+      <image type="source">https://github.com/wachin/TBO/raw/master/images/tbo-logo-400.png</image>
     </screenshot>
   </screenshots>
   <releases>

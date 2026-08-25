@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "GPL-3.0-or-later"
 authors = [
-    { name = "TBO contributors" },
+    { name = "Washington Indacochea Delgado", email = "linuxfrontier@proton.me" },
 ]
 keywords = ["comics", "comic-editor", "pyqt6", "tbo"]
 classifiers = [
@@ -27,9 +27,9 @@ classifiers = [
 dependencies = ["PyQt6>=6.6"]
 
 [project.urls]
-Homepage = "https://github.com/tbo-project/tbo"
-Documentation = "https://github.com/tbo-project/tbo/blob/master/ROADMAP.md"
-Source = "https://github.com/tbo-project/tbo"
+Homepage = "https://github.com/wachin/TBO"
+Documentation = "https://github.com/wachin/TBO/blob/master/ROADMAP.md"
+Source = "https://github.com/wachin/TBO"
 
 [project.optional-dependencies]
 dev = [

@@ -1,11 +1,11 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: TBO
-Upstream-Contact: TBO contributors <tbo-project@example.org>
-Source: https://github.com/tbo-project/tbo
+Upstream-Contact: Washington Indacochea Delgado <linuxfrontier@proton.me>
+Source: https://github.com/wachin/TBO
 
 Files: *
 Copyright: 2010 Daniel Garcia Moreno <dani@danigm.net>
-           2026 TBO contributors
+           2026 Washington Indacochea Delgado <linuxfrontier@proton.me>
 License: GPL-3.0-or-later
 
 Files: packaging/org.tbo.TBO.svg
