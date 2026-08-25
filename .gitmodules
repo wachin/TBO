@@ -1,0 +1,6 @@
+[submodule "third-party/lucio-iva-calculator"]
+	path = third-party/lucio-iva-calculator
+	url = https://github.com/wachin/lucio-iva-calculator
+[submodule "third-party/ksnip"]
+	path = third-party/ksnip
+	url = https://github.com/wachin/ksnip
