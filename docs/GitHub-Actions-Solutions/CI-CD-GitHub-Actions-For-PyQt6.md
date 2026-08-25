@@ -4,6 +4,10 @@ This document collects the fixes that took the TBO 2 CI (Python + PyQt6 +
 pytest-qt) from failing to fully green. It is meant to be shared with another
 developer or AI agent so they can reach a green CI faster on a similar stack.
 
+> **Important:** PyQt6 projects should follow the solutions in this guide
+> **exactly and in order** (see section 12). The fixes are interdependent, and
+> skipping one will break another.
+
 All examples refer to the repository at `https://github.com/wachin/TBO`
 (workflows under `.github/workflows/`).
 
@@ -183,7 +187,79 @@ legacy code to `legacy/`), update every path in the workflows:
 
 ---
 
-## 9. Manual build workflow: Windows (Nuitka) and macOS (PyInstaller)
+## 9. Debian `.deb` build with pybuild pyproject
+
+Building a `.deb` for a PyQt6 project requires the `pyproject.toml` backend
+(not a legacy `setup.py`). The `setup.py` approach failed because the older
+setuptools version on the GitHub Actions runner (from apt) does not support
+the `license = "SPDX-id"` string format introduced in PEP 639.
+
+### Critical configuration
+
+**`debian/control`** — Build-Depends must include `pybuild-plugin-pyproject`:
+
+```text
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               pybuild-plugin-pyproject,
+               python3,
+               python3-setuptools
+```
+
+**`debian/rules`** — do NOT set `PYBUILD_SYSTEM = distutils`. Let pybuild
+auto-detect the pyproject backend:
+
+```makefile
+#!/usr/bin/make -f
+export PYBUILD_NAME = tbo
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+```
+
+**Remove `setup.py`** from the repository. It is not needed and will confuse
+pybuild into using the legacy `distutils` plugin.
+
+**`pyproject.toml`** — use the file-based license format for compatibility
+with older setuptools versions:
+
+```toml
+license = { file = "COPYING" }
+```
+
+### CI job (`build.yml`)
+
+```yaml
+build-deb:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install Debian build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential debhelper dh-python \
+          pybuild-plugin-pyproject python3-setuptools python3-build python3-installer
+    - name: Build .deb
+      run: dpkg-buildpackage -b -uc -us
+    - uses: actions/upload-artifact@v4
+      with:
+        name: debian
+        path: |
+          tbo_*.deb
+          tbo_*.buildinfo
+          tbo_*.changes
+```
+
+The `python3-build` and `python3-installer` packages are required by the
+pyproject plugin of pybuild. `pybuild-plugin-pyproject` is a metapackage
+that pulls them in.
+
+---
+
+## 10. Manual build workflow: Windows (Nuitka) and macOS (PyInstaller)
 
 The manual workflow (`build.yml`, `workflow_dispatch`) produces executables
 without touching VirusTotal false positives. It mirrors
@@ -242,7 +318,7 @@ Generate the `.icns` with `iconutil` from an `.iconset`.
 
 ---
 
-## 10. Final green CI checklist
+## 11. Final green CI checklist
 
 - [ ] `ruff check src tests` passes (0 errors).
 - [ ] System Qt libs installed (`libegl1 libxcb-cursor0 libgl1 libxkbcommon-x11-0`).
@@ -258,3 +334,28 @@ Generate the `.icns` with `iconutil` from an `.iconset`.
 If a build job fails, read its log first; in this project the most common
 causes were missing system libraries, stale paths after the reorganization,
 and the QGraphicsView teardown abort in headless runners.
+
+---
+
+## 12. Follow these solutions exactly
+
+PyQt6 projects should follow the solutions in this guide **exactly**, in order,
+without improvising around them. The fixes are interdependent:
+
+- Skipping `libegl1 libxcb-cursor0 libgl1 libxkbcommon-x11-0` → pytest-qt fails
+  to import `QtGui`.
+- Skipping `QT_QPA_PLATFORM=offscreen` on unit tests → `Fatal Python error:
+  Aborted` in the `qapp` fixture.
+- Running integration tests that create `QGraphicsView` in CI → teardown
+  abort; keep them local-only.
+- Using a legacy `setup.py` for the `.deb` → older setuptools rejects the
+  PEP 639 string license; use the pybuild pyproject backend and
+  `license = { file = "COPYING" }`.
+- Applying a global coverage threshold on the whole package → fails because the
+  UI is only covered by integration tests; measure the critical modules
+  instead.
+- Not declaring `hypothesis` in dev deps → `ModuleNotFoundError`.
+
+If you are sharing this guide with another AI agent, tell it to apply the
+sections **in order** and to re-run the workflow after each push, copying the
+exact error log from the failing job if something still fails.
