@@ -10,3 +10,13 @@ dist/
 
 # Compiled translation catalogs
 translations/*.qm
+
+# Debian package build artefacts
+debian/.debhelper/
+debian/tbo/
+debian/files
+debian/*.debhelper.log
+debian/*.substvars
+
+# pybuild temporary directory
+.pybuild/

@@ -285,10 +285,22 @@ cd tbo_next
 dpkg-buildpackage -b -uc -us
 ```
 
-Build dependencies: `debhelper-compat (= 13)`, `dh-python`, `pybuild-plugin-pyproject`,
-`python3`, `python3-setuptools`, `python3-pyqt6`. The generated package installs the
-application, the doodle library under `/usr/share/tbo/doodle`, the desktop entry,
-AppStream metadata, and the application icon.
+**Required system packages** (install them with `apt`):
+
+```bash
+sudo apt install build-essential debhelper dh-python python3 python3-setuptools \
+    python3-pyqt6 python3-pyqt6.qtsvg python3-pyqt6.qtpdf
+```
+
+Optional but recommended for translations:
+```bash
+sudo apt install qt6-base-dev-tools   # provides lrelease / lupdate
+```
+
+The generated package installs the application, the doodle library under
+`/usr/share/tbo/doodle`, the desktop entry, AppStream metadata, and the
+application icon. The `python3-pyqt6.qtpdf` dependency is only a recommendation
+(needed for PDF export).
 
 ```bash
 ./packaging/build.sh

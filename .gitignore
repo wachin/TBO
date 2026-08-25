@@ -37,3 +37,8 @@ stamp-h1
 
 # Personal
 /third-party/ksnip_py/
+
+# Debian package build artefacts (generated in the repository root)
+*.deb
+*.buildinfo
+*.changes
