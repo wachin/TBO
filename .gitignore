@@ -34,3 +34,6 @@ src/.deps/
 src/tbo
 st
 stamp-h1
+
+# Personal
+ksnip_py/
