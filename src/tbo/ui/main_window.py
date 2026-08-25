@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import contextlib
 import shutil
 from copy import deepcopy
 from pathlib import Path
 
-from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QAction, QActionGroup, QColor, QFont, QIcon, QImageReader, QKeySequence
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (
@@ -21,17 +22,24 @@ from PyQt6.QtWidgets import (
 )
 
 from tbo.assets import AssetCatalog
-from tbo.document.model import Color, Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
-from tbo.resources import user_asset_roots
+from tbo.document.model import (
+    Color,
+    Comic,
+    ImageObject,
+    Page,
+    SvgObject,
+    TextObject,
+)
 from tbo.formats.tbo_v1 import TboFormatError, load, save
 from tbo.rendering import ExportError, export_comic, export_page
+from tbo.resources import user_asset_roots
 from tbo.ui.assets_dock import AssetsDock
 from tbo.ui.canvas import ComicCanvas
-from tbo.ui.pages_dock import PagesDock
-from tbo.ui.theme import apply_theme
 from tbo.ui.new_comic_dialog import NewComicDialog
+from tbo.ui.pages_dock import PagesDock
 from tbo.ui.preferences import Preferences
 from tbo.ui.text_object_dialog import TextObjectDialog
+from tbo.ui.theme import apply_theme
 
 
 class MainWindow(QMainWindow):
@@ -175,28 +183,40 @@ class MainWindow(QMainWindow):
         self.align_left_action.triggered.connect(lambda: self.canvas.align_selected_frames("left"))
         align_menu.addAction(self.align_left_action)
         self.align_hcenter_action = QAction(self.tr("Horizontal Center"), self)
-        self.align_hcenter_action.triggered.connect(lambda: self.canvas.align_selected_frames("hcenter"))
+        self.align_hcenter_action.triggered.connect(
+            lambda: self.canvas.align_selected_frames("hcenter")
+        )
         align_menu.addAction(self.align_hcenter_action)
         self.align_right_action = QAction(self.tr("Right"), self)
-        self.align_right_action.triggered.connect(lambda: self.canvas.align_selected_frames("right"))
+        self.align_right_action.triggered.connect(
+            lambda: self.canvas.align_selected_frames("right")
+        )
         align_menu.addAction(self.align_right_action)
         align_menu.addSeparator()
         self.align_top_action = QAction(self.tr("Top"), self)
         self.align_top_action.triggered.connect(lambda: self.canvas.align_selected_frames("top"))
         align_menu.addAction(self.align_top_action)
         self.align_vcenter_action = QAction(self.tr("Vertical Center"), self)
-        self.align_vcenter_action.triggered.connect(lambda: self.canvas.align_selected_frames("vcenter"))
+        self.align_vcenter_action.triggered.connect(
+            lambda: self.canvas.align_selected_frames("vcenter")
+        )
         align_menu.addAction(self.align_vcenter_action)
         self.align_bottom_action = QAction(self.tr("Bottom"), self)
-        self.align_bottom_action.triggered.connect(lambda: self.canvas.align_selected_frames("bottom"))
+        self.align_bottom_action.triggered.connect(
+            lambda: self.canvas.align_selected_frames("bottom")
+        )
         align_menu.addAction(self.align_bottom_action)
 
         distribute_menu = edit_menu.addMenu(self.tr("&Distribute"))
         self.distribute_h_action = QAction(self.tr("Horizontally"), self)
-        self.distribute_h_action.triggered.connect(lambda: self.canvas.distribute_selected_frames("horizontal"))
+        self.distribute_h_action.triggered.connect(
+            lambda: self.canvas.distribute_selected_frames("horizontal")
+        )
         distribute_menu.addAction(self.distribute_h_action)
         self.distribute_v_action = QAction(self.tr("Vertically"), self)
-        self.distribute_v_action.triggered.connect(lambda: self.canvas.distribute_selected_frames("vertical"))
+        self.distribute_v_action.triggered.connect(
+            lambda: self.canvas.distribute_selected_frames("vertical")
+        )
         distribute_menu.addAction(self.distribute_v_action)
 
         edit_menu.addSeparator()
@@ -230,7 +250,9 @@ class MainWindow(QMainWindow):
         self.flip_horizontal_action.setShortcut("H")
         self.flip_horizontal_action.setIcon(self._action_icon("flip-horizontal.svg"))
         self.flip_horizontal_action.setToolTip(self.tr("Flip Horizontally"))
-        self.flip_horizontal_action.triggered.connect(lambda: self.flip_selected_object("horizontal"))
+        self.flip_horizontal_action.triggered.connect(
+            lambda: self.flip_selected_object("horizontal")
+        )
         edit_menu.addAction(self.flip_horizontal_action)
 
         self.flip_vertical_action = QAction(self.tr("Flip &Vertically"), self)
@@ -515,7 +537,8 @@ class MainWindow(QMainWindow):
         self.text_underline_button.blockSignals(False)
         color = QColor.fromRgbF(obj.color.red, obj.color.green, obj.color.blue)
         self.text_color_button.setStyleSheet(
-            f"background-color: {color.name()}; color: {'white' if color.lightness() < 128 else 'black'};"
+            f"background-color: {color.name()}; "
+            f"color: {'white' if color.lightness() < 128 else 'black'};"
         )
 
     def _directory_hint(self) -> Path:
@@ -621,14 +644,16 @@ class MainWindow(QMainWindow):
         target = Path(filename)
         try:
             if current_only and fmt_key != "pdf":
-                written = [export_page(
-                    self.canvas.current_page,
-                    self.canvas.comic,
-                    target,
-                    fmt=fmt_key,
-                    asset_root=self._asset_root(),
-                    scale=scale / 100.0,
-                )]
+                written = [
+                    export_page(
+                        self.canvas.current_page,
+                        self.canvas.comic,
+                        target,
+                        fmt=fmt_key,
+                        asset_root=self._asset_root(),
+                        scale=scale / 100.0,
+                    )
+                ]
             else:
                 written = export_comic(
                     self.canvas.comic,
@@ -736,19 +761,15 @@ class MainWindow(QMainWindow):
         self.preferences.set_last_directory(filename.parent.resolve())
         self._refresh_recent_files()
         self._update_window_title()
-        self.statusBar().showMessage(
-            self.tr("Saved to {filename}").format(filename=filename), 5000
-        )
+        self.statusBar().showMessage(self.tr("Saved to {filename}").format(filename=filename), 5000)
         return True
 
     def _backup_existing(self, filename: Path) -> None:
         if not filename.is_file():
             return
         backup = filename.with_suffix(filename.suffix + ".bak")
-        try:
+        with contextlib.suppress(OSError):
             shutil.copy2(filename, backup)
-        except OSError:
-            pass
 
     def _autosave_path(self, filename: Path) -> Path:
         return filename.with_suffix(filename.suffix + ".autosave")
@@ -759,18 +780,14 @@ class MainWindow(QMainWindow):
         comic = self.canvas.comic
         if comic is None:
             return
-        try:
+        with contextlib.suppress(TboFormatError):
             save(comic, self._autosave_path(self._filename))
-        except TboFormatError:
-            pass
 
     def _clear_autosave(self) -> None:
         if self._filename is None:
             return
-        try:
+        with contextlib.suppress(OSError):
             self._autosave_path(self._filename).unlink()
-        except OSError:
-            pass
 
     def _confirm_replacing_modified_document(self) -> bool:
         if self.canvas.comic is None or self.canvas.undo_stack.isClean():
@@ -845,7 +862,9 @@ class MainWindow(QMainWindow):
         if not isinstance(selected, TextObject):
             return
         dialog = TextObjectDialog(self)
-        dialog.set_color(QColor.fromRgbF(selected.color.red, selected.color.green, selected.color.blue))
+        dialog.set_color(
+            QColor.fromRgbF(selected.color.red, selected.color.green, selected.color.blue)
+        )
         dialog.text_input.setPlainText(selected.text)
         family, _, size = selected.font.rpartition(" ")
         if family and size.isdigit():
@@ -1131,12 +1150,12 @@ class MainWindow(QMainWindow):
         self.rotate_right_action.setEnabled(object_selected)
         self.flip_horizontal_action.setEnabled(object_selected)
         self.flip_vertical_action.setEnabled(object_selected)
-        self.edit_text_action.setEnabled(object_selected and isinstance(selected_object, TextObject))
+        self.edit_text_action.setEnabled(
+            object_selected and isinstance(selected_object, TextObject)
+        )
         has_selection = bool(self.canvas.selected_objects()) if editing else frame_count > 0
         self.copy_action.setEnabled(has_selection)
-        clipboard_matches = (
-            editing == self._clipboard_is_objects if self._clipboard else False
-        )
+        clipboard_matches = editing == self._clipboard_is_objects if self._clipboard else False
         self.paste_action.setEnabled(bool(self._clipboard) and clipboard_matches)
         self._sync_text_toolbar()
 
@@ -1172,9 +1191,7 @@ class MainWindow(QMainWindow):
             ).format(current=index + 1, count=count)
         else:
             message = (
-                self.tr("Page {current} of {count}").format(
-                    current=index + 1, count=count
-                )
+                self.tr("Page {current} of {count}").format(current=index + 1, count=count)
                 if count
                 else self.tr("Document has no pages")
             )

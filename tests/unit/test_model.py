@@ -20,4 +20,3 @@ def test_comic_rejects_invalid_dimensions(value: int) -> None:
 def test_color_rejects_out_of_range_component() -> None:
     with pytest.raises(DocumentValidationError):
         Color(1.1, 0.0, 0.0)
-

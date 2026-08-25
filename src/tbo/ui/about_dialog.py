@@ -9,7 +9,6 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QScrollArea,
-    QVBoxLayout,
     QWidget,
 )
 
@@ -40,6 +39,7 @@ def _logo_pixmap() -> QPixmap:
         Qt.AspectRatioMode.KeepAspectRatio,
         Qt.TransformationMode.SmoothTransformation,
     )
+
 
 EMAIL = "linuxfrontier@proton.me"
 REPOSITORY = "https://github.com/wachin/TBO"
@@ -102,9 +102,7 @@ class AboutDialog(QDialog):
         text_label.setText(_html(application))
         text_label.setOpenExternalLinks(True)
         text_label.setWordWrap(True)
-        text_label.setTextInteractionFlags(
-            Qt.TextInteractionFlag.TextBrowserInteraction
-        )
+        text_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
         text_label.setStyleSheet("background-color: transparent;")
 
         scroll = QScrollArea()

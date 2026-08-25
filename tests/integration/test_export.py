@@ -3,10 +3,8 @@ from pathlib import Path
 from PyQt6.QtGui import QImage
 
 from tbo.document.model import Comic, Frame, Page, TextObject
-from tbo.formats.tbo_v1 import load
 from tbo.rendering import ExportError, export_comic, export_page
 from tbo.ui.main_window import MainWindow
-
 
 REPOSITORY_ROOT = Path(__file__).parents[2]
 

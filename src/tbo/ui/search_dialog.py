@@ -32,9 +32,7 @@ class SearchDialog(QDialog):
         self.results_list = QListWidget()
         self.results_list.itemDoubleClicked.connect(self._activate)
 
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Close
-        )
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
         buttons.rejected.connect(self.reject)
         buttons.addButton(self.tr("Go to"), QDialogButtonBox.ButtonRole.AcceptRole)
         buttons.accepted.connect(self._activate_current)
@@ -54,7 +52,10 @@ class SearchDialog(QDialog):
         for page_index, page in enumerate(self._comic.pages):
             for frame in page.frames:
                 for graphic_object in frame.objects:
-                    if isinstance(graphic_object, TextObject) and normalized in graphic_object.text.lower():
+                    if (
+                        isinstance(graphic_object, TextObject)
+                        and normalized in graphic_object.text.lower()
+                    ):
                         self._results.append((page_index, frame, graphic_object))
                         preview = graphic_object.text.strip().replace("\n", " ")
                         if len(preview) > 40:

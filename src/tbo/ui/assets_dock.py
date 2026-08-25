@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PyQt6.QtCore import QMimeData, QRectF, QSize, QUrl, Qt, pyqtSignal
-from PyQt6.QtGui import QDrag, QIcon, QImage, QPainter, QPixmap
+from PyQt6.QtCore import QMimeData, QRectF, QSize, Qt, QUrl, pyqtSignal
+from PyQt6.QtGui import QIcon, QImage, QPainter, QPixmap
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (
     QAbstractItemView,
@@ -75,7 +75,7 @@ class _LibraryTab(QWidget):
 
     def _apply_filter(self, query: str) -> None:
         normalized = query.strip().lower()
-        for list_widget, category in zip(self._pages, self._categories):
+        for list_widget, category in zip(self._pages, self._categories, strict=False):
             list_widget.clear()
             visible = (
                 True
@@ -139,8 +139,8 @@ class AssetsDock(QDockWidget):
         self.setObjectName("assets_dock")
         self.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)
 
-        character_categories, accessories_categories, doodle_categories = (
-            self._split_categories(catalog)
+        character_categories, accessories_categories, doodle_categories = self._split_categories(
+            catalog
         )
 
         self.tabs = QTabWidget()
@@ -158,9 +158,7 @@ class AssetsDock(QDockWidget):
         self.tabs.addTab(self._bubbles_tab, self.tr("Bubbles"))
         self.setWidget(self.tabs)
 
-    def _split_categories(
-        self, catalog: AssetCatalog
-    ) -> tuple[list, list, list]:
+    def _split_categories(self, catalog: AssetCatalog) -> tuple[list, list, list]:
         character: list = []
         accessories: list = []
         regular: list = []

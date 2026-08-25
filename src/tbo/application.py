@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from PyQt6.QtCore import QCoreApplication, QLocale, QLibraryInfo, QTranslator, Qt
+from PyQt6.QtCore import QCoreApplication, QLibraryInfo, QLocale, Qt, QTranslator
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
 
@@ -27,10 +27,7 @@ def _install_translator(locale_override: str | None = None) -> None:
     """Install the Qt and application translators for the active locale."""
     preferences = Preferences()
     locale_name = locale_override or preferences.locale()
-    if not locale_name or locale_name == "auto":
-        locale = QLocale.system()
-    else:
-        locale = QLocale(locale_name)
+    locale = QLocale.system() if not locale_name or locale_name == "auto" else QLocale(locale_name)
     QLocale.setDefault(locale)
 
     global _APP_TRANSLATOR, _QT_TRANSLATOR
@@ -49,11 +46,10 @@ def _parse_language(arguments: list[str]) -> tuple[str | None, list[str]]:
     index = 0
     while index < len(arguments):
         argument = arguments[index]
-        if argument in ("--lang", "--language"):
-            if index + 1 < len(arguments):
-                override = arguments[index + 1]
-                index += 2
-                continue
+        if argument in ("--lang", "--language") and index + 1 < len(arguments):
+            override = arguments[index + 1]
+            index += 2
+            continue
         clean.append(argument)
         index += 1
     return override, clean
@@ -82,8 +78,6 @@ def main(argv: list[str] | None = None) -> int:
         if last is not None:
             window.open_document(last)
         else:
-            window.new_document(
-                QCoreApplication.translate("Application", "Untitled"), 800, 450
-            )
+            window.new_document(QCoreApplication.translate("Application", "Untitled"), 800, 450)
     window.show()
     return application.exec()

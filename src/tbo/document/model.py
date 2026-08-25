@@ -99,4 +99,3 @@ class Comic:
         _positive_dimension("comic height", self.height)
         if not self.title:
             raise DocumentValidationError("comic title must not be empty")
-

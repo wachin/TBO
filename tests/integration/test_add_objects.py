@@ -122,9 +122,7 @@ def test_edit_text_object_changes_content_and_is_undoable(qtbot) -> None:
     assert window.canvas.add_graphic_object(text)
     assert window.canvas.select_object(text)
 
-    assert window.canvas.edit_text_object(
-        text, "Bye", "Sans 20", Color(1.0, 0.0, 0.0)
-    )
+    assert window.canvas.edit_text_object(text, "Bye", "Sans 20", Color(1.0, 0.0, 0.0))
     assert text.text == "Bye"
     assert text.font == "Sans 20"
     assert (text.color.red, text.color.green, text.color.blue) == (1.0, 0.0, 0.0)
@@ -149,4 +147,3 @@ def test_edit_text_object_is_reflected_in_saved_file(qtbot, tmp_path: Path) -> N
     assert restored.text == "Saved"
     assert restored.font == "Sans 16"
     assert (restored.color.red, restored.color.green, restored.color.blue) == (0.0, 0.0, 1.0)
-

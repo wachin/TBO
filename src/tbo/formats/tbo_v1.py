@@ -200,7 +200,8 @@ def _validate_document_size(comic: Comic) -> None:
                     0 < graphic_object.height <= MAX_DIMENSION
                 ):
                     raise TboFormatError(
-                        f"{context}, object {object_index + 1}: dimensions are outside the supported range"
+                        f"{context}, object {object_index + 1}: "
+                        "dimensions are outside the supported range"
                     )
 
 
@@ -256,9 +257,7 @@ def _parse_page(element: ET.Element, page_index: int) -> Page:
     page = Page()
     for frame_index, frame_element in enumerate(element):
         if frame_element.tag != "frame":
-            raise TboFormatError(
-                f"Unexpected <{frame_element.tag}> inside page {page_index + 1}"
-            )
+            raise TboFormatError(f"Unexpected <{frame_element.tag}> inside page {page_index + 1}")
         if frame_index >= MAX_FRAMES_PER_PAGE:
             raise TboFormatError(f"Page {page_index + 1} contains too many frames")
         page.frames.append(_parse_frame(frame_element, page_index, frame_index))
@@ -324,9 +323,7 @@ def _raw(element: ET.Element, name: str, context: str) -> str:
     return value
 
 
-def _string(
-    element: ET.Element, name: str, context: str, *, default: str | None = None
-) -> str:
+def _string(element: ET.Element, name: str, context: str, *, default: str | None = None) -> str:
     value = element.get(name, default)
     if value is None:
         raise TboFormatError(f"{context}: missing attribute {name!r}")
@@ -352,9 +349,7 @@ def _dimension(element: ET.Element, name: str, context: str = "document") -> int
     return value
 
 
-def _number(
-    element: ET.Element, name: str, context: str, *, default: float | None = None
-) -> float:
+def _number(element: ET.Element, name: str, context: str, *, default: float | None = None) -> float:
     raw = element.get(name)
     if raw is None:
         if default is None:
@@ -369,9 +364,7 @@ def _number(
     return value
 
 
-def _boolean(
-    element: ET.Element, name: str, context: str, *, default: bool
-) -> bool:
+def _boolean(element: ET.Element, name: str, context: str, *, default: bool) -> bool:
     raw = element.get(name)
     if raw is None:
         return default

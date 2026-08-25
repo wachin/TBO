@@ -3,12 +3,11 @@ from __future__ import annotations
 from copy import deepcopy
 from pathlib import Path
 
-from PyQt6.QtCore import QPointF, QRectF, Qt, QUrl, pyqtSignal
+from PyQt6.QtCore import QPointF, QRectF, Qt, pyqtSignal
 from PyQt6.QtGui import (
     QBrush,
     QColor,
     QFont,
-    QKeySequence,
     QPainter,
     QPen,
     QPixmap,
@@ -30,7 +29,16 @@ from PyQt6.QtWidgets import (
     QPlainTextEdit,
 )
 
-from tbo.document.model import Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
+from tbo.document.model import (
+    Color,
+    Comic,
+    Frame,
+    GraphicObject,
+    ImageObject,
+    Page,
+    SvgObject,
+    TextObject,
+)
 from tbo.ui.commands import (
     AddFrameCommand,
     AddObjectCommand,
@@ -452,9 +460,7 @@ class ComicCanvas(QGraphicsView):
         page = self.current_page
         if page is None:
             return False
-        self.undo_stack.push(
-            DeletePageCommand(self._comic, page, self._show_page_from_command)
-        )
+        self.undo_stack.push(DeletePageCommand(self._comic, page, self._show_page_from_command))
         return True
 
     def move_current_page(self, offset: int) -> bool:
@@ -523,9 +529,7 @@ class ComicCanvas(QGraphicsView):
 
     def selected_frames(self) -> list[Frame]:
         return [
-            item.frame
-            for item in self.scene.selectedItems()
-            if isinstance(item, FrameGraphicsItem)
+            item.frame for item in self.scene.selectedItems() if isinstance(item, FrameGraphicsItem)
         ]
 
     def select_all(self) -> bool:
@@ -577,9 +581,7 @@ class ComicCanvas(QGraphicsView):
         old_positions = [(frame.x, frame.y) for frame in frames]
         new_positions = [target(frame) for frame in frames]
         self.undo_stack.push(
-            AlignFramesCommand(
-                frames, old_positions, new_positions, self._refresh_current_page
-            )
+            AlignFramesCommand(frames, old_positions, new_positions, self._refresh_current_page)
         )
         return True
 
@@ -590,9 +592,7 @@ class ComicCanvas(QGraphicsView):
         old_positions = [(frame.x, frame.y) for frame in frames]
         new_positions = _distribution_positions(frames, axis)
         self.undo_stack.push(
-            AlignFramesCommand(
-                frames, old_positions, new_positions, self._refresh_current_page
-            )
+            AlignFramesCommand(frames, old_positions, new_positions, self._refresh_current_page)
         )
         return True
 
@@ -658,9 +658,7 @@ class ComicCanvas(QGraphicsView):
         frame = self._editing_frame
         if frame is None:
             return False
-        self.undo_stack.push(
-            AddObjectCommand(frame, graphic_object, self._refresh_current_page)
-        )
+        self.undo_stack.push(AddObjectCommand(frame, graphic_object, self._refresh_current_page))
         self.select_object(graphic_object)
         return True
 
@@ -704,9 +702,7 @@ class ComicCanvas(QGraphicsView):
         graphic_object = self.selected_object()
         if graphic_object is None:
             return False
-        self.undo_stack.push(
-            FlipObjectCommand(graphic_object, axis, self._sync_object_transform)
-        )
+        self.undo_stack.push(FlipObjectCommand(graphic_object, axis, self._sync_object_transform))
         return True
 
     def resize_object(
@@ -778,7 +774,9 @@ class ComicCanvas(QGraphicsView):
         editor = InlineTextEditor(
             graphic_object.text,
             _font_from_legacy_string(graphic_object.font),
-            QColor.fromRgbF(graphic_object.color.red, graphic_object.color.green, graphic_object.color.blue),
+            QColor.fromRgbF(
+                graphic_object.color.red, graphic_object.color.green, graphic_object.color.blue
+            ),
         )
         editor.setFixedSize(max(1, graphic_object.width), max(1, graphic_object.height))
         proxy = self.scene.addWidget(editor)
@@ -816,7 +814,9 @@ class ComicCanvas(QGraphicsView):
         if accepted and editor is not None and graphic_object is not None:
             new_text = editor.toPlainText().strip()
             if new_text:
-                self.edit_text_object(graphic_object, new_text, graphic_object.font, graphic_object.color)
+                self.edit_text_object(
+                    graphic_object, new_text, graphic_object.font, graphic_object.color
+                )
             else:
                 self._refresh_current_page()
 
@@ -827,9 +827,13 @@ class ComicCanvas(QGraphicsView):
         *,
         old_position: tuple[int, int] | None = None,
     ) -> bool:
-        origin = old_position if old_position is not None else (
-            graphic_object.x,
-            graphic_object.y,
+        origin = (
+            old_position
+            if old_position is not None
+            else (
+                graphic_object.x,
+                graphic_object.y,
+            )
         )
         if origin == new_position:
             self._sync_object_position(graphic_object)
@@ -879,9 +883,7 @@ class ComicCanvas(QGraphicsView):
         if origin == snapped:
             self._sync_frame_position(frame)
             return False
-        self.undo_stack.push(
-            MoveFrameCommand(frame, origin, snapped, self._sync_frame_position)
-        )
+        self.undo_stack.push(MoveFrameCommand(frame, origin, snapped, self._sync_frame_position))
         return True
 
     def nudge_selected_frame(self, dx: int, dy: int) -> bool:
@@ -1113,7 +1115,10 @@ class InlineTextEditor(QPlainTextEdit):
         self.document().setDefaultStyleSheet(f"color: {color.name()};")
 
     def keyPressEvent(self, event) -> None:
-        if event.key() in {Qt.Key.Key_Return, Qt.Key.Key_Enter} and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+        if (
+            event.key() in {Qt.Key.Key_Return, Qt.Key.Key_Enter}
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
             self._emit_accepted()
             return
         if event.key() == Qt.Key.Key_Escape:

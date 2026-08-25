@@ -24,7 +24,9 @@ class TextObjectDialog(QDialog):
         self.resize(460, 320)
 
         self.text_input = QTextEdit()
-        self.text_input.setPlaceholderText(self.tr("Ctrl+Enter to accept. Shift+Enter for a new line."))
+        self.text_input.setPlaceholderText(
+            self.tr("Ctrl+Enter to accept. Shift+Enter for a new line.")
+        )
         self.font_input = QFontComboBox()
         self.size_input = QSpinBox()
         self.size_input.setRange(1, 512)
@@ -57,7 +59,10 @@ class TextObjectDialog(QDialog):
         layout.addWidget(self.buttons)
 
     def keyPressEvent(self, event) -> None:
-        if event.key() in {Qt.Key.Key_Return, Qt.Key.Key_Enter} and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+        if (
+            event.key() in {Qt.Key.Key_Return, Qt.Key.Key_Enter}
+            and event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        ):
             button = self.buttons.button(QDialogButtonBox.StandardButton.Ok)
             if button.isEnabled():
                 self.accept()

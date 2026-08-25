@@ -154,7 +154,7 @@ class AlignFramesCommand(QUndoCommand):
         self._apply(self._old_positions)
 
     def _apply(self, positions: list[tuple[int, int]]) -> None:
-        for frame, (x, y) in zip(self._frames, positions):
+        for frame, (x, y) in zip(self._frames, positions, strict=False):
             frame.x, frame.y = x, y
         self._on_change()
 

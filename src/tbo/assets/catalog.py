@@ -81,9 +81,7 @@ class AssetCatalog:
             if category is not None:
                 self._merge(self._doodle_categories, category)
         if bubble_root.is_dir():
-            subdirectories = sorted(
-                child for child in bubble_root.iterdir() if child.is_dir()
-            )
+            subdirectories = sorted(child for child in bubble_root.iterdir() if child.is_dir())
             if subdirectories:
                 for subdirectory in subdirectories:
                     category = self._category_from(

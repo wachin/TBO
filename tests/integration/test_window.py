@@ -6,7 +6,6 @@ from PyQt6.QtWidgets import QMessageBox
 from tbo.formats.tbo_v1 import load
 from tbo.ui.main_window import MainWindow
 
-
 REPOSITORY_ROOT = Path(__file__).parents[2]
 
 
@@ -155,7 +154,10 @@ def test_page_management_is_undoable_and_updates_navigation(qtbot, tmp_path: Pat
     assert comic.pages[1] is added
 
     window.canvas.undo_stack.undo()
-    assert all(current is original for current, original in zip(comic.pages, original_pages))
+    assert all(
+        current is original
+        for current, original in zip(comic.pages, original_pages, strict=False)
+    )
     assert window.canvas.page_index == 0
     assert window.statusBar().currentMessage() == "Page 1 of 11"
 

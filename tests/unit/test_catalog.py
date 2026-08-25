@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from tbo.assets import AssetCatalog, resolve_asset
-from tbo.assets.catalog import AssetCategory, AssetEntry
+from tbo.assets.catalog import AssetEntry
 
 REPOSITORY_ROOT = Path(__file__).parents[2]
 DOODLE_ROOT = REPOSITORY_ROOT / "data" / "doodle"
@@ -33,7 +33,9 @@ def test_catalog_character_head_has_face_parts() -> None:
     )
     assert head is not None
     assert any(entry.name == "head" for entry in head.entries)
-    parts = {category.name: len(category.entries) for category in catalog.split_by_subdirectory(head)}
+    parts = {
+        category.name: len(category.entries) for category in catalog.split_by_subdirectory(head)
+    }
     assert parts.get("eyes", 0) >= 1
     assert parts.get("mouth", 0) >= 1
     assert parts.get("ears", 0) >= 1

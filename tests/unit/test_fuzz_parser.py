@@ -6,10 +6,8 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from tbo.document.model import (
-    Color,
     Comic,
     Frame,
-    GraphicObject,
     ImageObject,
     Page,
     SvgObject,
@@ -30,9 +28,9 @@ def _assert_comic_equivalent(first: Comic, second: Comic) -> None:
     assert first.title == second.title
     assert (first.width, first.height) == (second.width, second.height)
     assert len(first.pages) == len(second.pages)
-    for first_page, second_page in zip(first.pages, second.pages):
+    for first_page, second_page in zip(first.pages, second.pages, strict=False):
         assert len(first_page.frames) == len(second_page.frames)
-        for first_frame, second_frame in zip(first_page.frames, second_page.frames):
+        for first_frame, second_frame in zip(first_page.frames, second_page.frames, strict=False):
             assert (first_frame.x, first_frame.y) == (second_frame.x, second_frame.y)
             assert (first_frame.width, first_frame.height) == (
                 second_frame.width,
@@ -40,7 +38,9 @@ def _assert_comic_equivalent(first: Comic, second: Comic) -> None:
             )
             assert first_frame.border == second_frame.border
             assert len(first_frame.objects) == len(second_frame.objects)
-            for first_obj, second_obj in zip(first_frame.objects, second_frame.objects):
+            for first_obj, second_obj in zip(
+                first_frame.objects, second_frame.objects, strict=False
+            ):
                 assert type(first_obj) is type(second_obj)
                 assert (first_obj.x, first_obj.y) == (second_obj.x, second_obj.y)
                 assert (first_obj.width, first_obj.height) == (
@@ -94,7 +94,6 @@ _VALID_XML_CHARS = st.characters(
     max_codepoint=0xD7FF,
     whitelist_categories=("L", "N", "P", "S", "Z", "M", "Cc"),
 )
-
 
 
 @settings(max_examples=20, deadline=None)

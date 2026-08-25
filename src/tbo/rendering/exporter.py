@@ -3,8 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from PyQt6.QtCore import QRect, QSize, QSizeF, Qt
-from PyQt6.QtGui import QPageSize
-from PyQt6.QtGui import QImage, QPainter, QPdfWriter
+from PyQt6.QtGui import QImage, QPageSize, QPainter, QPdfWriter
 from PyQt6.QtSvg import QSvgGenerator
 
 from tbo.document.model import Comic, Page
@@ -21,9 +20,7 @@ SUPPORTED_FORMATS = ("png", "pdf", "svg")
 def _validate_format(fmt: str) -> str:
     normalized = fmt.lower().lstrip(".")
     if normalized not in SUPPORTED_FORMATS:
-        raise ExportError(
-            f"Unsupported export format {fmt!r}; expected one of {SUPPORTED_FORMATS}"
-        )
+        raise ExportError(f"Unsupported export format {fmt!r}; expected one of {SUPPORTED_FORMATS}")
     return normalized
 
 
