@@ -172,7 +172,9 @@ Para usarlos:
 
 Al insertar un **bocadillo de diálogo** (pestaña Bubbles), se coloca
 automáticamente un **objeto de texto** editable en su interior, centrado y listo
-para editar (selecciónelo y pulse `E` o use **Editar ▸ Editar texto**).
+para editar. Haga **doble clic** en el texto para editarlo en su lugar
+(Ctrl+Enter acepta, Esc cancela), o selecciónelo y pulse `E` / use
+**Editar ▸ Editar texto**.
 
 Todo lo insertado se puede mover, redimensionar, rotar, voltear, clonar y
 eliminar, y queda guardado en el archivo `.tbo`.

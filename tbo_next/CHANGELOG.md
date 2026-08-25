@@ -78,6 +78,9 @@ overwrites the only copy of a user document without confirmation or a safe copy.
   Help dialog follow the system language (or the saved preference).
 - Speech bubbles from the Bubbles tab now insert an editable text object
   centred inside the bubble.
+- Inline text editing: double-click a text object to edit it directly on the
+  canvas (Ctrl+Enter to accept, Esc to cancel).
+- Text dialog: Ctrl+Enter accepts, based on ksnip-py's InlineTextEditor.
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.

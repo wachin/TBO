@@ -8,9 +8,11 @@ from PyQt6.QtGui import (
     QBrush,
     QColor,
     QFont,
+    QKeySequence,
     QPainter,
     QPen,
     QPixmap,
+    QTextCharFormat,
     QTransform,
     QUndoStack,
 )
@@ -18,12 +20,14 @@ from PyQt6.QtSvgWidgets import QGraphicsSvgItem
 from PyQt6.QtWidgets import (
     QGraphicsItem,
     QGraphicsPixmapItem,
+    QGraphicsProxyWidget,
     QGraphicsRectItem,
     QGraphicsScene,
     QGraphicsSceneHoverEvent,
     QGraphicsSceneMouseEvent,
     QGraphicsTextItem,
     QGraphicsView,
+    QPlainTextEdit,
 )
 
 from tbo.document.model import Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
@@ -219,6 +223,13 @@ class ObjectGraphicsItem(QGraphicsRectItem):
         self._drag_start = (self.graphic_object.x, self.graphic_object.y)
         super().mousePressEvent(event)
 
+    def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if isinstance(self.graphic_object, TextObject):
+            self._canvas.start_inline_text_edit(self)
+            event.accept()
+            return
+        super().mouseDoubleClickEvent(event)
+
     def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         if self._resizing:
             delta = event.scenePos() - self._resize_scene_start
@@ -293,6 +304,9 @@ class ComicCanvas(QGraphicsView):
         self._editing_frame: Frame | None = None
         self._snap_to_grid = False
         self._grid_size = 10
+        self._inline_proxy: QGraphicsProxyWidget | None = None
+        self._inline_editor: InlineTextEditor | None = None
+        self._inline_object: TextObject | None = None
         self.undo_stack = QUndoStack(self)
         self.setRenderHints(
             QPainter.RenderHint.Antialiasing
@@ -742,6 +756,44 @@ class ComicCanvas(QGraphicsView):
         )
         return True
 
+    def start_inline_text_edit(self, item: ObjectGraphicsItem) -> None:
+        if self._editing_frame is None or self._inline_proxy is not None:
+            return
+        graphic_object = item.graphic_object
+        if not isinstance(graphic_object, TextObject):
+            return
+        editor = InlineTextEditor(
+            graphic_object.text,
+            _font_from_legacy_string(graphic_object.font),
+            QColor.fromRgbF(graphic_object.color.red, graphic_object.color.green, graphic_object.color.blue),
+        )
+        editor.setFixedSize(max(1, graphic_object.width), max(1, graphic_object.height))
+        proxy = self.scene.addWidget(editor)
+        proxy.setPos(graphic_object.x, graphic_object.y)
+        proxy.setZValue(1000)
+        self._inline_proxy = proxy
+        self._inline_editor = editor
+        self._inline_object = graphic_object
+        editor.accepted.connect(lambda: self._finish_inline_text_edit(True))
+        editor.canceled.connect(lambda: self._finish_inline_text_edit(False))
+        editor.setFocus()
+
+    def _finish_inline_text_edit(self, accepted: bool) -> None:
+        proxy = self._inline_proxy
+        editor = self._inline_editor
+        graphic_object = self._inline_object
+        self._inline_proxy = None
+        self._inline_editor = None
+        self._inline_object = None
+        if proxy is not None:
+            self.scene.removeItem(proxy)
+        if accepted and editor is not None and graphic_object is not None:
+            new_text = editor.toPlainText().strip()
+            if new_text:
+                self.edit_text_object(graphic_object, new_text, graphic_object.font, graphic_object.color)
+            else:
+                self._refresh_current_page()
+
     def move_object(
         self,
         graphic_object: GraphicObject,
@@ -1011,6 +1063,54 @@ class ComicCanvas(QGraphicsView):
             if candidate.is_file():
                 return candidate
         return None
+
+
+class InlineTextEditor(QPlainTextEdit):
+    """Floating text editor placed over a TextObject for inline editing.
+
+    Based on the ksnip-py InlineTextEditor (``third-party/ksnip_py/canvas.py``).
+    Ctrl+Enter to accept, Esc to cancel, focus-out to accept.
+    """
+
+    accepted = pyqtSignal()
+    canceled = pyqtSignal()
+
+    def __init__(self, text: str, font: QFont, color: QColor, parent=None) -> None:
+        super().__init__(parent)
+        self._finished = False
+        self.setPlainText(text)
+        self.setFont(font)
+        fmt = QTextCharFormat()
+        fmt.setForeground(color)
+        self.document().setDefaultStyleSheet(f"color: {color.name()};")
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() in {Qt.Key.Key_Return, Qt.Key.Key_Enter} and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            self._emit_accepted()
+            return
+        if event.key() == Qt.Key.Key_Escape:
+            self._emit_canceled()
+            return
+        super().keyPressEvent(event)
+
+    def focusOutEvent(self, event) -> None:
+        if event.reason() == Qt.FocusReason.PopupFocusReason:
+            super().focusOutEvent(event)
+            return
+        self._emit_accepted()
+        super().focusOutEvent(event)
+
+    def _emit_accepted(self) -> None:
+        if self._finished:
+            return
+        self._finished = True
+        self.accepted.emit()
+
+    def _emit_canceled(self) -> None:
+        if self._finished:
+            return
+        self._finished = True
+        self.canceled.emit()
 
 
 def _font_from_legacy_string(description: str) -> QFont:

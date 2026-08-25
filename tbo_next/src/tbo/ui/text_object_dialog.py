@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
     QColorDialog,
@@ -23,7 +24,7 @@ class TextObjectDialog(QDialog):
         self.resize(460, 320)
 
         self.text_input = QTextEdit()
-        self.text_input.setPlaceholderText(self.tr("Enter the text to place in the panel…"))
+        self.text_input.setPlaceholderText(self.tr("Ctrl+Enter to accept. Shift+Enter for a new line."))
         self.font_input = QFontComboBox()
         self.size_input = QSpinBox()
         self.size_input.setRange(1, 512)
@@ -54,6 +55,14 @@ class TextObjectDialog(QDialog):
         layout.addWidget(self.text_input, 1)
         layout.addLayout(form)
         layout.addWidget(self.buttons)
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() in {Qt.Key.Key_Return, Qt.Key.Key_Enter} and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            button = self.buttons.button(QDialogButtonBox.StandardButton.Ok)
+            if button.isEnabled():
+                self.accept()
+            return
+        super().keyPressEvent(event)
 
     def choose_color(self) -> None:
         color = QColorDialog.getColor(self._color, self, self.tr("Choose Text Color"))
