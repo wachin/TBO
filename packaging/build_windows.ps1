@@ -24,6 +24,9 @@ Remove-Item "$distDir\*" -Recurse -Force -ErrorAction SilentlyContinue
 # Generate the .ico from the SVG application icon
 python "$workspaceRoot\packaging\generate_icon.py" "$workspaceRoot\src\tbo\resources\icon.png" ico
 
+# Make the src layout importable by Nuitka
+$env:PYTHONPATH = "$workspaceRoot\src"
+
 & python -m nuitka `
   --standalone `
   --assume-yes-for-downloads `
@@ -40,10 +43,10 @@ python "$workspaceRoot\packaging\generate_icon.py" "$workspaceRoot\src\tbo\resou
   --file-version="$windowsVersion" `
   --product-version="$windowsVersion" `
   --copyright="Copyright (c) 2026 Washington Indacochea Delgado" `
+  --include-package=tbo `
   --include-package-data=tbo `
   --include-data-dir="$workspaceRoot\data\doodle=tbo\data\doodle" `
   --include-data-dir="$workspaceRoot\translations=tbo\translations" `
-  --python-path="$workspaceRoot\src" `
   --output-filename="TBO.exe" `
   --output-dir="$tmpDir" `
   "$workspaceRoot\src\tbo\__main__.py"
