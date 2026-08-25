@@ -13,7 +13,7 @@ Files: packaging/org.tbo.TBO.svg
 Copyright: 2010 Daniel Garcia Moreno <dani@danigm.net>
 License: GPL-3.0-or-later
 
-Files: src/tbo/resources/icons/flip-*.svg
+Files: src/tbo/resources/icons/*.svg
 Copyright: The Inkscape Project
 License: GPL-2.0-or-later
 Source: https://github.com/inkscape/inkscape (share/icons/)

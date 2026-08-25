@@ -1,10 +1,12 @@
 Icon attribution
 ================
 
-The flip icons bundled with TBO 2 come from the Inkscape project:
+The toolbar icons bundled with TBO 2 come from the Inkscape project:
 
   * `resources/icons/flip-horizontal.svg`
   * `resources/icons/flip-vertical.svg`
+  * `resources/icons/zoom-in.svg`
+  * `resources/icons/zoom-out.svg`
 
 Source: https://github.com/inkscape/inkscape (share/icons/)
 License: GPL-2.0-or-later

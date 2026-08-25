@@ -199,14 +199,14 @@ class MainWindow(QMainWindow):
 
         self.flip_horizontal_action = QAction(self.tr("Flip &Horizontally"), self)
         self.flip_horizontal_action.setShortcut("H")
-        self.flip_horizontal_action.setIcon(self._flip_icon("flip-horizontal.svg"))
+        self.flip_horizontal_action.setIcon(self._action_icon("flip-horizontal.svg"))
         self.flip_horizontal_action.setToolTip(self.tr("Flip Horizontally"))
         self.flip_horizontal_action.triggered.connect(lambda: self.flip_selected_object("horizontal"))
         edit_menu.addAction(self.flip_horizontal_action)
 
         self.flip_vertical_action = QAction(self.tr("Flip &Vertically"), self)
         self.flip_vertical_action.setShortcut("V")
-        self.flip_vertical_action.setIcon(self._flip_icon("flip-vertical.svg"))
+        self.flip_vertical_action.setIcon(self._action_icon("flip-vertical.svg"))
         self.flip_vertical_action.setToolTip(self.tr("Flip Vertically"))
         self.flip_vertical_action.triggered.connect(lambda: self.flip_selected_object("vertical"))
         edit_menu.addAction(self.flip_vertical_action)
@@ -275,11 +275,15 @@ class MainWindow(QMainWindow):
 
         self.zoom_in_action = QAction(self.tr("Zoom In"), self)
         self.zoom_in_action.setShortcut("+")
+        self.zoom_in_action.setIcon(self._action_icon("zoom-in.svg"))
+        self.zoom_in_action.setToolTip(self.tr("Zoom In"))
         self.zoom_in_action.triggered.connect(self.canvas.zoom_in)
         view_menu.addAction(self.zoom_in_action)
 
         self.zoom_out_action = QAction(self.tr("Zoom Out"), self)
         self.zoom_out_action.setShortcut("-")
+        self.zoom_out_action.setIcon(self._action_icon("zoom-out.svg"))
+        self.zoom_out_action.setToolTip(self.tr("Zoom Out"))
         self.zoom_out_action.triggered.connect(self.canvas.zoom_out)
         view_menu.addAction(self.zoom_out_action)
 
@@ -339,7 +343,7 @@ class MainWindow(QMainWindow):
         dialog = AboutDialog(self)
         dialog.exec()
 
-    def _flip_icon(self, name: str) -> QIcon:
+    def _action_icon(self, name: str) -> QIcon:
         icon_dir = Path(__file__).resolve().parent.parent / "resources" / "icons"
         return QIcon(str(icon_dir / name))
 
