@@ -402,12 +402,14 @@ class EditTextObjectCommand(QUndoCommand):
         new_font: str,
         old_color: Color,
         new_color: Color,
+        old_style: tuple[bool, bool, bool],
+        new_style: tuple[bool, bool, bool],
         on_change: ObjectMoveCallback,
     ) -> None:
         super().__init__(_tr("Edit text"))
         self._object = text_object
-        self._old = (old_text, old_font, old_color)
-        self._new = (new_text, new_font, new_color)
+        self._old = (old_text, old_font, old_color, old_style)
+        self._new = (new_text, new_font, new_color, new_style)
         self._on_change = on_change
 
     def redo(self) -> None:
@@ -416,9 +418,10 @@ class EditTextObjectCommand(QUndoCommand):
     def undo(self) -> None:
         self._apply(self._old)
 
-    def _apply(self, state: tuple[str, str, Color]) -> None:
-        text, font, color = state
+    def _apply(self, state) -> None:
+        text, font, color, style = state
         self._object.text = text
         self._object.font = font
         self._object.color = color
+        self._object.bold, self._object.italic, self._object.underline = style
         self._on_change(self._object)

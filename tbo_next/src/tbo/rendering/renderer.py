@@ -77,7 +77,11 @@ class ComicRenderer:
 
     def _paint_text(self, painter: QPainter, obj: TextObject) -> None:
         painter.setPen(QColor.fromRgbF(obj.color.red, obj.color.green, obj.color.blue))
-        painter.setFont(_font_from_legacy_string(obj.font))
+        font = _font_from_legacy_string(obj.font)
+        font.setBold(obj.bold)
+        font.setItalic(obj.italic)
+        font.setUnderline(obj.underline)
+        painter.setFont(font)
         painter.drawText(QRectF(0, 0, obj.width, obj.height), Qt.TextFlag.TextWordWrap, obj.text)
 
     def _paint_svg(self, painter: QPainter, obj: SvgObject) -> None:

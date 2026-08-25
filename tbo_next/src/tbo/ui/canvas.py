@@ -732,14 +732,24 @@ class ComicCanvas(QGraphicsView):
         new_text: str,
         new_font: str,
         new_color: Color,
+        new_bold: bool | None = None,
+        new_italic: bool | None = None,
+        new_underline: bool | None = None,
     ) -> bool:
         old_text = text_object.text
         old_font = text_object.font
         old_color = text_object.color
+        old_style = (text_object.bold, text_object.italic, text_object.underline)
+        new_style = (
+            text_object.bold if new_bold is None else new_bold,
+            text_object.italic if new_italic is None else new_italic,
+            text_object.underline if new_underline is None else new_underline,
+        )
         if (
             new_text == old_text
             and new_font == old_font
             and new_color == old_color
+            and new_style == old_style
         ):
             return False
         self.undo_stack.push(
@@ -751,9 +761,12 @@ class ComicCanvas(QGraphicsView):
                 new_font,
                 old_color,
                 new_color,
+                old_style,
+                new_style,
                 lambda _object: self._refresh_current_page(),
             )
         )
+        self.select_object(text_object)
         return True
 
     def start_inline_text_edit(self, item: ObjectGraphicsItem) -> None:
@@ -1028,7 +1041,7 @@ class ComicCanvas(QGraphicsView):
             text_item.setDefaultTextColor(
                 QColor.fromRgbF(obj.color.red, obj.color.green, obj.color.blue)
             )
-            text_item.setFont(_font_from_legacy_string(obj.font))
+            text_item.setFont(_font_for_object(obj))
             text_item.setTextWidth(obj.width)
             item = text_item
         elif isinstance(obj, SvgObject):
@@ -1126,6 +1139,14 @@ class InlineTextEditor(QPlainTextEdit):
             return
         self._finished = True
         self.canceled.emit()
+
+
+def _font_for_object(obj: TextObject) -> QFont:
+    font = _font_from_legacy_string(obj.font)
+    font.setBold(obj.bold)
+    font.setItalic(obj.italic)
+    font.setUnderline(obj.underline)
+    return font
 
 
 def _font_from_legacy_string(description: str) -> QFont:

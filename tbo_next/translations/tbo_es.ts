@@ -579,7 +579,7 @@ and mix any expressions you like.
 | `Ctrl+F` | Find text in the document |
 | `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / redo |
 </source>
-   <translation># TBO 2 — Ayuda
+   <translation type="vanished"># TBO 2 — Ayuda
 
 ## ¿Dónde están los archivos `.tbo`?
 
@@ -880,7 +880,7 @@ and mix any expressions you like.
 | `Ctrl+F` | Find text in the document |
 | `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / redo |
 </source>
-   <translation># TBO 2 — Ayuda
+   <translation type="vanished"># TBO 2 — Ayuda
 
 ## ¿Dónde están los archivos `.tbo`?
 
@@ -1039,506 +1039,557 @@ quiera.
  <context>
   <name>MainWindow</name>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="61" />
+   <location filename="../src/tbo/ui/main_window.py" line="73" />
    <source>100%</source>
    <translation>100%</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="70" />
+   <location filename="../src/tbo/ui/main_window.py" line="82" />
    <source>&amp;File</source>
    <translation>&amp;Archivo</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="71" />
+   <location filename="../src/tbo/ui/main_window.py" line="83" />
    <source>&amp;New…</source>
    <translation>&amp;Nuevo…</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="74" />
+   <location filename="../src/tbo/ui/main_window.py" line="86" />
    <source>New</source>
    <translation>Nuevo</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="78" />
+   <location filename="../src/tbo/ui/main_window.py" line="90" />
    <source>&amp;Open…</source>
    <translation>&amp;Abrir…</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="81" />
+   <location filename="../src/tbo/ui/main_window.py" line="93" />
    <source>Open</source>
    <translation>Abrir</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="85" />
+   <location filename="../src/tbo/ui/main_window.py" line="97" />
    <source>&amp;Save</source>
    <translation>&amp;Guardar</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="88" />
+   <location filename="../src/tbo/ui/main_window.py" line="100" />
    <source>Save</source>
    <translation>Guardar</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="93" />
+   <location filename="../src/tbo/ui/main_window.py" line="105" />
    <source>Save &amp;As…</source>
    <translation>Guardar &amp;como…</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="96" />
+   <location filename="../src/tbo/ui/main_window.py" line="108" />
    <source>Save As</source>
    <translation>Guardar como</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="101" />
+   <location filename="../src/tbo/ui/main_window.py" line="113" />
    <source>&amp;Export…</source>
    <translation>&amp;Exportar…</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="108" />
+   <location filename="../src/tbo/ui/main_window.py" line="120" />
    <source>&amp;Recent Files</source>
    <translation>&amp;Archivos recientes</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="112" />
+   <location filename="../src/tbo/ui/main_window.py" line="124" />
    <source>&amp;Edit</source>
    <translation>&amp;Editar</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="113" />
+   <location filename="../src/tbo/ui/main_window.py" line="125" />
    <source>&amp;Undo</source>
    <translation>&amp;Deshacer</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="116" />
+   <location filename="../src/tbo/ui/main_window.py" line="128" />
    <source>Undo</source>
    <translation>Deshacer</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="118" />
+   <location filename="../src/tbo/ui/main_window.py" line="130" />
    <source>&amp;Redo</source>
    <translation>&amp;Rehacer</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="121" />
+   <location filename="../src/tbo/ui/main_window.py" line="133" />
    <source>Redo</source>
    <translation>Rehacer</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="124" />
+   <location filename="../src/tbo/ui/main_window.py" line="136" />
    <source>&amp;Copy</source>
    <translation>&amp;Copiar</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="128" />
+   <location filename="../src/tbo/ui/main_window.py" line="140" />
    <source>&amp;Paste</source>
    <translation>&amp;Pegar</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="134" />
+   <location filename="../src/tbo/ui/main_window.py" line="146" />
    <source>Select &amp;All</source>
    <translation>Seleccionar &amp;todo</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="140" />
+   <location filename="../src/tbo/ui/main_window.py" line="152" />
    <source>Add &amp;Panel</source>
    <translation>Añadir &amp;viñeta</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="143" />
+   <location filename="../src/tbo/ui/main_window.py" line="155" />
    <source>Add Panel</source>
    <translation>Añadir viñeta</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="146" />
+   <location filename="../src/tbo/ui/main_window.py" line="158" />
    <source>&amp;Delete Panel</source>
    <translation>&amp;Eliminar viñeta</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="151" />
+   <location filename="../src/tbo/ui/main_window.py" line="163" />
    <source>&amp;Clone Panel</source>
    <translation>&amp;Clonar viñeta</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="156" />
+   <location filename="../src/tbo/ui/main_window.py" line="168" />
    <source>Leave Panel</source>
    <translation>Salir de viñeta</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="161" />
+   <location filename="../src/tbo/ui/main_window.py" line="173" />
    <source>Ali&amp;gn</source>
    <translation>Ali&amp;near</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="162" />
+   <location filename="../src/tbo/ui/main_window.py" line="174" />
    <source>Left</source>
    <translation>Izquierda</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="165" />
+   <location filename="../src/tbo/ui/main_window.py" line="177" />
    <source>Horizontal Center</source>
    <translation>Centro horizontal</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="168" />
+   <location filename="../src/tbo/ui/main_window.py" line="180" />
    <source>Right</source>
    <translation>Derecha</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="172" />
+   <location filename="../src/tbo/ui/main_window.py" line="184" />
    <source>Top</source>
    <translation>Superior</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="175" />
+   <location filename="../src/tbo/ui/main_window.py" line="187" />
    <source>Vertical Center</source>
    <translation>Centro vertical</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="178" />
+   <location filename="../src/tbo/ui/main_window.py" line="190" />
    <source>Bottom</source>
    <translation>Inferior</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="182" />
+   <location filename="../src/tbo/ui/main_window.py" line="194" />
    <source>&amp;Distribute</source>
    <translation>&amp;Distribuir</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="183" />
+   <location filename="../src/tbo/ui/main_window.py" line="195" />
    <source>Horizontally</source>
    <translation>Horizontalmente</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="186" />
+   <location filename="../src/tbo/ui/main_window.py" line="198" />
    <source>Vertically</source>
    <translation>Verticalmente</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="191" />
+   <location filename="../src/tbo/ui/main_window.py" line="203" />
    <source>Add &amp;Text…</source>
    <translation>Añadir &amp;texto…</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="194" />
+   <location filename="../src/tbo/ui/main_window.py" line="206" />
    <source>Add Text</source>
    <translation>Añadir texto</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="198" />
+   <location filename="../src/tbo/ui/main_window.py" line="210" />
    <source>Add &amp;Image…</source>
    <translation>Añadir &amp;imagen…</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="202" />
+   <location filename="../src/tbo/ui/main_window.py" line="214" />
    <source>Add &amp;SVG…</source>
    <translation>Añadir &amp;SVG…</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="207" />
+   <location filename="../src/tbo/ui/main_window.py" line="219" />
    <source>Rotate &amp;Left</source>
    <translation>Rotar a la &amp;izquierda</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="212" />
+   <location filename="../src/tbo/ui/main_window.py" line="224" />
    <source>Rotate &amp;Right</source>
    <translation>Rotar a la &amp;derecha</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="217" />
+   <location filename="../src/tbo/ui/main_window.py" line="229" />
    <source>Flip &amp;Horizontally</source>
    <translation>Voltear &amp;horizontalmente</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="220" />
+   <location filename="../src/tbo/ui/main_window.py" line="232" />
    <source>Flip Horizontally</source>
    <translation>Voltear horizontalmente</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="224" />
+   <location filename="../src/tbo/ui/main_window.py" line="236" />
    <source>Flip &amp;Vertically</source>
    <translation>Voltear &amp;verticalmente</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="227" />
+   <location filename="../src/tbo/ui/main_window.py" line="239" />
    <source>Flip Vertically</source>
    <translation>Voltear verticalmente</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="231" />
+   <location filename="../src/tbo/ui/main_window.py" line="243" />
    <source>Edit &amp;Text…</source>
    <translation>Editar &amp;texto…</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="237" />
+   <location filename="../src/tbo/ui/main_window.py" line="249" />
    <source>&amp;Find Text…</source>
    <translation>&amp;Buscar texto…</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="255" />
+   <location filename="../src/tbo/ui/main_window.py" line="267" />
    <source>&amp;Page</source>
    <translation>&amp;Página</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="256" />
+   <location filename="../src/tbo/ui/main_window.py" line="268" />
    <source>&amp;Previous Page</source>
    <translation>&amp;Página anterior</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="261" />
+   <location filename="../src/tbo/ui/main_window.py" line="273" />
    <source>&amp;Next Page</source>
    <translation>&amp;Página siguiente</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="267" />
+   <location filename="../src/tbo/ui/main_window.py" line="279" />
    <source>Add Page</source>
    <translation>Añadir página</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="272" />
+   <location filename="../src/tbo/ui/main_window.py" line="284" />
    <source>Delete Page</source>
    <translation>Eliminar página</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="277" />
+   <location filename="../src/tbo/ui/main_window.py" line="289" />
    <source>Move Page Left</source>
    <translation>Mover página a la izquierda</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="282" />
+   <location filename="../src/tbo/ui/main_window.py" line="294" />
    <source>Move Page Right</source>
    <translation>Mover página a la derecha</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="287" />
+   <location filename="../src/tbo/ui/main_window.py" line="299" />
    <source>&amp;View</source>
    <translation>&amp;Ver</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="291" />
-   <location filename="../src/tbo/ui/main_window.py" line="288" />
+   <location filename="../src/tbo/ui/main_window.py" line="303" />
+   <location filename="../src/tbo/ui/main_window.py" line="300" />
    <source>Fit Page</source>
    <translation>Ajustar página</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="298" />
-   <location filename="../src/tbo/ui/main_window.py" line="295" />
+   <location filename="../src/tbo/ui/main_window.py" line="310" />
+   <location filename="../src/tbo/ui/main_window.py" line="307" />
    <source>Zoom In</source>
    <translation>Acercar</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="305" />
-   <location filename="../src/tbo/ui/main_window.py" line="302" />
+   <location filename="../src/tbo/ui/main_window.py" line="317" />
+   <location filename="../src/tbo/ui/main_window.py" line="314" />
    <source>Zoom Out</source>
    <translation>Alejar</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="312" />
-   <location filename="../src/tbo/ui/main_window.py" line="309" />
+   <location filename="../src/tbo/ui/main_window.py" line="324" />
+   <location filename="../src/tbo/ui/main_window.py" line="321" />
    <source>Actual Size</source>
    <translation>Tamaño real</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="316" />
+   <location filename="../src/tbo/ui/main_window.py" line="328" />
    <source>&amp;Presentation…</source>
    <translation>&amp;Presentación…</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="321" />
+   <location filename="../src/tbo/ui/main_window.py" line="333" />
    <source>S&amp;nap to Grid</source>
    <translation>A&amp;justar a rejilla</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="327" />
+   <location filename="../src/tbo/ui/main_window.py" line="339" />
    <source>&amp;Theme</source>
    <translation>&amp;Tema</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="332" />
+   <location filename="../src/tbo/ui/main_window.py" line="344" />
    <source>System</source>
    <translation>Sistema</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="333" />
+   <location filename="../src/tbo/ui/main_window.py" line="345" />
    <source>Dark</source>
    <translation>Oscuro</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="334" />
+   <location filename="../src/tbo/ui/main_window.py" line="346" />
    <source>Light</source>
    <translation>Claro</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="345" />
+   <location filename="../src/tbo/ui/main_window.py" line="357" />
    <source>&amp;Help</source>
    <translation>&amp;Ayuda</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="346" />
+   <location filename="../src/tbo/ui/main_window.py" line="358" />
    <source>&amp;Help Contents</source>
    <translation>&amp;Contenido de ayuda</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="351" />
+   <location filename="../src/tbo/ui/main_window.py" line="363" />
    <source>&amp;About TBO</source>
    <translation>&amp;Acerca de TBO</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="372" />
+   <location filename="../src/tbo/ui/main_window.py" line="384" />
    <source>Main Toolbar</source>
    <translation>Barra de herramientas</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="401" />
-   <source>Open Comic</source>
-   <translation>Abrir cómic</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="403" />
-   <source>TBO Files (*.tbo);;All Files (*)</source>
-   <translation>Archivos TBO (*.tbo);;Todos los archivos (*)</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="423" />
-   <source>Could Not Open File</source>
-   <translation>No se pudo abrir el archivo</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="457" />
-   <source>Save Comic</source>
-   <translation>Guardar cómic</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="457" />
-   <source>TBO Files (*.tbo)</source>
-   <translation>Archivos TBO (*.tbo)</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="489" />
-   <source>Export Comic</source>
-   <translation>Exportar cómic</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="515" />
-   <source>Could Not Export</source>
-   <translation>No se pudo exportar</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="520" />
-   <source>Exported {count} file(s)</source>
-   <translation>{count} archivo(s) exportado(s)</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="588" />
-   <source>File Not Found</source>
-   <translation>Archivo no encontrado</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="589" />
-   <source>{filename} no longer exists.</source>
-   <translation>{filename} ya no existe.</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="603" />
-   <source>Could Not Save File</source>
-   <translation>No se pudo guardar el archivo</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="614" />
-   <source>Saved to {filename}</source>
-   <translation>Guardado en {filename}</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="654" />
-   <source>Unsaved Changes</source>
-   <translation>Cambios sin guardar</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="655" />
-   <source>The document has unsaved changes. Do you want to save them before continuing?</source>
-   <translation>El documento tiene cambios sin guardar. ¿Desea guardarlos antes de continuar?</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="831" />
-   <source>Add Image</source>
-   <translation>Añadir imagen</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="833" />
-   <source>Images (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;All Files (*)</source>
-   <translation>Imágenes (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;Todos los archivos (*)</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="842" />
-   <source>Could Not Add Image</source>
-   <translation>No se pudo añadir la imagen</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="843" />
-   <source>The selected file is not a supported or readable image.</source>
-   <translation>El archivo seleccionado no es una imagen compatible o legible.</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="849" />
-   <source>Add SVG</source>
-   <translation>Añadir SVG</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="851" />
-   <source>SVG Files (*.svg);;All Files (*)</source>
-   <translation>Archivos SVG (*.svg);;Todos los archivos (*)</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="860" />
-   <source>Could Not Add SVG</source>
-   <translation>No se pudo añadir el SVG</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="861" />
-   <source>The selected file is not a valid SVG image.</source>
-   <translation>El archivo seleccionado no es una imagen SVG válida.</translation>
-  </message>
-  <message>
-   <location filename="../src/tbo/ui/main_window.py" line="929" />
+   <location filename="../src/tbo/ui/main_window.py" line="1055" />
+   <location filename="../src/tbo/ui/main_window.py" line="408" />
    <source>Text</source>
    <translation>Texto</translation>
   </message>
   <message>
+   <location filename="../src/tbo/ui/main_window.py" line="416" />
+   <source>Font family</source>
+   <translation>Tipo de fuente</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="425" />
+   <source>Font size</source>
+   <translation>Tamaño de fuente</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="430" />
+   <source>B</source>
+   <translation>B</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="432" />
+   <source>Bold</source>
+   <translation>Negrita</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="438" />
+   <source>I</source>
+   <translation>I</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="440" />
+   <source>Italic</source>
+   <translation>Cursiva</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="446" />
+   <source>U</source>
+   <translation>U</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="448" />
+   <source>Underline</source>
+   <translation>Subrayado</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="455" />
+   <source>Text color</source>
+   <translation>Color de texto</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="483" />
+   <source>Choose Text Color</source>
+   <translation>Elegir color de texto</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="527" />
+   <source>Open Comic</source>
+   <translation>Abrir cómic</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="529" />
+   <source>TBO Files (*.tbo);;All Files (*)</source>
+   <translation>Archivos TBO (*.tbo);;Todos los archivos (*)</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="549" />
+   <source>Could Not Open File</source>
+   <translation>No se pudo abrir el archivo</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="583" />
+   <source>Save Comic</source>
+   <translation>Guardar cómic</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="583" />
+   <source>TBO Files (*.tbo)</source>
+   <translation>Archivos TBO (*.tbo)</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="615" />
+   <source>Export Comic</source>
+   <translation>Exportar cómic</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="641" />
+   <source>Could Not Export</source>
+   <translation>No se pudo exportar</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="646" />
+   <source>Exported {count} file(s)</source>
+   <translation>{count} archivo(s) exportado(s)</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="714" />
+   <source>File Not Found</source>
+   <translation>Archivo no encontrado</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="715" />
+   <source>{filename} no longer exists.</source>
+   <translation>{filename} ya no existe.</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="729" />
+   <source>Could Not Save File</source>
+   <translation>No se pudo guardar el archivo</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="740" />
+   <source>Saved to {filename}</source>
+   <translation>Guardado en {filename}</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="780" />
+   <source>Unsaved Changes</source>
+   <translation>Cambios sin guardar</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="781" />
+   <source>The document has unsaved changes. Do you want to save them before continuing?</source>
+   <translation>El documento tiene cambios sin guardar. ¿Desea guardarlos antes de continuar?</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="957" />
+   <source>Add Image</source>
+   <translation>Añadir imagen</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="959" />
+   <source>Images (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;All Files (*)</source>
+   <translation>Imágenes (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;Todos los archivos (*)</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="968" />
+   <source>Could Not Add Image</source>
+   <translation>No se pudo añadir la imagen</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="969" />
+   <source>The selected file is not a supported or readable image.</source>
+   <translation>El archivo seleccionado no es una imagen compatible o legible.</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="975" />
+   <source>Add SVG</source>
+   <translation>Añadir SVG</translation>
+  </message>
+  <message>
    <location filename="../src/tbo/ui/main_window.py" line="977" />
+   <source>SVG Files (*.svg);;All Files (*)</source>
+   <translation>Archivos SVG (*.svg);;Todos los archivos (*)</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="986" />
+   <source>Could Not Add SVG</source>
+   <translation>No se pudo añadir el SVG</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="987" />
+   <source>The selected file is not a valid SVG image.</source>
+   <translation>El archivo seleccionado no es una imagen SVG válida.</translation>
+  </message>
+  <message>
+   <location filename="../src/tbo/ui/main_window.py" line="1103" />
    <source>Delete Object</source>
    <translation>Eliminar objeto</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="977" />
+   <location filename="../src/tbo/ui/main_window.py" line="1103" />
    <source>Delete Panel</source>
    <translation>Eliminar viñeta</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="980" />
+   <location filename="../src/tbo/ui/main_window.py" line="1106" />
    <source>Clone Object</source>
    <translation>Clonar objeto</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="980" />
+   <location filename="../src/tbo/ui/main_window.py" line="1106" />
    <source>Clone Panel</source>
    <translation>Clonar viñeta</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="1017" />
+   <location filename="../src/tbo/ui/main_window.py" line="1144" />
    <source>{percent}%</source>
    <translation>{percent}%</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="1043" />
+   <location filename="../src/tbo/ui/main_window.py" line="1170" />
    <source>Editing panel — press Esc to return · Page {current} of {count}</source>
    <translation>Editando viñeta — pulse Esc para volver · Página {current} de {count}</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="1048" />
+   <location filename="../src/tbo/ui/main_window.py" line="1175" />
    <source>Page {current} of {count}</source>
    <translation>Página {current} de {count}</translation>
   </message>
   <message>
-   <location filename="../src/tbo/ui/main_window.py" line="1052" />
+   <location filename="../src/tbo/ui/main_window.py" line="1179" />
    <source>Document has no pages</source>
    <translation>El documento no tiene páginas</translation>
   </message>
@@ -1645,7 +1696,7 @@ quiera.
   </message>
   <message>
    <source>Enter the text to place in the panel…</source>
-   <translation>Introduzca el texto para colocar en la viñeta…</translation>
+   <translation type="vanished">Introduzca el texto para colocar en la viñeta…</translation>
   </message>
  </context>
  <context>

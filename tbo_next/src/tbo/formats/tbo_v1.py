@@ -161,6 +161,9 @@ def _serialize_object(graphic_object: GraphicObject, context: str) -> ET.Element
             {
                 **common,
                 "font": _validate_string(graphic_object.font, "font", context),
+                "bold": _format_bool(graphic_object.bold),
+                "italic": _format_bool(graphic_object.italic),
+                "underline": _format_bool(graphic_object.underline),
                 **_color_attributes(graphic_object.color, context),
             },
         )
@@ -302,6 +305,9 @@ def _parse_object(element: ET.Element, frame_context: str, object_index: int) ->
             text=value,
             font=_string(element, "font", context, default="Sans 12"),
             color=_color(element, context, default=0.0),
+            bold=_boolean(element, "bold", context, default=False),
+            italic=_boolean(element, "italic", context, default=False),
+            underline=_boolean(element, "underline", context, default=False),
         )
     if element.tag in {"svgimage", "piximage"}:
         asset_path = Path(_string(element, "path", context))

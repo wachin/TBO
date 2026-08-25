@@ -62,6 +62,9 @@ class TextObject(GraphicObject):
     text: str
     font: str = "Sans 12"
     color: Color = field(default_factory=lambda: Color(0.0, 0.0, 0.0))
+    bold: bool = False
+    italic: bool = False
+    underline: bool = False
 
 
 @dataclass(slots=True)

@@ -7,7 +7,18 @@ from pathlib import Path
 from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtGui import QAction, QActionGroup, QColor, QFont, QIcon, QImageReader, QKeySequence
 from PyQt6.QtSvg import QSvgRenderer
-from PyQt6.QtWidgets import QApplication, QDialog, QFileDialog, QLabel, QMainWindow, QMessageBox
+from PyQt6.QtWidgets import (
+    QApplication,
+    QColorDialog,
+    QDialog,
+    QFileDialog,
+    QFontComboBox,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QSpinBox,
+    QToolButton,
+)
 
 from tbo.assets import AssetCatalog
 from tbo.document.model import Color, Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
@@ -49,6 +60,7 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.pages_dock)
         self._create_actions()
         self._create_toolbar()
+        self._create_text_toolbar()
         self.canvas.undo_stack.cleanChanged.connect(self._on_clean_changed)
         self.canvas.undo_stack.indexChanged.connect(self._refresh_page_thumbnails)
         self.canvas.pageChanged.connect(self._update_page_actions)
@@ -391,6 +403,120 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.zoom_out_action)
         toolbar.addAction(self.reset_zoom_action)
         toolbar.addAction(self.fit_page_action)
+
+    def _create_text_toolbar(self) -> None:
+        text_toolbar = self.addToolBar(self.tr("Text"))
+        text_toolbar.setObjectName("text_toolbar")
+        text_toolbar.setMovable(False)
+        text_toolbar.setEnabled(False)
+        self.text_toolbar = text_toolbar
+
+        self.text_font_combo = QFontComboBox()
+        self.text_font_combo.setMaximumWidth(140)
+        self.text_font_combo.setToolTip(self.tr("Font family"))
+        self.text_font_combo.currentFontChanged.connect(self._apply_text_style)
+        text_toolbar.addWidget(self.text_font_combo)
+
+        self.text_size_spin = QSpinBox()
+        self.text_size_spin.setRange(6, 144)
+        self.text_size_spin.setValue(12)
+        self.text_size_spin.setFixedWidth(56)
+        self.text_size_spin.setSuffix(" pt")
+        self.text_size_spin.setToolTip(self.tr("Font size"))
+        self.text_size_spin.valueChanged.connect(self._apply_text_style)
+        text_toolbar.addWidget(self.text_size_spin)
+
+        self.text_bold_button = QToolButton()
+        self.text_bold_button.setText(self.tr("B"))
+        self.text_bold_button.setCheckable(True)
+        self.text_bold_button.setToolTip(self.tr("Bold"))
+        self.text_bold_button.setStyleSheet("font-weight: bold;")
+        self.text_bold_button.toggled.connect(self._apply_text_style)
+        text_toolbar.addWidget(self.text_bold_button)
+
+        self.text_italic_button = QToolButton()
+        self.text_italic_button.setText(self.tr("I"))
+        self.text_italic_button.setCheckable(True)
+        self.text_italic_button.setToolTip(self.tr("Italic"))
+        self.text_italic_button.setStyleSheet("font-style: italic;")
+        self.text_italic_button.toggled.connect(self._apply_text_style)
+        text_toolbar.addWidget(self.text_italic_button)
+
+        self.text_underline_button = QToolButton()
+        self.text_underline_button.setText(self.tr("U"))
+        self.text_underline_button.setCheckable(True)
+        self.text_underline_button.setToolTip(self.tr("Underline"))
+        self.text_underline_button.setStyleSheet("text-decoration: underline;")
+        self.text_underline_button.toggled.connect(self._apply_text_style)
+        text_toolbar.addWidget(self.text_underline_button)
+
+        self.text_color_button = QToolButton()
+        self.text_color_button.setText("")
+        self.text_color_button.setToolTip(self.tr("Text color"))
+        self.text_color_button.setFixedWidth(28)
+        self.text_color_button.setStyleSheet("background-color: black;")
+        self.text_color_button.clicked.connect(self._choose_text_color)
+        text_toolbar.addWidget(self.text_color_button)
+
+    def _apply_text_style(self, *args) -> None:
+        obj = self.canvas.selected_object()
+        if not isinstance(obj, TextObject):
+            return
+        family = self.text_font_combo.currentFont().family()
+        size = self.text_size_spin.value()
+        self.canvas.edit_text_object(
+            obj,
+            obj.text,
+            f"{family} {size}",
+            obj.color,
+            self.text_bold_button.isChecked(),
+            self.text_italic_button.isChecked(),
+            self.text_underline_button.isChecked(),
+        )
+        self._update_edit_actions()
+
+    def _choose_text_color(self) -> None:
+        obj = self.canvas.selected_object()
+        if not isinstance(obj, TextObject):
+            return
+        current = QColor.fromRgbF(obj.color.red, obj.color.green, obj.color.blue)
+        color = QColorDialog.getColor(current, self, self.tr("Choose Text Color"))
+        if color.isValid():
+            self.canvas.edit_text_object(
+                obj,
+                obj.text,
+                obj.font,
+                Color(color.redF(), color.greenF(), color.blueF()),
+            )
+            self._sync_text_toolbar()
+
+    def _sync_text_toolbar(self) -> None:
+        obj = self.canvas.selected_object()
+        is_text = isinstance(obj, TextObject)
+        self.text_toolbar.setEnabled(self.canvas.editing_frame is not None and is_text)
+        if not is_text:
+            return
+        family, _, size = obj.font.rpartition(" ")
+        self.text_font_combo.blockSignals(True)
+        self.text_font_combo.setCurrentFont(QFont(family))
+        self.text_font_combo.blockSignals(False)
+        self.text_size_spin.blockSignals(True)
+        if size.isdigit():
+            self.text_size_spin.setValue(int(size))
+        self.text_size_spin.blockSignals(False)
+        self.text_bold_button.blockSignals(True)
+        self.text_bold_button.setChecked(obj.bold)
+        self.text_bold_button.blockSignals(False)
+        self.text_italic_button.blockSignals(True)
+        self.text_italic_button.setChecked(obj.italic)
+        self.text_italic_button.blockSignals(False)
+        self.text_underline_button.blockSignals(True)
+        self.text_underline_button.setChecked(obj.underline)
+        self.text_underline_button.blockSignals(False)
+        color = QColor.fromRgbF(obj.color.red, obj.color.green, obj.color.blue)
+        self.text_color_button.setStyleSheet(
+            f"background-color: {color.name()}; color: {'white' if color.lightness() < 128 else 'black'};"
+        )
 
     def _directory_hint(self) -> Path:
         return self.preferences.last_directory() or Path.home()
@@ -1012,6 +1138,7 @@ class MainWindow(QMainWindow):
             editing == self._clipboard_is_objects if self._clipboard else False
         )
         self.paste_action.setEnabled(bool(self._clipboard) and clipboard_matches)
+        self._sync_text_toolbar()
 
     def _update_zoom_label(self, percent: int) -> None:
         self.zoom_label.setText(self.tr("{percent}%").format(percent=percent))
