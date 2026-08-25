@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
     QDialog,
     QHBoxLayout,
     QLabel,
+    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -61,7 +62,7 @@ def _html(application: QApplication) -> str:
         f"<p style='margin:0 0 12px 0; font-size:11pt;'><b>Version {__version__}</b></p>"
         f"<p style='margin:0 0 14px 0; font-size:10.5pt;'>A modern comic editor "
         f"compatible with legacy TBO documents.</p>"
-        f"<h2 style='margin:10px 0 4px 0; font-size:12pt;'>PyQt6 port by</h2>"
+        f"<h2 style='margin:10px 0 4px 0; font-size:12pt;'>PyQt6 port and improvements by</h2>"
         f"<p style='margin:0 0 12px 0; font-size:10.5pt;'>"
         f"<b>Washington Indacochea Delgado</b><br>"
         f"<a href='mailto:{EMAIL}' style='color:{link}; text-decoration:underline;'>"
@@ -75,7 +76,7 @@ def _html(application: QApplication) -> str:
         f"<p style='margin:0 0 12px 0; font-size:10.5pt;'>Arcadia Project "
         f"(Samuel Navas Portillo, Daniel Pavón Pérez, Juan Jesús Pérez Luna)</p>"
         f"<p style='margin:0 0 12px 0; font-size:10.5pt;'>and TBO contributors.</p>"
-        f"<p style='margin:0; font-size:10pt;'>{muted}License: GPL-3.0-or-later</p>"
+        f"<p style='margin:0; font-size:10pt; color:{muted};'>License: GPL-3.0-or-later</p>"
         "</div>"
     )
 
@@ -106,8 +107,14 @@ class AboutDialog(QDialog):
         )
         text_label.setStyleSheet("background-color: transparent;")
 
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        scroll.setStyleSheet("background-color: transparent;")
+        scroll.setWidget(text_label)
+
         layout = QHBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(24)
-        layout.addWidget(logo, 0, Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(text_label, 1)
+        layout.addWidget(logo, 0, Qt.AlignmentFlag.AlignTop)
+        layout.addWidget(scroll, 1)

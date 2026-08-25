@@ -61,8 +61,9 @@ overwrites the only copy of a user document without confirmation or a safe copy.
   and Bubbles.
 - The application icon is bundled inside the package (`tbo/resources/`) and set
   on the window and the application.
-- Credits: Washington Indacochea Delgado added as the PyQt6 port author
-  (AUTHORS, About dialog, pyproject.toml, debian/control, debian/copyright).
+- Credits: Washington Indacochea Delgado added as the author of the PyQt6
+  port and its improvements (AUTHORS, About dialog, pyproject.toml,
+  debian/control, debian/copyright).
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.
