@@ -42,6 +42,7 @@ class MainWindow(QMainWindow):
         if self.assets_catalog is not None:
             self.assets_dock = AssetsDock(self.assets_catalog, self)
             self.assets_dock.assetActivated.connect(self.add_svg_from_path)
+            self.assets_dock.bubbleActivated.connect(self.add_bubble_from_path)
             self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.assets_dock)
         self.pages_dock = PagesDock(self, asset_root=asset_root)
         self.pages_dock.pageSelected.connect(self._go_to_page)
@@ -897,6 +898,40 @@ class MainWindow(QMainWindow):
                 path=filename.resolve(),
             )
         )
+
+    def add_bubble_from_path(self, filename: Path) -> bool:
+        if self.canvas.editing_frame is None:
+            return False
+        renderer = QSvgRenderer(str(filename))
+        if not renderer.isValid():
+            return False
+        size = renderer.defaultSize()
+        width, height = self._fitted_object_size(size.width(), size.height())
+        x, y = self._centered_position(width, height)
+        if not self.canvas.add_graphic_object(
+            SvgObject(
+                x=x,
+                y=y,
+                width=width,
+                height=height,
+                path=filename.resolve(),
+            )
+        ):
+            return False
+        text_width = max(1, int(width * 0.7))
+        text_height = max(1, int(height * 0.5))
+        self.canvas.add_graphic_object(
+            TextObject(
+                x=x + (width - text_width) // 2,
+                y=y + (height - text_height) // 2,
+                width=text_width,
+                height=text_height,
+                text=self.tr("Text"),
+                font="Sans 14",
+                color=Color(0.0, 0.0, 0.0),
+            )
+        )
+        return True
 
     def _fitted_object_size(self, natural_width: int, natural_height: int) -> tuple[int, int]:
         frame = self.canvas.editing_frame

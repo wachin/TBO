@@ -76,6 +76,8 @@ overwrites the only copy of a user document without confirmation or a safe copy.
   Linguist; `tbo_en.ts` and `tbo_en.qm` generated.
 - Spanish translation added (`tbo_es.ts` / `tbo_es.qm`); the interface and the
   Help dialog follow the system language (or the saved preference).
+- Speech bubbles from the Bubbles tab now insert an editable text object
+  centred inside the bubble.
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.

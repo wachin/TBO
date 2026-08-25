@@ -127,6 +127,7 @@ def _render_svg_preview(path: Path, size: int) -> QPixmap:
 
 class AssetsDock(QDockWidget):
     assetActivated = pyqtSignal(Path)
+    bubbleActivated = pyqtSignal(Path)
 
     def __init__(
         self,
@@ -147,13 +148,10 @@ class AssetsDock(QDockWidget):
         self._character_tab = _LibraryTab(character_categories)
         self._accessories_tab = _LibraryTab(accessories_categories)
         self._bubbles_tab = _LibraryTab(catalog.bubble_categories)
-        for tab in (
-            self._doodles_tab,
-            self._character_tab,
-            self._accessories_tab,
-            self._bubbles_tab,
-        ):
-            tab.assetActivated.connect(self.assetActivated)
+        self._doodles_tab.assetActivated.connect(self.assetActivated)
+        self._character_tab.assetActivated.connect(self.assetActivated)
+        self._accessories_tab.assetActivated.connect(self.assetActivated)
+        self._bubbles_tab.assetActivated.connect(self.bubbleActivated)
         self.tabs.addTab(self._doodles_tab, self.tr("Doodles"))
         self.tabs.addTab(self._character_tab, self.tr("Character"))
         self.tabs.addTab(self._accessories_tab, self.tr("Accessories"))

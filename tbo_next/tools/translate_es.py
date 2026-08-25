@@ -170,6 +170,10 @@ Para usarlos:
 3. Escriba en el buscador o navegue por las categorías.
 4. **Haga clic o arrastre** una miniatura para insertarla en la viñeta.
 
+Al insertar un **bocadillo de diálogo** (pestaña Bubbles), se coloca
+automáticamente un **objeto de texto** editable en su interior, centrado y listo
+para editar (selecciónelo y pulse `E` o use **Editar ▸ Editar texto**).
+
 Todo lo insertado se puede mover, redimensionar, rotar, voltear, clonar y
 eliminar, y queda guardado en el archivo `.tbo`.
 

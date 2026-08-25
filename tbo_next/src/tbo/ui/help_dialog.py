@@ -58,6 +58,10 @@ To use them:
 3. Type in the search box or browse the categories.
 4. **Click or drag** a thumbnail to insert it into the panel.
 
+When you insert a **speech bubble** (Bubbles tab), an editable **text object**
+is automatically placed inside it, centered and ready to be edited (select it
+and press `E` or use **Edit ▸ Edit Text**).
+
 Everything you insert can be moved, resized, rotated, flipped, cloned and
 deleted, and is saved in the `.tbo` file.
 
