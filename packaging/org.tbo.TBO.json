@@ -39,7 +39,7 @@
         },
         {
           "type": "dir",
-          "path": "../data/doodle",
+          "path": "data/doodle",
           "dest": "assets/doodle"
         }
       ]

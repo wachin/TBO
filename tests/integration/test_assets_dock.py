@@ -3,7 +3,7 @@ from pathlib import Path
 from tbo.document.model import SvgObject
 from tbo.ui.main_window import MainWindow
 
-REPOSITORY_ROOT = Path(__file__).parents[3]
+REPOSITORY_ROOT = Path(__file__).parents[2]
 DOODLE_ROOT = REPOSITORY_ROOT / "data" / "doodle"
 
 

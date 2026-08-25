@@ -1,44 +1,68 @@
-*.swp
-*.o
-*.log
-Makefile
-Makefile.in
-*~
-ABOUT-NLS
-aclocal.m4
-autom4te.cache/
+# --- Python / TBO 2 ---
+__pycache__/
+*.py[cod]
+.coverage
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
 build/
-config.h
-config.h.in
-config.status
-configure
-libtool
-m4/
-package/
-po/ChangeLog
-po/Makefile.in.in
-po/Makevars.template
-po/POTFILES
-po/Rules-quot
-po/boldquot.sed
-po/en@boldquot.header
-po/en@quot.header
-po/es.gmo
-po/insert-header.sin
-po/quot.sed
-po/remove-potcdate.sin
-po/stamp-it
-po/tbo.pot
-po/*.gmo
-src/.deps/
-src/tbo
-st
-stamp-h1
+dist/
+*.egg-info/
 
-# Personal
-/third-party/ksnip_py/
+# Compiled translation catalogs
+translations/*.qm
+
+# Debian package build artefacts
+debian/.debhelper/
+debian/tbo/
+debian/files
+debian/*.debhelper.log
+debian/*.substvars
+
+# pybuild temporary directory
+.pybuild/
 
 # Debian package build artefacts (generated in the repository root)
 *.deb
 *.buildinfo
 *.changes
+
+# --- Legacy C/GTK (kept under legacy/) ---
+*.swp
+*.o
+*.log
+*~
+ABOUT-NLS
+autom4te.cache/
+config.h
+config.h.in
+config.status
+configure
+libtool
+Makefile
+Makefile.in
+st
+stamp-h1
+legacy/m4/
+legacy/package/
+legacy/po/ChangeLog
+legacy/po/Makefile.in.in
+legacy/po/Makevars.template
+legacy/po/POTFILES
+legacy/po/Rules-quot
+legacy/po/boldquot.sed
+legacy/po/en@boldquot.header
+legacy/po/en@quot.header
+legacy/po/es.gmo
+legacy/po/insert-header.sin
+legacy/po/quot.sed
+legacy/po/remove-potcdate.sin
+legacy/po/stamp-it
+legacy/po/tbo.pot
+legacy/po/*.gmo
+legacy/src/.deps/
+legacy/src/tbo
+
+# Personal
+/third-party/ksnip_py/

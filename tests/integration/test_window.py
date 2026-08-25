@@ -7,7 +7,7 @@ from tbo.formats.tbo_v1 import load
 from tbo.ui.main_window import MainWindow
 
 
-REPOSITORY_ROOT = Path(__file__).parents[3]
+REPOSITORY_ROOT = Path(__file__).parents[2]
 
 
 def test_window_opens_historical_tutorial(qtbot) -> None:

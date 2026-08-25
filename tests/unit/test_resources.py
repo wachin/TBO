@@ -5,7 +5,7 @@ from pathlib import Path
 
 from tbo.resources import find_asset_root
 
-REPOSITORY_ROOT = Path(__file__).parents[3]
+REPOSITORY_ROOT = Path(__file__).parents[2]
 
 
 def test_find_asset_root_located_from_repository(monkeypatch) -> None:

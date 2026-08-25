@@ -18,6 +18,6 @@ if ! "$TBO_PYTHON" -c 'import PyQt6' >/dev/null 2>&1; then
     exit 1
 fi
 
-export PYTHONPATH="$TBO_ROOT/tbo_next/src${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="$TBO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 
 exec "$TBO_PYTHON" -m tbo "$@"

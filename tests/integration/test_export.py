@@ -8,7 +8,7 @@ from tbo.rendering import ExportError, export_comic, export_page
 from tbo.ui.main_window import MainWindow
 
 
-REPOSITORY_ROOT = Path(__file__).parents[3]
+REPOSITORY_ROOT = Path(__file__).parents[2]
 
 
 def _sample_comic() -> Comic:

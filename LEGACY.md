@@ -2,9 +2,9 @@
 
 > [!NOTE]
 > This document describes the **legacy** C/GTK 3 application and the transition
-> to the Python/PyQt6 rewrite. The active implementation lives in
-> [`tbo_next/`](tbo_next/) and its documentation is in
-> [`tbo_next/README.md`](tbo_next/README.md).
+> to the Python/PyQt6 rewrite. The active implementation lives at the repository
+> root and its documentation is in [`README.md`](README.md). The legacy C/GTK
+> source is kept under [`legacy/`](legacy/).
 
 TBO is a free comic editor built around pages, panels, text, images, and SVG
 artwork. This repository contains the historical C/GTK 3 application and
@@ -73,21 +73,19 @@ from another directory:
 Run directly from the repository without installing the package:
 
 ```bash
-cd tbo_next
 PYTHONPATH=src python3 -m tbo
 ```
 
 To open a historical project directly:
 
 ```bash
-cd tbo_next
-PYTHONPATH=src python3 -m tbo ../data/tut.tbo
+PYTHONPATH=src python3 -m tbo data/tut.tbo
 ```
 
 You can also install the project in editable mode from the repository root:
 
 ```bash
-python3 -m pip install -e './tbo_next[dev]'
+python3 -m pip install -e '.[dev]'
 tbo data/tut.tbo
 ```
 
@@ -103,15 +101,14 @@ tbo data/tut.tbo
 - Double-click a panel: edit its objects.
 - `Esc`: return from object editing to the page.
 
-See [tbo_next/README.md](tbo_next/README.md) for the detailed guide and complete
-keyboard shortcut reference.
+See [README.md](README.md) for the detailed guide and complete keyboard
+shortcut reference.
 
 ## Tests
 
 Run the suite from the repository root:
 
 ```bash
-cd tbo_next
 QT_QPA_PLATFORM=offscreen python3 -m pytest
 ```
 
@@ -123,16 +120,19 @@ Qt interface integration tests.
 
 ```text
 .
-├── tbo_next/        # Active Python/PyQt6 implementation
-├── src/             # Historical C/GTK 3 implementation
+├── src/             # Active Python/PyQt6 implementation
+├── tests/           # Unit and integration tests
 ├── data/            # Doodles, icons, tutorial, and other resources
-├── po/              # Historical translations
-├── doc/             # Historical documentation
-├── test/            # Experiments and tests for the original application
+├── packaging/       # Flatpak, .desktop and build helpers
+├── legacy/          # Historical C/GTK 3 implementation
+│   ├── src/
+│   ├── po/
+│   ├── doc/
+│   └── test/
 └── ROADMAP.md       # Recovery and modernization plan
 ```
 
-Inside `tbo_next`, the document model is independent of the widgets. The canvas
+In `src/`, the document model is independent of the widgets. The canvas
 represents that model through `QGraphicsScene`, while mutations are recorded as
 commands in a `QUndoStack`. The parser treats every `.tbo` file as untrusted
 input and applies limits before constructing the document.

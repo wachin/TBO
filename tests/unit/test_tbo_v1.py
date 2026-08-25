@@ -6,7 +6,7 @@ from tbo.document.model import SvgObject, TextObject
 from tbo.formats.tbo_v1 import TboFormatError, dumps, load, loads, save
 
 
-TUTORIAL = Path(__file__).parents[3] / "data" / "tut.tbo"
+TUTORIAL = Path(__file__).parents[2] / "data" / "tut.tbo"
 
 
 def test_loads_historical_tutorial() -> None:

@@ -3,7 +3,7 @@ from pathlib import Path
 from tbo.assets import AssetCatalog, resolve_asset
 from tbo.assets.catalog import AssetCategory, AssetEntry
 
-REPOSITORY_ROOT = Path(__file__).parents[3]
+REPOSITORY_ROOT = Path(__file__).parents[2]
 DOODLE_ROOT = REPOSITORY_ROOT / "data" / "doodle"
 
 

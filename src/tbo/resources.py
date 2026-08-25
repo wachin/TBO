@@ -6,7 +6,7 @@ from pathlib import Path
 
 def _candidate_roots() -> list[Path]:
     package_dir = Path(__file__).resolve().parent
-    repository_root = package_dir.parents[2]
+    repository_root = package_dir.parents[1]
     return [
         package_dir.parent / "data" / "doodle",
         package_dir / "data" / "doodle",

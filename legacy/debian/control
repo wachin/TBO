@@ -1,0 +1,22 @@
+Source: tbo
+Section: gnome
+Priority: optional
+Maintainer: Washington Indacochea Delgado <linuxfrontier@proton.me>
+Build-Depends: cdbs,
+               debhelper (>= 8),
+               pkg-config,
+               libglib2.0-dev,
+               libgtk-3-dev,
+               librsvg2-dev,
+               gnome-common,
+               intltool
+Standards-Version: 3.9.2
+Homepage: https://github.com/wachin/TBO
+
+Package: tbo
+Architecture: any
+Depends: ${shlibs:Depends},
+         libgtk-3-0,
+         ${misc:Depends}
+Description: Intuitive PyQt6 comic creator
+ TBO is a simple and easy drag and drop comic creator.
