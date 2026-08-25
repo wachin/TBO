@@ -1,10 +1,26 @@
 # Roadmap de modernización de TBO
 
-TBO 2 será una reimplementación compatible en **Python y PyQt6**. El código histórico en C/GTK 3 se conservará como referencia de comportamiento y como herramienta temporal para validar documentos, pero no se migrará a GTK 4.
+TBO 2 **es** una reimplementación compatible en **Python y PyQt6**. El código histórico en C/GTK 3 se conserva bajo `legacy/` como referencia de comportamiento, pero no se migra a GTK 4.
 
-El objetivo no es traducir cada función línea por línea. Se reconstruirá la aplicación alrededor de un modelo comprobable, una interfaz moderna y compatibilidad explícita con los proyectos `.tbo` existentes.
+El objetivo no fue traducir cada función línea por línea: se reconstruyó la aplicación alrededor de un modelo comprobable, una interfaz moderna y compatibilidad explícita con los proyectos `.tbo` existentes.
 
 Este documento no establece fechas arbitrarias. Cada fase tiene resultados y condiciones de salida verificables; la siguiente comienza cuando estos se cumplen.
+
+## Estado actual (TBO 2)
+
+El port está **funcionalmente completo** en la raíz del repositorio:
+
+- **Modelo y formato**: `Comic`/`Page`/`Frame`/objetos como dataclasses independientes de widgets; lector/escritor `.tbo` v1 seguro (límites, validación, errores con contexto, guardado atómico) con fuzzing y round-trips.
+- **Lienzo**: `QGraphicsScene/View`, zoom con rueda, selección múltiple (rubber band, `Ctrl+A`), pan con barra espaciadora, snap-to-grid con rejilla visible, alineación/distribución.
+- **Edición**: undo/redo completo mediante `QUndoStack`; crear, mover, redimensionar, rotar, voltear, clonar, alinear y distribuir viñetas y objetos; edición inline de texto y barra de texto avanzada (fuente, tamaño, negrita, cursiva, subrayado, color).
+- **Biblioteca de recursos**: pestañas Doodles / Character / Accessories / Bubbles con búsqueda, drag & drop, personaje armable (cabeza + ojos/bocas/orejas) y assets de usuario (`~/.tbo/doodle/`).
+- **Exportación**: PNG (por página, con escala), PDF multipágina y SVG por página mediante un renderer compartido; modo presentación (F5).
+- **Escritorio**: tema claro/oscuro/sistema, preferencias con `QSettings`, archivos recientes, autosave y `.bak`, reapertura de sesión, miniaturas de página, búsqueda de texto, ayuda traducible.
+- **i18n**: inglés como idioma fuente y traducción al español con Qt Linguist (`--lang`).
+- **Empaquetado**: `.deb` (dpkg-buildpackage), wheel/sdist, manifiesto Flatpak, CI en GitHub Actions (automático + build manual).
+- **Tests**: 54 pruebas unitarias (modelo, parser, fuzzing, round-trips, preferencias, recursos) y pruebas de integración Qt (headless con Xvfb).
+
+El trabajo se organizó por fases; las siguientes marcan lo ya completado y lo pendiente.
 
 ## Punto de partida
 
@@ -76,42 +92,59 @@ Estas exclusiones evitan que las funciones nuevas retrasen la recuperación del 
 
 ## Arquitectura objetivo
 
+El port vive en la **raíz del repositorio**; el código histórico se conserva bajo
+`legacy/` como oráculo de comportamiento.
+
 ```text
-tbo_next/
+.
 ├── pyproject.toml
+├── setup.py
 ├── src/
 │   └── tbo/
 │       ├── __main__.py
 │       ├── application.py
+│       ├── resources.py
+│       ├── resources/            # iconos y logo empaquetados
 │       ├── document/
-│       │   ├── comic.py
-│       │   ├── page.py
-│       │   ├── frame.py
-│       │   ├── objects.py
-│       │   └── commands.py
+│       │   └── model.py           # Comic, Page, Frame, objetos
 │       ├── formats/
-│       │   ├── tbo_v1.py
-│       │   └── validation.py
+│       │   └── tbo_v1.py          # lector/escritor seguro del .tbo
 │       ├── rendering/
-│       │   ├── renderer.py
-│       │   └── exporter.py
+│       │   ├── renderer.py        # render compartido (pantalla y exportación)
+│       │   └── exporter.py        # PNG / PDF / SVG
 │       ├── assets/
-│       │   ├── catalog.py
-│       │   └── resolver.py
+│       │   ├── catalog.py         # biblioteca de doodles/bocadillos
+│       │   └── resolver.py        # resolución de rutas sin escapes
 │       └── ui/
-│           ├── main_window.py
-│           ├── canvas.py
-│           ├── graphics_items.py
-│           ├── dialogs/
-│           └── tools/
-└── tests/
-    ├── fixtures/
-    ├── unit/
-    ├── integration/
-    └── visual/
+│           ├── main_window.py     # menús, barra de herramientas y texto
+│           ├── canvas.py          # QGraphicsScene/View + edición inline
+│           ├── about_dialog.py
+│           ├── help_dialog.py
+│           ├── search_dialog.py
+│           ├── export_dialog.py
+│           ├── new_comic_dialog.py
+│           ├── text_object_dialog.py
+│           ├── assets_dock.py     # pestañas Doodles/Character/Accessories/Bubbles
+│           ├── pages_dock.py      # miniaturas de página
+│           ├── presentation.py    # modo presentación (F5)
+│           ├── preferences.py     # QSettings
+│           └── theme.py           # tema claro/oscuro/sistema
+├── tests/
+│   ├── fixtures/
+│   ├── unit/
+│   └── integration/
+├── packaging/                     # .desktop, AppStream, manifiesto Flatpak
+├── debian/                        # build del .deb
+├── docs/                          # guías (p. ej. creating-characters.md)
+├── translations/                  # tbo_en.ts/.qm, tbo_es.ts/.qm
+├── tools/                         # generadores y traducción
+├── data/                          # doodles, tutorial y recursos
+└── legacy/                        # código C/GTK histórico
 ```
 
-Las clases del dominio serán objetos Python simples, preferiblemente `dataclasses`, sin heredar de widgets. Los elementos `QGraphicsItem` actuarán como adaptadores visuales y no serán la fuente de verdad del documento.
+Las clases del dominio son objetos Python simples, `dataclasses`, sin heredar de
+widgets. Los elementos `QGraphicsItem` actúan como adaptadores visuales y no son
+la fuente de verdad del documento.
 
 El flujo de dependencias será:
 
@@ -129,8 +162,8 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 
 **Objetivo:** definir qué significa ser compatible antes de escribir la nueva aplicación.
 
-- [ ] Mantener la etiqueta histórica `1.0` y declarar el árbol C/GTK como `legacy`.
-- [ ] Confirmar responsables, licencia GPL-3.0-or-later y procedencia de los doodles, iconos y documentos incluidos.
+- [x] Mantener la etiqueta histórica `1.0` y declarar el árbol C/GTK como `legacy` (reorganizado bajo `legacy/`).
+- [x] Confirmar responsables, licencia GPL-3.0-or-later y procedencia de los doodles, iconos y documentos incluidos (créditos y atribuciones en AUTHORS, debian/copyright y NOTICE).
 - [x] Reunir en `tests/fixtures/` archivos `.tbo` reales anonimizados, ejemplos del repositorio y casos mínimos.
 - [ ] Añadir fixtures con Unicode, rutas largas, imágenes externas, SVG, transformaciones, varias páginas y recursos ausentes.
 - [ ] Documentar el formato observado en `docs/file-format-v1.md`, incluidos separadores decimales y manejo de rutas.
@@ -144,13 +177,13 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 
 **Objetivo:** establecer una base pequeña, instalable y comprobable.
 
-- [x] Crear `tbo_next/` con distribución `src/`, `pyproject.toml` y un punto de entrada `tbo`.
-- [ ] Fijar una versión mínima de Python basada en las plataformas que se vayan a soportar.
+- [x] Crear la distribución `src/`, `pyproject.toml` y un punto de entrada `tbo` (en la raíz del repositorio).
+- [x] Fijar una versión mínima de Python (`requires-python = ">=3.11"`).
 - [x] Declarar PyQt6 como dependencia y separar dependencias de ejecución y desarrollo.
 - [x] Configurar pytest, pytest-qt, cobertura, Ruff y un comprobador de tipos.
 - [ ] Adoptar un formateador automático y EditorConfig.
-- [x] Añadir CI para Linux con las versiones mínima y actual de Python soportadas.
-- [ ] Ejecutar las pruebas Qt en modo headless dentro de CI (ya funcionan localmente en modo headless).
+- [x] Añadir CI para Linux con las versiones mínima y actual de Python soportadas (Python 3.11 y 3.12).
+- [x] Ejecutar las pruebas Qt en modo headless dentro de CI (Xvfb).
 - [x] Crear una ventana mínima, mostrar una escena y verificar el arranque con una prueba de humo.
 - [x] Documentar instalación, entorno de desarrollo y comandos de calidad iniciales.
 
@@ -164,7 +197,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Definir las primeras invariantes: dimensiones válidas, colores y transformaciones finitas.
 - [x] Implementar un lector `.tbo` v1 con parser XML seguro, límites de tamaño y errores con contexto.
 - [x] Validar números finitos, rangos, atributos requeridos y elementos fuera de jerarquía.
-- [ ] Resolver rutas de recursos sin permitir escapes de directorio cuando se procese contenido empaquetado.
+- [x] Resolver rutas de recursos sin permitir escapes de directorio cuando se procese contenido empaquetado (`assets/resolver.py`).
 - [x] Implementar un escritor determinista y con separador decimal independiente del locale.
 - [x] Guardar de forma atómica mediante archivo temporal, sincronización y reemplazo del destino.
 - [x] Producir mensajes útiles para archivos corruptos y representar recursos ausentes sin cerrar la aplicación.
@@ -235,7 +268,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Verificar que se incluyen Qt, plugins de plataforma, soporte SVG, traducciones y recursos necesarios.
 - [x] Generar SBOM, checksums y artefactos firmados cuando la infraestructura lo permita.
 - [x] Ejecutar pruebas de instalación, primera ejecución, actualización y desinstalación limpia.
-- [ ] Publicar una beta con migración reversible: TBO 2 nunca modificará el único original sin confirmación o copia segura.
+- [x] Publicar una beta con migración reversible: TBO 2 nunca modifica el único original sin confirmación o copia segura (release `v2.0.0.dev0` con el `.deb`).
 - [ ] Resolver todos los bloqueos de seguridad, datos y compatibilidad antes de la versión estable.
 - [ ] Publicar `2.0.0` y archivar claramente las instrucciones del legado.
 
@@ -246,8 +279,11 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 Solo después de alcanzar paridad y publicar 2.0:
 
 - [ ] Formato autocontenido que empaquete imágenes/SVG con manifest y checksums.
-- [ ] Capas, agrupación avanzada, alineación, distribución y guías.
-- [ ] Plantillas de páginas y bibliotecas de recursos instalables.
+- [x] Alineación y distribución de viñetas seleccionadas (menú Editar ▸ Alinear / Distribuir).
+- [ ] Capas y agrupación avanzada.
+- [ ] Guías y rejilla de dibujo (rejilla de ajuste visible ya implementada).
+- [x] Bibliotecas de recursos instalables por el usuario (`~/.tbo/doodle/` y `~/.local/share/tbo/doodle/`).
+- [ ] Plantillas de páginas.
 - [ ] Mejor edición de texto y administración de fuentes conforme a sus licencias.
 - [ ] Perfiles de impresión y exportación multipágina mejorada.
 - [ ] Herramienta CLI para inspeccionar, validar, convertir y renderizar en modo headless.
@@ -289,14 +325,17 @@ Cada pull request deberá:
 5. Actualizar documentación, fixtures y traducciones cuando corresponda.
 6. Mantener el modelo como fuente de verdad; la escena nunca guardará estado exclusivo del documento.
 
-Reglas específicas para trabajo asistido por Codex:
+Reglas específicas para trabajo asistido por IA (por ejemplo, OpenCode):
 
 - entregar una capacidad vertical pequeña y verificable en cada cambio;
+- revisar primero el estado del proyecto y los cambios ya realizados antes de modificar archivos;
 - pedir siempre pruebas junto con la implementación;
 - no aceptar APIs inventadas sin comprobarlas contra PyQt6 instalado y su documentación;
 - mantener type hints en las fronteras entre módulos;
 - evitar abstracciones generales hasta que existan al menos dos usos reales;
-- revisar manualmente seguridad, persistencia y migraciones aunque CI esté verde.
+- usar mensajes de commit convencionales y un cambio lógico por commit;
+- revisar manualmente seguridad, persistencia y migraciones aunque CI esté verde;
+- preguntar al mantenedor ante decisiones de compatibilidad, licencia o formato, en lugar de adivinar.
 
 ## Indicadores de salud
 
@@ -324,19 +363,17 @@ Reglas específicas para trabajo asistido por Codex:
 | Codex produce mucho código difícil de revisar | Cambios pequeños, type checking, pruebas y criterios de salida objetivos. |
 | Solo una persona entiende el release | Automatización, documentación y ensayo por un segundo mantenedor. |
 
-## Primeros issues recomendados
+## Issues recomendados (pendientes)
 
-1. Inventariar elementos y atributos del formato `.tbo` v1.
-2. Crear `tests/fixtures/` con documentos válidos, corruptos y casos límite.
-3. Añadir el esqueleto `tbo_next/` con `pyproject.toml`, CI y herramientas de calidad.
-4. Definir con `dataclasses` el modelo mínimo de cómic, página y viñeta.
-5. Implementar y probar el lector seguro de `.tbo` v1.
-6. Añadir objetos de texto, imagen y SVG al modelo.
-7. Implementar escritor determinista, round-trip y guardado atómico.
-8. Crear una ventana PyQt6 con un `QGraphicsView` vacío y prueba de humo.
-9. Representar un fixture completo en una `QGraphicsScene`.
-10. Exportar ese fixture a PNG en modo headless y compararlo con una referencia.
-11. Implementar el primer comando undoable: mover una viñeta.
-12. Publicar `2.0.0-alpha.1` cuando abrir, mostrar y exportar un documento histórico funcione de extremo a extremo.
+1. Pruebas visuales con imágenes de referencia y tolerancia documentada (Fase 3).
+2. Identificadores estables entre objetos del modelo y elementos gráficos (Fase 3).
+3. Evaluar PyInstaller para plataformas con mantenimiento confirmado (Fase 6).
+4. Adoptar un formateador automático y EditorConfig (Fase 1).
+5. Documentar el formato observado en `docs/file-format-v1.md` (Fase 0).
+6. Formato autocontenido que empaquete imágenes/SVG con manifest y checksums (Fase 7).
+7. Herramienta CLI para inspeccionar, validar, convertir y renderizar en modo headless (Fase 7).
+8. Capas, agrupación avanzada y guías de dibujo (Fase 7).
+9. Plantillas de páginas y administración de fuentes (Fase 7).
+10. Publicar `2.0.0` estable cuando se resuelvan los bloqueos restantes (Fase 6).
 
 La reimplementación será exitosa cuando TBO 2 proteja los proyectos existentes, pueda instalarse de forma reproducible y permita añadir funciones mediante cambios pequeños y comprobables. La cantidad de código nuevo no será una medida de progreso por sí sola.
