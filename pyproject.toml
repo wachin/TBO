@@ -8,7 +8,7 @@ version = "2.0.0.dev0"
 description = "A modern comic editor compatible with legacy TBO documents"
 readme = "README.md"
 requires-python = ">=3.11"
-license = "GPL-3.0-or-later"
+license = { file = "COPYING" }
 authors = [
     { name = "Washington Indacochea Delgado", email = "linuxfrontier@proton.me" },
 ]
