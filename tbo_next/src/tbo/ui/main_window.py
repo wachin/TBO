@@ -5,7 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 
 from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtGui import QAction, QActionGroup, QColor, QFont, QImageReader, QKeySequence
+from PyQt6.QtGui import QAction, QActionGroup, QColor, QFont, QIcon, QImageReader, QKeySequence
 from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import QApplication, QDialog, QFileDialog, QLabel, QMainWindow, QMessageBox
 
@@ -199,11 +199,15 @@ class MainWindow(QMainWindow):
 
         self.flip_horizontal_action = QAction(self.tr("Flip &Horizontally"), self)
         self.flip_horizontal_action.setShortcut("H")
+        self.flip_horizontal_action.setIcon(self._flip_icon("flip-horizontal.svg"))
+        self.flip_horizontal_action.setToolTip(self.tr("Flip Horizontally"))
         self.flip_horizontal_action.triggered.connect(lambda: self.flip_selected_object("horizontal"))
         edit_menu.addAction(self.flip_horizontal_action)
 
         self.flip_vertical_action = QAction(self.tr("Flip &Vertically"), self)
         self.flip_vertical_action.setShortcut("V")
+        self.flip_vertical_action.setIcon(self._flip_icon("flip-vertical.svg"))
+        self.flip_vertical_action.setToolTip(self.tr("Flip Vertically"))
         self.flip_vertical_action.triggered.connect(lambda: self.flip_selected_object("vertical"))
         edit_menu.addAction(self.flip_vertical_action)
 
@@ -335,10 +339,15 @@ class MainWindow(QMainWindow):
         dialog = AboutDialog(self)
         dialog.exec()
 
+    def _flip_icon(self, name: str) -> QIcon:
+        icon_dir = Path(__file__).resolve().parent.parent / "resources" / "icons"
+        return QIcon(str(icon_dir / name))
+
     def _create_toolbar(self) -> None:
         toolbar = self.addToolBar(self.tr("Main Toolbar"))
         toolbar.setObjectName("main_toolbar")
         toolbar.setMovable(False)
+        toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
         toolbar.addAction(self.new_action)
         toolbar.addAction(self.open_action)
         toolbar.addAction(self.save_action)

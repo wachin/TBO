@@ -9,6 +9,6 @@ setup(
     entry_points={"console_scripts": ["tbo = tbo.application:main"]},
     python_requires=">=3.11",
     install_requires=["PyQt6>=6.6"],
-    package_data={"tbo": ["resources/*.svg", "resources/*.png", "translations/*.qm"]},
+    package_data={"tbo": ["resources/*.svg", "resources/*.png", "resources/icons/*.svg", "translations/*.qm"]},
     include_package_data=True,
 )

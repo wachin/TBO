@@ -67,6 +67,8 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Select All (`Ctrl+A`) and a default rubber-band selection mode.
 - Space-bar hold to temporarily pan the view (Inkscape-style).
 - Flip buttons added to the main toolbar for quick access.
+- Flip toolbar buttons now show icons (from Inkscape, GPL-2.0-or-later) with
+  tooltips; attribution in `resources/icons/NOTICE`.
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.

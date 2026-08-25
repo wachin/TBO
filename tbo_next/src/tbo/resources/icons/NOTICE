@@ -1,0 +1,14 @@
+Icon attribution
+================
+
+The flip icons bundled with TBO 2 come from the Inkscape project:
+
+  * `resources/icons/flip-horizontal.svg`
+  * `resources/icons/flip-vertical.svg`
+
+Source: https://github.com/inkscape/inkscape (share/icons/)
+License: GPL-2.0-or-later
+
+Inkscape is licensed under the GNU General Public License, version 2 or later.
+This is compatible with TBO's GPL-3.0-or-later license, since the "or later"
+clause permits distribution under GPLv3.

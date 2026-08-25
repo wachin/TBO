@@ -865,14 +865,19 @@ class ComicCanvas(QGraphicsView):
     def _apply_object_visual_transform(
         self, item: ObjectGraphicsItem, graphic_object: GraphicObject
     ) -> None:
-        item.setRect(0, 0, graphic_object.width, graphic_object.height)
-        item.setTransformOriginPoint(graphic_object.width / 2, graphic_object.height / 2)
+        width = graphic_object.width
+        height = graphic_object.height
+        center_x = width / 2
+        center_y = height / 2
+        item.setRect(0, 0, width, height)
         transform = QTransform()
+        transform.translate(center_x, center_y)
         transform.rotate(graphic_object.angle * 180.0 / 3.141592653589793)
         transform.scale(
             -1.0 if graphic_object.flip_horizontal else 1.0,
             -1.0 if graphic_object.flip_vertical else 1.0,
         )
+        transform.translate(-center_x, -center_y)
         item.setTransform(transform)
 
     def zoom_in(self) -> None:
