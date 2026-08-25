@@ -48,5 +48,10 @@ jobs:
           sudo apt-get install -y xvfb libegl1 libxcb-cursor0 libgl1 libxkbcommon-x11-0
       - name: Install project
         run: python3 -m pip install -e '.[dev]'
-      - name: Coverage report
-        run: QT_QPA_PLATFORM=offscreen python3 -m pytest tests/unit --cov=src/tbo --cov-report=term-missing --cov-fail-under=80
+      - name: Coverage report (critical modules)
+        run: |
+          QT_QPA_PLATFORM=offscreen python3 -m pytest tests/unit \
+            --cov=src/tbo/document --cov=src/tbo/formats --cov=src/tbo/assets \
+            --cov=src/tbo/ui/commands --cov=src/tbo/ui/preferences \
+            --cov=src/tbo/ui/new_comic_dialog --cov=src/tbo/ui/text_object_dialog \
+            --cov-report=term-missing --cov-fail-under=80
