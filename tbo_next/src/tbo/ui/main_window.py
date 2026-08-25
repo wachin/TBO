@@ -138,6 +138,8 @@ class MainWindow(QMainWindow):
         edit_menu.addSeparator()
         self.add_frame_action = QAction(self.tr("Add &Panel"), self)
         self.add_frame_action.setShortcut("F")
+        self.add_frame_action.setIcon(self._action_icon("add-panel.svg"))
+        self.add_frame_action.setToolTip(self.tr("Add Panel"))
         self.add_frame_action.triggered.connect(self.add_frame)
         edit_menu.addAction(self.add_frame_action)
         self.delete_frame_action = QAction(self.tr("&Delete Panel"), self)
@@ -187,6 +189,8 @@ class MainWindow(QMainWindow):
         edit_menu.addSeparator()
         self.add_text_action = QAction(self.tr("Add &Text…"), self)
         self.add_text_action.setShortcut("T")
+        self.add_text_action.setIcon(self._action_icon("draw-text.svg"))
+        self.add_text_action.setToolTip(self.tr("Add Text"))
         self.add_text_action.triggered.connect(self.add_text_dialog)
         edit_menu.addAction(self.add_text_action)
 
@@ -282,6 +286,8 @@ class MainWindow(QMainWindow):
         view_menu = self.menuBar().addMenu(self.tr("&View"))
         self.fit_page_action = QAction(self.tr("Fit Page"), self)
         self.fit_page_action.setShortcut("2")
+        self.fit_page_action.setIcon(self._action_icon("zoom-fit-page.svg"))
+        self.fit_page_action.setToolTip(self.tr("Fit Page"))
         self.fit_page_action.triggered.connect(self.canvas.fit_page)
         view_menu.addAction(self.fit_page_action)
 
@@ -301,6 +307,8 @@ class MainWindow(QMainWindow):
 
         self.reset_zoom_action = QAction(self.tr("Actual Size"), self)
         self.reset_zoom_action.setShortcut("1")
+        self.reset_zoom_action.setIcon(self._action_icon("zoom-original.svg"))
+        self.reset_zoom_action.setToolTip(self.tr("Actual Size"))
         self.reset_zoom_action.triggered.connect(self.canvas.reset_zoom)
         view_menu.addAction(self.reset_zoom_action)
 

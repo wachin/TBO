@@ -12,6 +12,12 @@ The toolbar icons bundled with TBO 2 come from the Inkscape project:
   * `resources/icons/document-save.svg`
   * `resources/icons/edit-undo.svg`
   * `resources/icons/edit-redo.svg`
+  * `resources/icons/draw-text.svg`
+  * `resources/icons/zoom-original.svg`
+  * `resources/icons/zoom-fit-page.svg`
+
+The icon `resources/icons/add-panel.svg` was created by TBO and is licensed
+under GPL-3.0-or-later.
 
 Source: https://github.com/inkscape/inkscape (share/icons/)
 License: GPL-2.0-or-later

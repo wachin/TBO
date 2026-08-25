@@ -71,6 +71,7 @@ overwrites the only copy of a user document without confirmation or a safe copy.
   tooltips; attribution in `resources/icons/NOTICE`.
 - Icons and tooltips added to New, Open, Save, Save As, Undo and Redo
   (Inkscape icons, GPL-2.0-or-later).
+- Icons added to Add Panel (own SVG), Add Text, Actual Size and Fit Page.
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.
