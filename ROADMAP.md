@@ -18,7 +18,7 @@ El port está **funcionalmente completo** en la raíz del repositorio:
 - **Escritorio**: tema claro/oscuro/sistema, preferencias con `QSettings`, archivos recientes, autosave y `.bak`, reapertura de sesión, miniaturas de página, búsqueda de texto, ayuda traducible.
 - **i18n**: inglés como idioma fuente y traducción al español con Qt Linguist (`--lang`).
 - **Empaquetado**: `.deb` (dpkg-buildpackage), wheel/sdist, manifiesto Flatpak, CI en GitHub Actions (automático + build manual).
-- **Tests**: 54 pruebas unitarias (modelo, parser, fuzzing, round-trips, preferencias, recursos) y pruebas de integración Qt (headless con Xvfb).
+- **Tests**: 54 pruebas unitarias (modelo, parser, fuzzing, round-trips, preferencias, recursos) y pruebas de integración Qt (se ejecutan localmente con display; no se ejecutan en CI por el aborto de `QGraphicsView` en headless).
 
 El trabajo se organizó por fases; las siguientes marcan lo ya completado y lo pendiente.
 
@@ -183,7 +183,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 - [x] Configurar pytest, pytest-qt, cobertura, Ruff y un comprobador de tipos.
 - [ ] Adoptar un formateador automático y EditorConfig.
 - [x] Añadir CI para Linux con las versiones mínima y actual de Python soportadas (Python 3.11 y 3.12).
-- [x] Ejecutar las pruebas Qt en modo headless dentro de CI (Xvfb).
+- [ ] Ejecutar las pruebas Qt en modo headless dentro de CI (Xvfb); por ahora los tests de integración se ejecutan localmente con display, ya que el teardown de `QGraphicsView` aborta en los runners headless.
 - [x] Crear una ventana mínima, mostrar una escena y verificar el arranque con una prueba de humo.
 - [x] Documentar instalación, entorno de desarrollo y comandos de calidad iniciales.
 

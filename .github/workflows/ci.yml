@@ -32,9 +32,6 @@ jobs:
       - name: Unit tests
         run: QT_QPA_PLATFORM=offscreen python3 -m pytest tests/unit
 
-      - name: Integration tests (headless via Xvfb)
-        run: xvfb-run -a python3 -m pytest tests/integration
-
   coverage:
     runs-on: ubuntu-latest
     steps:

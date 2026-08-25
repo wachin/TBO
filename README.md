@@ -247,8 +247,11 @@ python3 -m pip install -e '.[dev]'
 GitHub Actions workflows live in `.github/workflows/`:
 
 - **`ci.yml`** runs automatically on every push/PR: lint (`ruff`), unit tests,
-  integration tests under `xvfb`, and a coverage report (threshold 80 %) for
-  Python 3.11 and 3.12.
+  and a coverage report (threshold 80 % on the critical modules) for Python 3.11
+  and 3.12.
+  The Qt integration tests are **not** run in CI: tearing down a `QGraphicsView`
+  aborts in headless runners (see below). They must be run locally with a
+  display or `xvfb-run`.
 - **`build.yml`** is **manual** (`workflow_dispatch`, triggered from the Actions
   tab) and produces the distributable executables as artifacts: Python
   wheel/sdist, a Debian `.deb`, a Flatpak bundle, a **Windows standalone
