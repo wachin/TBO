@@ -30,8 +30,7 @@ jobs:
       - name: Install Debian build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y debhelper dh-python pybuild-plugin-pyproject \
-            python3-setuptools python3-pyqt6 python3-pyqt6.qtsvg
+          sudo apt-get install -y debhelper dh-python python3-setuptools python3-build python3-installer
       - name: Build .deb
         run: dpkg-buildpackage -b -uc -us
       - uses: actions/upload-artifact@v4

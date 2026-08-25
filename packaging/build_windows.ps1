@@ -28,8 +28,10 @@ python "$workspaceRoot\packaging\generate_icon.py" "$workspaceRoot\src\tbo\resou
   --standalone `
   --assume-yes-for-downloads `
   --remove-output `
+  --verbose `
   --msvc=latest `
   --enable-plugin=pyqt6 `
+  --follow-import-to=tbo `
   --windows-console-mode=disable `
   --windows-icon-from-ico="$workspaceRoot\src\tbo\resources\icon.ico" `
   --company-name="TBO" `

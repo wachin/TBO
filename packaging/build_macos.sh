@@ -23,14 +23,17 @@ python "$workspace_root/packaging/generate_icon.py" \
 iconutil -c icns "$iconset_dir" -o "$icon_path"
 
 pyinstaller -w -D -y \
+  --verbose \
   --name TBO \
   --icon "$icon_path" \
   --osx-bundle-identifier org.tbo.TBO \
+  --hidden-import=PyQt6 \
   --hidden-import=PyQt6.QtCore \
   --hidden-import=PyQt6.QtGui \
   --hidden-import=PyQt6.QtWidgets \
   --hidden-import=PyQt6.QtSvg \
   --hidden-import=PyQt6.QtSvgWidgets \
+  --hidden-import=PyQt6.QtPrintSupport \
   --add-data "$workspace_root/data/doodle:data/doodle" \
   --add-data "$workspace_root/translations:translations" \
   --distpath "$dist_dir" \

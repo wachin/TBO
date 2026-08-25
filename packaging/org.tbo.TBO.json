@@ -35,11 +35,11 @@
       "sources": [
         {
           "type": "dir",
-          "path": "."
+          "path": ".."
         },
         {
           "type": "dir",
-          "path": "data/doodle",
+          "path": "../data/doodle",
           "dest": "assets/doodle"
         }
       ]
