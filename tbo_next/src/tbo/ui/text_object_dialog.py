@@ -28,7 +28,7 @@ class TextObjectDialog(QDialog):
         self.font_input = QFontComboBox()
         self.size_input = QSpinBox()
         self.size_input.setRange(1, 512)
-        self.size_input.setValue(9)
+        self.size_input.setValue(8)
         self.size_input.setSuffix(" pt")
         self._color = QColor("black")
         self.color_button = QPushButton()

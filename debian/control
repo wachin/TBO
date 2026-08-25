@@ -1,8 +1,7 @@
 Source: tbo
 Section: gnome
 Priority: optional
-Maintainer: Daniel Garcia <danigm@wadobo.com>
-Uploaders: Roberto C. Morano <rcmorano@emergya.es>
+Maintainer: Washington Indacochea Delgado <linuxfrontier@proton.me>
 Build-Depends: cdbs,
                debhelper (>= 8),
                pkg-config,
@@ -12,12 +11,12 @@ Build-Depends: cdbs,
                gnome-common,
                intltool
 Standards-Version: 3.9.2
-Homepage: http://github.com/danigm/TBO
+Homepage: https://github.com/wachin/TBO
 
 Package: tbo
 Architecture: any
 Depends: ${shlibs:Depends},
          libgtk-3-0,
          ${misc:Depends}
-Description: Intuitive GNOME comic creator
+Description: Intuitive PyQt6 comic creator
  TBO is a simple and easy drag and drop comic creator.

@@ -419,7 +419,7 @@ class MainWindow(QMainWindow):
 
         self.text_size_spin = QSpinBox()
         self.text_size_spin.setRange(6, 144)
-        self.text_size_spin.setValue(9)
+        self.text_size_spin.setValue(8)
         self.text_size_spin.setFixedWidth(56)
         self.text_size_spin.setSuffix(" pt")
         self.text_size_spin.setToolTip(self.tr("Font size"))
@@ -1053,7 +1053,7 @@ class MainWindow(QMainWindow):
                 width=text_width,
                 height=text_height,
                 text=self.tr("Text"),
-                font="Sans 9",
+                font="Sans 8",
                 color=Color(0.0, 0.0, 0.0),
             )
         )
