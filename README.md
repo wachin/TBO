@@ -1,4 +1,4 @@
-# TBO 2 (in development)
+# TBO 2
 
 This is the Python and PyQt6 reimplementation of TBO. The original C/GTK code is
 retained as a compatibility reference under [`legacy/`](legacy/).
