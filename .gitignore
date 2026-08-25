@@ -65,4 +65,4 @@ legacy/src/.deps/
 legacy/src/tbo
 
 # Personal
-/third-party/ksnip_py/
+# third-party/ksnip is a git submodule, not ignored

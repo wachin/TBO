@@ -86,7 +86,8 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Windows standalone `.exe` build with Nuitka added to the manual CI workflow
   (`build-windows` job), including assets, translations and icons.
 - Text dialog: Ctrl+Enter accepts. The inline editor is based on ksnip's
-  `InlineTextEditor` (https://github.com/wachin/ksnip/blob/master/ksnip_py/canvas.py).
+  `InlineTextEditor` (git submodule `third-party/ksnip/ksnip_py/canvas.py`,
+  https://github.com/wachin/ksnip).
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.

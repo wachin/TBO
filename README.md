@@ -267,11 +267,16 @@ python3 -m pytest tests/unit --cov=src/tbo --cov-report=term-missing
 The **inline text editor** (double-click a text object to edit it on the
 canvas) is based on the `InlineTextEditor` from **ksnip**:
 
-- Source file: `ksnip_py/canvas.py`
+- Source file: `third-party/ksnip/ksnip_py/canvas.py` (git submodule)
 - Repository: https://github.com/wachin/ksnip
 - Direct link: https://github.com/wachin/ksnip/blob/master/ksnip_py/canvas.py
 
-The file lives under `third-party/ksnip_py/` in this repository.
+ksnip is included as a **git submodule** under `third-party/ksnip`. To clone it
+after a fresh checkout:
+
+```bash
+git submodule update --init third-party/ksnip
+```
 
 ## Resources and packaging
 
