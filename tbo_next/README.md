@@ -86,6 +86,10 @@ drawings without converting anything. Place your files under `~/.tbo/doodle/`
 or `~/.local/share/tbo/doodle/`, organized by folder (e.g.
 `head/eyes/my_eyes.svg`), and they are merged into the matching categories.
 
+See **[docs/creating-characters.md](docs/creating-characters.md)** for the full
+guide: where to put files, the folder layout, size/viewBox policies, and how to
+build a character from scratch when the bundled ones are not what you want.
+
 Adding, cloning, moving, resizing, and deleting panels changes the document
 model and is recorded in the undo history. Creating, deleting, and reordering
 pages is reversible as well. An asterisk in the window title indicates unsaved
