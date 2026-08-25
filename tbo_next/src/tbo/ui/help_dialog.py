@@ -47,8 +47,18 @@ personal (`~`).
 
 ## Selección múltiple, alineación y distribución
 
-Mantén **`Ctrl`** mientras haces clic en varias viñetas u objetos (o arrastra un
-rectángulo) para seleccionarlos a la vez. Con varios seleccionados puedes:
+Mantén **`Ctrl`** mientras haces clic en varias viñetas u objetos, o arrastra
+un rectángulo sobre el lienzo, para seleccionarlos a la vez. **`Ctrl+A`**
+selecciona todo (las viñetas de la página, o los objetos dentro de la viñeta).
+
+Mantén la **barra espaciadora** y arrastra para desplazar la vista sin mover la
+selección (como en Inkscape).
+
+Usa los botones **Voltear** de la barra de herramientas (o `H` / `V`) para
+reflejar un bocadillo u objeto horizontal o verticalmente; así puedes orientar
+la cola del bocadillo hacia la boca del personaje.
+
+Con varios seleccionados puedes:
 
 - Pulsar **`Supr`** para eliminarlos todos en un solo paso (reversible con
   deshacer).
@@ -136,6 +146,8 @@ Puedes usar **Rotar** (`[` / `]`), **Voltear** (`H` / `V`), **Redimensionar**
 | `Ctrl+D` | Clonar viñeta u objeto seleccionado |
 | `Ctrl+C` / `Ctrl+V` | Copiar / pegar viñetas u objetos |
 | `Ctrl` + clic / arrastre | Selección múltiple |
+| `Ctrl+A` | Seleccionar todo (viñetas u objetos) |
+| `Barra espaciadora` + arrastre | Desplazar la vista (pañuelo) |
 | `Delete` | Eliminar viñeta u objeto seleccionado |
 | `[` / `]` | Rotar objeto a la izquierda / derecha |
 | `H` / `V` | Voltear objeto horizontal / vertical |

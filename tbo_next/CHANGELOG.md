@@ -64,6 +64,9 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Credits: Washington Indacochea Delgado added as the author of the PyQt6
   port and its improvements (AUTHORS, About dialog, pyproject.toml,
   debian/control, debian/copyright).
+- Select All (`Ctrl+A`) and a default rubber-band selection mode.
+- Space-bar hold to temporarily pan the view (Inkscape-style).
+- Flip buttons added to the main toolbar for quick access.
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.

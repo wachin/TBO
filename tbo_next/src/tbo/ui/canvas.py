@@ -300,7 +300,8 @@ class ComicCanvas(QGraphicsView):
             | QPainter.RenderHint.SmoothPixmapTransform
         )
         self.setBackgroundBrush(QColor("#707070"))
-        self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        self._base_drag_mode = QGraphicsView.DragMode.RubberBandDrag
+        self.setDragMode(self._base_drag_mode)
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
         self.setAcceptDrops(True)
 
@@ -512,6 +513,14 @@ class ComicCanvas(QGraphicsView):
             for item in self.scene.selectedItems()
             if isinstance(item, FrameGraphicsItem)
         ]
+
+    def select_all(self) -> bool:
+        count = 0
+        for item in self.scene.items():
+            if item.flags() & QGraphicsItem.GraphicsItemFlag.ItemIsSelectable:
+                item.setSelected(True)
+                count += 1
+        return count > 0
 
     def add_frames(self, frames: list[Frame]) -> bool:
         page = self.current_page
@@ -910,11 +919,13 @@ class ComicCanvas(QGraphicsView):
     def keyPressEvent(self, event) -> None:
         if event.key() == Qt.Key.Key_Control:
             self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
+        elif event.key() == Qt.Key.Key_Space:
+            self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
         super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event) -> None:
-        if event.key() == Qt.Key.Key_Control:
-            self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+        if event.key() in (Qt.Key.Key_Control, Qt.Key.Key_Space):
+            self.setDragMode(self._base_drag_mode)
         super().keyReleaseEvent(event)
 
     def dragEnterEvent(self, event) -> None:

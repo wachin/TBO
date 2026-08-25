@@ -52,6 +52,8 @@ format.
 - `Ctrl+D`: clone the selected panel or object;
 - `Ctrl+C` / `Ctrl+V`: copy / paste panels or objects;
 - `Ctrl` + click / drag: multi-select;
+- `Ctrl+A`: select all panels (page mode) or all objects (panel editing);
+- `Space` + drag: pan the view without moving the selection;
 - `Delete`: delete the selected panel or objects;
 - `Ctrl+Z` / `Ctrl+Shift+Z`: undo or redo;
 - `Esc`: leave panel editing mode;

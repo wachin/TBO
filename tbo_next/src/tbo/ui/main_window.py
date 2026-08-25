@@ -118,6 +118,11 @@ class MainWindow(QMainWindow):
         self.paste_action.triggered.connect(self.paste_clipboard)
         edit_menu.addAction(self.paste_action)
 
+        self.select_all_action = QAction(self.tr("Select &All"), self)
+        self.select_all_action.setShortcut(QKeySequence.StandardKey.SelectAll)
+        self.select_all_action.triggered.connect(self.select_all)
+        edit_menu.addAction(self.select_all_action)
+
         edit_menu.addSeparator()
         self.add_frame_action = QAction(self.tr("Add &Panel"), self)
         self.add_frame_action.setShortcut("F")
@@ -344,6 +349,9 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         toolbar.addAction(self.add_frame_action)
         toolbar.addAction(self.add_text_action)
+        toolbar.addSeparator()
+        toolbar.addAction(self.flip_horizontal_action)
+        toolbar.addAction(self.flip_vertical_action)
         toolbar.addSeparator()
         toolbar.addAction(self.zoom_in_action)
         toolbar.addAction(self.zoom_out_action)
@@ -712,6 +720,10 @@ class MainWindow(QMainWindow):
         if cloned is not None:
             self._update_edit_actions()
 
+    def select_all(self) -> None:
+        self.canvas.select_all()
+        self._update_edit_actions()
+
     def copy_selection(self) -> None:
         if self.canvas.editing_frame is not None:
             objects = self.canvas.selected_objects()
@@ -892,6 +904,7 @@ class MainWindow(QMainWindow):
         self.add_frame_action.setEnabled(has_page and not editing)
         self.delete_frame_action.setEnabled(selected is not None)
         self.clone_frame_action.setEnabled(selected is not None)
+        self.select_all_action.setEnabled(has_page)
         self.delete_frame_action.setText(
             self.tr("Delete Object") if editing else self.tr("Delete Panel")
         )
