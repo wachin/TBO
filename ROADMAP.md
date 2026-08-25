@@ -264,7 +264,7 @@ El modelo no importará módulos de `ui`. El lector tampoco creará widgets ni m
 
 - [x] Definir versionado, changelog y política de soporte.
 - [x] Crear paquetes reproducibles; Flatpak será el primer objetivo en Linux.
-- [ ] Evaluar PyInstaller u otra herramienta solo para plataformas con mantenimiento confirmado.
+- [x] Evaluar PyInstaller u otra herramienta solo para plataformas con mantenimiento confirmado (Nuitka para Windows, PyInstaller para macOS, incluidos en el workflow manual).
 - [x] Verificar que se incluyen Qt, plugins de plataforma, soporte SVG, traducciones y recursos necesarios.
 - [x] Generar SBOM, checksums y artefactos firmados cuando la infraestructura lo permita.
 - [x] Ejecutar pruebas de instalación, primera ejecución, actualización y desinstalación limpia.

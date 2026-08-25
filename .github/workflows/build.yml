@@ -62,35 +62,55 @@ jobs:
           path: org.tbo.TBO.flatpak
 
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          architecture: "x64"
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install PyQt6 PyQt6-Qt6 Nuitka ordered-set zstandard
+          python -m pip install -r packaging/requirements-windows.txt
 
       - name: Build standalone executable with Nuitka
         run: |
-          python -m nuitka `
-            --standalone `
-            --enable-plugin=pyqt6 `
-            --include-package-data=tbo `
-            --include-data-dir=data/doodle=tbo/data/doodle `
-            --include-data-dir=translations=tbo/translations `
-            --output-filename=tbo.exe `
-            --python-path=src `
-            src/tbo/__main__.py
+          powershell -NoProfile -ExecutionPolicy Bypass -File packaging/build_windows.ps1
 
       - name: Upload Windows executable
         uses: actions/upload-artifact@v4
         with:
           name: tbo-windows
           path: |
-            tbo.exe
-            tbo.exe.dist/**
+            build/output/TBO-*-Windows-x64-portable.zip
+            build/dist/TBO/TBO.exe
+
+  build-macos:
+    runs-on: macos-15-intel
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          architecture: "x64"
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r packaging/requirements-macos.txt
+
+      - name: Build macOS app with PyInstaller
+        run: |
+          bash packaging/build_macos.sh
+
+      - name: Upload macOS app
+        uses: actions/upload-artifact@v4
+        with:
+          name: tbo-macos
+          path: build/output/TBO-*-macOS-x64.zip

@@ -83,8 +83,11 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Advanced text toolbar (third toolbar): font family, size, bold, italic,
   underline and color for the selected text object, based on ksnip-py's text
   property toolbar. Text objects now persist bold/italic/underline in `.tbo`.
-- Windows standalone `.exe` build with Nuitka added to the manual CI workflow
-  (`build-windows` job), including assets, translations and icons.
+- Windows standalone `.exe` build with Nuitka and a macOS `.app` build with
+  PyInstaller added to the manual CI workflow (`build-windows` and
+  `build-macos` jobs). Configurations mirror lucio-iva-calculator, which
+  produced clean VirusTotal results: no UPX, embedded metadata, application
+  icons, and no console window.
 - Text dialog: Ctrl+Enter accepts. The inline editor is based on ksnip's
   `InlineTextEditor` (git submodule `third-party/ksnip/ksnip_py/canvas.py`,
   https://github.com/wachin/ksnip).

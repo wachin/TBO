@@ -251,9 +251,14 @@ GitHub Actions workflows live in `.github/workflows/`:
   Python 3.11 and 3.12.
 - **`build.yml`** is **manual** (`workflow_dispatch`, triggered from the Actions
   tab) and produces the distributable executables as artifacts: Python
-  wheel/sdist, a Debian `.deb`, a Flatpak bundle, and a **Windows standalone
-  `.exe`** compiled with [Nuitka](https://nuitka.net/) (including assets,
-  translations and icons).
+  wheel/sdist, a Debian `.deb`, a Flatpak bundle, a **Windows standalone
+  `.exe`** compiled with [Nuitka](https://nuitka.net/), and a **macOS `.app`**
+  built with PyInstaller.
+- The Windows/macOS configurations mirror
+  [lucio-iva-calculator](https://github.com/wachin/lucio-iva-calculator) (see
+  its `windows-exe-fixes.md`): no UPX, embedded product/version metadata,
+  application icons, and no console window — the combination that produced
+  clean VirusTotal results.
 
 Coverage locally:
 
