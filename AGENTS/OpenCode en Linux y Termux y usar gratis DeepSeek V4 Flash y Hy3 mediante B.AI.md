@@ -1,3 +1,5 @@
+![](https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisuFUVre-MOxXm1lfvA_mEhp3GC8rcQ93U0N4E1erQ-1kmtIpbNgMbyebyA3SM38NTUuPfAOlmeXF9Fr5RNx2G4cHsWLrjC6wYngr27xBvPOKXzf8RTwnwXrUYT4v2nMLHhyphenhyphenMGBGXPCD-X3gA4QN-MxP8re58d9lEOZ5Srd-satUhSblTyae3uIWr1FlM/s1600-rw/Portada.jpg)
+
 # Cómo instalar OpenCode en Linux y Termux y usar gratis (tiempo limitado): "DeepSeek V4 Flash" y "Hy3" mediante B.AI
 
 OpenCode es un agente de inteligencia artificial para programación que funciona directamente desde la terminal. A diferencia de un chatbot convencional, puede examinar los archivos de un proyecto, modificar código, ejecutar comandos y ayudarnos en tareas de desarrollo de software.
@@ -786,7 +788,7 @@ PyQt6**, incluyendo:
 - y la reorganización final del repositorio (código legacy bajo `legacy/`).
 
 Este tutorial y los archivos de este repositorio fueron generados con **DeepSeek
-V4 Flash** mediante B.AI, y con el modelo `deepseek-v4-flash` de OpenCode.
+V4 Flash** mediante B.AI,  en OpenCode.
 
 En resumen, en este caso real **Hy3 quedó limitado a unos pocos commits**, mientras
 que **DeepSeek V4 Flash permitió terminar el proyecto completo**. Por ello, para
