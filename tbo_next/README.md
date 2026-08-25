@@ -161,8 +161,12 @@ Strings are marked with `tr()` and extracted with Qt Linguist:
 
 The script runs `pylupdate6` (or `lupdate`) to produce `translations/tbo_<locale>.ts`
 and `lrelease` to compile the `.qm` catalogs. The application loads
-`tbo_<locale>.qm` for the configured locale (see `application.py`). To add a
-language, e.g. Spanish:
+`tbo_<locale>.qm` for the configured locale (see `application.py`); without a
+saved preference it follows the system language.
+
+Available translations: **English** (`tbo_en`) and **Spanish** (`tbo_es`).
+
+To add or update a language:
 
 ```bash
 pylupdate6 src/tbo -ts translations/tbo_es.ts

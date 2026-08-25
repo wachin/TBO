@@ -59,7 +59,7 @@ def test_last_directory_ignores_missing_path(monkeypatch, tmp_path: Path) -> Non
 
 def test_locale_default_and_persisted(monkeypatch, tmp_path: Path) -> None:
     preferences = _fresh_preferences(tmp_path)
-    assert preferences.locale() == "en"
+    assert preferences.locale() == ""  # auto-detect system language
     fresh = _fresh_preferences(tmp_path)
     fresh._settings.setValue("locale", "es")
     assert fresh.locale() == "es"

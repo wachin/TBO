@@ -57,7 +57,10 @@ class Preferences:
 
     def locale(self) -> str:
         value = self._settings.value("locale")
-        return value if isinstance(value, str) and value else "en"
+        return value if isinstance(value, str) and value else ""
+
+    def set_locale(self, locale: str) -> None:
+        self._settings.setValue("locale", locale)
 
     def theme(self) -> str:
         value = self._settings.value("theme")

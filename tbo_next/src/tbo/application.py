@@ -12,28 +12,35 @@ from tbo.ui.main_window import MainWindow
 from tbo.ui.preferences import Preferences
 from tbo.ui.theme import apply_theme
 
+_package_dir = Path(__file__).resolve().parent
 TRANSLATION_DIRS = (
-    Path(__file__).resolve().parent.parent / "translations",
+    _package_dir / "translations",
+    _package_dir.parent.parent / "translations",
     Path(QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)),
 )
+
+_APP_TRANSLATOR = QTranslator()
+_QT_TRANSLATOR = QTranslator()
 
 
 def _install_translator() -> None:
     """Install the Qt and application translators for the active locale."""
     preferences = Preferences()
     locale_name = preferences.locale()
-    locale = QLocale(locale_name)
+    if not locale_name or locale_name == "auto":
+        locale = QLocale.system()
+    else:
+        locale = QLocale(locale_name)
     QLocale.setDefault(locale)
 
-    application_translator = QTranslator()
+    global _APP_TRANSLATOR, _QT_TRANSLATOR
     for directory in TRANSLATION_DIRS:
-        if application_translator.load(locale, "tbo", "_", str(directory), ".qm"):
-            QCoreApplication.installTranslator(application_translator)
+        if _APP_TRANSLATOR.load(locale, "tbo", "_", str(directory), ".qm"):
+            QCoreApplication.installTranslator(_APP_TRANSLATOR)
             break
 
-    qt_translator = QTranslator()
-    if qt_translator.load(locale, "qtbase", "_", str(TRANSLATION_DIRS[1])):
-        QCoreApplication.installTranslator(qt_translator)
+    if _QT_TRANSLATOR.load(locale, "qtbase", "_", str(TRANSLATION_DIRS[2])):
+        QCoreApplication.installTranslator(_QT_TRANSLATOR)
 
 
 def main(argv: list[str] | None = None) -> int:

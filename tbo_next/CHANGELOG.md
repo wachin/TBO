@@ -74,6 +74,8 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Icons added to Add Panel (own SVG), Add Text, Actual Size and Fit Page.
 - Help dialog rewritten in English (source language) and translatable via Qt
   Linguist; `tbo_en.ts` and `tbo_en.qm` generated.
+- Spanish translation added (`tbo_es.ts` / `tbo_es.qm`); the interface and the
+  Help dialog follow the system language (or the saved preference).
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.
