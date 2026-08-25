@@ -8,6 +8,10 @@ developer or AI agent so they can reach a green CI faster on a similar stack.
 > **exactly and in order** (see section 12). The fixes are interdependent, and
 > skipping one will break another.
 
+> **Before starting a new project**, have the agent read
+> **[CREATING-PYQT6-PROJECT.md](CREATING-PYQT6-PROJECT.md)** so the correct
+> structure is used from the first commit instead of fixing it afterwards.
+
 All examples refer to the repository at `https://github.com/wachin/TBO`
 (workflows under `.github/workflows/`).
 

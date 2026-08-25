@@ -96,7 +96,9 @@ overwrites the only copy of a user document without confirmation or a safe copy.
   categories.
 - GitHub Actions CI (`ci.yml`): lint, unit tests, coverage on critical modules.
 - Guide for other developers/agents: `docs/GitHub-Actions-Solutions/`
-  documents every fix that took the CI to green for a PyQt6 stack.
+  documents every fix that took the CI to green for a PyQt6 stack, plus
+  `CREATING-PYQT6-PROJECT.md` with the correct structure to build a PyQt6
+  project that passes CI from the start.
 - Manual build workflow (`build.yml`, `workflow_dispatch`) producing wheel, sdist,
   `.deb`, and Flatpak artifacts.
 - Fixture corpus under `tests/fixtures/` and property-based parser tests

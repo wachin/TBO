@@ -255,6 +255,8 @@ GitHub Actions workflows live in `.github/workflows/`:
 
 The full collection of fixes and commands that took this CI to green is in
 **[docs/GitHub-Actions-Solutions/CI-CD-GitHub-Actions-For-PyQt6.md](docs/GitHub-Actions-Solutions/CI-CD-GitHub-Actions-For-PyQt6.md)**.
+For agents starting a **new** PyQt6 project, see
+**[docs/GitHub-Actions-Solutions/CREATING-PYQT6-PROJECT.md](docs/GitHub-Actions-Solutions/CREATING-PYQT6-PROJECT.md)**.
 - **`build.yml`** is **manual** (`workflow_dispatch`, triggered from the Actions
   tab) and produces the distributable executables as artifacts: Python
   wheel/sdist, a Debian `.deb`, a Flatpak bundle, a **Windows standalone
