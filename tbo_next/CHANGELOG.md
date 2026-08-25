@@ -80,7 +80,8 @@ overwrites the only copy of a user document without confirmation or a safe copy.
   centred inside the bubble.
 - Inline text editing: double-click a text object to edit it directly on the
   canvas (Ctrl+Enter to accept, Esc to cancel).
-- Text dialog: Ctrl+Enter accepts, based on ksnip-py's InlineTextEditor.
+- Text dialog: Ctrl+Enter accepts. The inline editor is based on ksnip's
+  `InlineTextEditor` (https://github.com/wachin/ksnip/blob/master/ksnip_py/canvas.py).
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.

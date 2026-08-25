@@ -243,6 +243,17 @@ cd tbo_next
 python3 -m pytest tests/unit --cov=src/tbo --cov-report=term-missing
 ```
 
+## Third-party code
+
+The **inline text editor** (double-click a text object to edit it on the
+canvas) is based on the `InlineTextEditor` from **ksnip**:
+
+- Source file: `ksnip_py/canvas.py`
+- Repository: https://github.com/wachin/ksnip
+- Direct link: https://github.com/wachin/ksnip/blob/master/ksnip_py/canvas.py
+
+The file lives under `third-party/ksnip_py/` in this repository.
+
 ## Resources and packaging
 
 The application resolves its asset library through `tbo.resources`. In a source

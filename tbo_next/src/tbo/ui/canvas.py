@@ -1068,7 +1068,8 @@ class ComicCanvas(QGraphicsView):
 class InlineTextEditor(QPlainTextEdit):
     """Floating text editor placed over a TextObject for inline editing.
 
-    Based on the ksnip-py InlineTextEditor (``third-party/ksnip_py/canvas.py``).
+    Based on ksnip's ``InlineTextEditor``:
+    https://github.com/wachin/ksnip/blob/master/ksnip_py/canvas.py
     Ctrl+Enter to accept, Esc to cancel, focus-out to accept.
     """
 
