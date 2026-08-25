@@ -150,6 +150,26 @@ aborting the export.
 Press **`F5`** (View ▸ Presentation) to read the comic in full screen. Navigate
 with the arrow keys, `Space`, or `PageUp`/`PageDown`; press `Esc` to leave.
 
+## Translations
+
+English is the source language of the interface (including the Help dialog).
+Strings are marked with `tr()` and extracted with Qt Linguist:
+
+```bash
+./packaging/update_translations.sh
+```
+
+The script runs `pylupdate6` (or `lupdate`) to produce `translations/tbo_<locale>.ts`
+and `lrelease` to compile the `.qm` catalogs. The application loads
+`tbo_<locale>.qm` for the configured locale (see `application.py`). To add a
+language, e.g. Spanish:
+
+```bash
+pylupdate6 src/tbo -ts translations/tbo_es.ts
+# edit translations/tbo_es.ts with Linguist, then:
+lrelease translations/tbo_es.ts -qm translations/tbo_es.qm
+```
+
 ## Tests
 
 The unit tests run without a display. The integration tests drive a real

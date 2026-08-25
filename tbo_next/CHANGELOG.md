@@ -72,6 +72,8 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Icons and tooltips added to New, Open, Save, Save As, Undo and Redo
   (Inkscape icons, GPL-2.0-or-later).
 - Icons added to Add Panel (own SVG), Add Text, Actual Size and Fit Page.
+- Help dialog rewritten in English (source language) and translatable via Qt
+  Linguist; `tbo_en.ts` and `tbo_en.qm` generated.
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.

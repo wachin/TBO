@@ -8,155 +8,6 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-HELP_MARKDOWN = """\
-# TBO 2 — Ayuda
-
-## ¿Dónde están los archivos `.tbo`?
-
-Los archivos `.tbo` son documentos de cómic completos (páginas, viñetas y
-objetos). En la distribución solo se incluyen dos ejemplos:
-
-- `data/tut.tbo` — el tutorial.
-- `doc/pres-final.tbo` — un ejemplo de presentación.
-
-## ¿Dónde están los personajes (doodles y bocadillos)?
-
-No hay un archivo `.tbo` por personaje. Los personajes y adornos son archivos
-**SVG** que se incluyen con el programa en el directorio `doodle`, organizados
-por categorías (cuerpo, ojos, boca, personajes completos, accesorios, etc.).
-
-Para usarlos:
-
-1. **Entra en una viñeta** haciendo doble clic sobre ella.
-2. En el panel **Biblioteca de recursos** (a la derecha) elige la pestaña
-   **Doodles** (personajes y adornos) o **Bubbles** (bocadillos de diálogo).
-3. Escribe en el buscador o navega por las categorías.
-4. **Haz clic en una miniatura** para insertarla en la viñeta.
-
-Todo lo insertado se puede mover, redimensionar, rotar, voltear, clonar y
-eliminar, y queda guardado en el archivo `.tbo` al guardar.
-
-## ¿Cómo funciona la última carpeta recordada?
-
-El programa recuerda la última carpeta que utilizaste. Al abrir un archivo,
-guardarlo, exportarlo o importar una imagen/SVG, la carpeta de ese archivo se
-guarda como la última utilizada. La próxima vez que abras **Abrir**, **Guardar
-como**, **Exportar**, **Añadir imagen** o **Añadir SVG**, el diálogo empezará en
-esa carpeta. La primera vez, al no haber historial, empieza en tu carpeta
-personal (`~`).
-
-## Selección múltiple, alineación y distribución
-
-Mantén **`Ctrl`** mientras haces clic en varias viñetas u objetos, o arrastra
-un rectángulo sobre el lienzo, para seleccionarlos a la vez. **`Ctrl+A`**
-selecciona todo (las viñetas de la página, o los objetos dentro de la viñeta).
-
-Mantén la **barra espaciadora** y arrastra para desplazar la vista sin mover la
-selección (como en Inkscape).
-
-Usa los botones **Voltear** de la barra de herramientas (o `H` / `V`) para
-reflejar un bocadillo u objeto horizontal o verticalmente; así puedes orientar
-la cola del bocadillo hacia la boca del personaje.
-
-Con varios seleccionados puedes:
-
-- Pulsar **`Supr`** para eliminarlos todos en un solo paso (reversible con
-  deshacer).
-- Usar el menú **Editar ▸ Alinear** (izquierda, centro, derecha, arriba, etc.)
-  para alinear las viñetas seleccionadas.
-- Usar **Editar ▸ Distribuir** para repartir el espacio de forma uniforme.
-
-Para **copiar y pegar** entre páginas usa **`Ctrl+C`** y **`Ctrl+V`**: copia las
-viñetas (en la página) o los objetos (dentro de una viñeta) y pégalos en la
-página o viñeta actual.
-
-## Arrastrar desde la biblioteca
-
-Además de hacer clic en una miniatura, puedes **arrastrarla** desde el panel
-**Biblioteca de recursos** y soltarla dentro de la viñeta que estás editando.
-
-## Añadir tus propios dibujos (SVG)
-
-Puedes crear tus propios ojos, bocas, orejas, narices, cejas, pestañas,
-labios, o cualquier otro elemento en **SVG** y el programa los cargará
-automáticamente. No hay que convertir nada: el programa usa SVGs directamente.
-
-Solo tienes que colocar tus archivos **.svg** en una de estas carpetas
-(el programa no las crea, debes hacerlo tú):
-
-- `~/.tbo/doodle/` (por ejemplo: `~/.tbo/doodle/head/eyes/mis_ojos.svg`)
-- `~/.local/share/tbo/doodle/`
-
-Organízalos por carpetas igual que el personaje de ejemplo (p. ej.
-`cabeza/ojos/`, `cabeza/bocas/`, `narices/`). El programa los mezclará con los
-recursos incluidos y los mostrará en la pestaña correspondiente.
-
-## Personaje armable
-
-En la pestaña **Character** de la biblioteca hay un personaje de ejemplo
-formado por partes independientes que puedes combinar a tu gusto:
-
-- **Cabeza**: un rostro vacío (sin ojos, orejas ni boca).
-- **Ojos**: normal, alegre, triste, cerrado, sorprendido…
-- **Boca**: sonrisa, neutra, triste, abierta, con lengua…
-- **Orejas**: normales, puntiagudas…
-
-Coloca primero la cabeza y luego arrastra cada parte hasta la posición deseada.
-Puedes usar **Rotar** (`[` / `]`), **Voltear** (`H` / `V`), **Redimensionar**
-(arrastra el asa inferior derecha) y las expresiones que quieras.
-
-## Presentación y exportación
-
-- Pulsa **`F5`** (menú **Ver ▸ Presentación**) para leer el cómic a pantalla
-  completa. Navega con las flechas, `Espacio` o `Re Pág`/`Av Pág`, y sal con
-  `Esc`.
-- **Exportar** (`Ctrl+E`) ahora te deja elegir el formato, si quieres **todas
-  las páginas** o **solo la página actual**, y la **escala** (resolución) para
-  PNG (hasta 1000 %).
-
-## Tema, rejilla y sesión
-
-- **Ver ▸ Tema**: elige entre **Sistema**, **Oscuro** o **Claro**. La elección
-  se recuerda entre sesiones.
-- **Ver ▸ Ajustar a rejilla**: cuando está activo, las viñetas se alinean a una
-  rejilla de 10 px al moverlas o redimensionarlas, y la rejilla se muestra en el
-  lienzo. Útil para colocar viñetas con precisión. También se recuerda.
-- El programa **reabre el último documento** que tenías abierto al cerrar.
-
-## Páginas y búsqueda
-
-- El panel **Páginas** (a la izquierda) muestra una **miniatura** de cada página;
-  haz clic en una para ir a ella. Se actualiza al editar el cómic.
-- **Editar ▸ Buscar texto** (`Ctrl+F`): busca en todos los objetos de texto del
-  documento y te lleva a la página y la viñeta donde está la coincidencia.
-
-## Atajos útiles
-
-| Atajo | Acción |
-| ----- | ------ |
-| `Ctrl+N` | Nuevo cómic |
-| `Ctrl+O` | Abrir |
-| `Ctrl+S` | Guardar |
-| `Ctrl+E` | Exportar |
-| `PageUp` / `PageDown` | Página anterior / siguiente |
-| `F` | Añadir viñeta (en la página) |
-| Doble clic en viñeta | Editar su contenido |
-| `T` | Añadir texto (editando viñeta) |
-| `Esc` | Salir de la edición de viñeta |
-| `Ctrl+D` | Clonar viñeta u objeto seleccionado |
-| `Ctrl+C` / `Ctrl+V` | Copiar / pegar viñetas u objetos |
-| `Ctrl` + clic / arrastre | Selección múltiple |
-| `Ctrl+A` | Seleccionar todo (viñetas u objetos) |
-| `Barra espaciadora` + arrastre | Desplazar la vista (pañuelo) |
-| `Delete` | Eliminar viñeta u objeto seleccionado |
-| `[` / `]` | Rotar objeto a la izquierda / derecha |
-| `H` / `V` | Voltear objeto horizontal / vertical |
-| `Ctrl` + rueda o `+` / `-` / `1` / `2` | Zoom in / out / tamaño real / ajustar página |
-| `F5` | Modo presentación a pantalla completa |
-| `Ctrl+F` | Buscar texto en el documento |
-| `Ctrl+Z` / `Ctrl+Shift+Z` | Deshacer / rehacer |
-"""
-
 
 class HelpDialog(QDialog):
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -165,7 +16,7 @@ class HelpDialog(QDialog):
         self.resize(680, 560)
 
         browser = QTextBrowser()
-        browser.setMarkdown(HELP_MARKDOWN)
+        browser.setMarkdown(self._help_text())
         browser.setOpenExternalLinks(True)
         browser.document().setDefaultStyleSheet("body { font-size: 13px; }")
 
@@ -177,3 +28,153 @@ class HelpDialog(QDialog):
             self.accept()
             return
         super().keyPressEvent(event)
+
+    def _help_text(self) -> str:
+        return self.tr(
+            """\
+# TBO 2 — Help
+
+## Where are the `.tbo` files?
+
+TBO documents are complete comic files (pages, panels and objects). The
+distribution includes two examples:
+
+- `data/tut.tbo` — the tutorial.
+- `doc/pres-final.tbo` — a presentation example.
+
+## Where are the characters (doodles and speech bubbles)?
+
+There is no `.tbo` file per character. Characters, decorations and speech
+bubbles are **SVG files** shipped under the `doodle` directory, organised by
+category (body, eyes, mouth, accessories, characters, etc.).
+
+To use them:
+
+1. **Double-click a panel** to enter its editing mode.
+2. In the **Asset Library** dock on the right, choose the **Doodles** tab
+   (decorations and characters), **Character** (buildable head parts),
+   **Accessories** (actions, devices, emotes, pcs) or **Bubbles** (speech
+   bubbles).
+3. Type in the search box or browse the categories.
+4. **Click or drag** a thumbnail to insert it into the panel.
+
+Everything you insert can be moved, resized, rotated, flipped, cloned and
+deleted, and is saved in the `.tbo` file.
+
+## How does the last-folder memory work?
+
+The program remembers the last folder you used. When you open, save, export or
+import a file, that folder is saved. The next time you open **Open**, **Save
+As**, **Export**, **Add Image** or **Add SVG**, the dialog starts in that
+folder. The first time, with no history, it starts in your home directory
+(`~`).
+
+## Multi-selection, alignment and distribution
+
+Hold **`Ctrl`** while clicking several panels or objects, or drag a rectangle
+on the canvas, to select them at once. **`Ctrl+A`** selects all panels on a
+page, or all objects inside a panel.
+
+Hold the **space bar** and drag to pan the view without moving the selection
+(Inkscape-style).
+
+Use the **Flip** buttons on the toolbar (or `H` / `V`) to mirror a bubble or
+object horizontally or vertically — for example, to point the bubble tail
+toward the character's mouth.
+
+With several items selected you can:
+
+- Press **`Delete`** to remove them all in one step (reversible with undo).
+- Use the **Edit ▸ Align** menu (left, center, right, top, etc.) to align the
+  selected panels.
+- Use **Edit ▸ Distribute** to space them evenly.
+
+To **copy and paste** between pages use **`Ctrl+C`** and **`Ctrl+V`**: copy
+panels (on the page) or objects (inside a panel) and paste them on the current
+page or panel.
+
+## Drag from the library
+
+Besides clicking a thumbnail, you can **drag** it from the Asset Library and
+**drop** it into the panel you are editing.
+
+## Adding your own drawings (SVG)
+
+You can create your own eyes, mouths, ears, noses, eyebrows, eyelashes, lips,
+or any other element in **SVG** and the program will load them automatically.
+No conversion is needed — the program uses SVGs directly.
+
+Just place your **.svg** files in one of these folders (the program does not
+create them, you must):
+
+- `~/.tbo/doodle/` (e.g. `~/.tbo/doodle/head/eyes/my_eyes.svg`)
+- `~/.local/share/tbo/doodle/`
+
+Organise them by folder the same way as the example character (e.g.
+`head/eyes/`, `head/mouths/`, `noses/`). The program will merge them with the
+shipped resources and show them in the corresponding tab.
+
+## Buildable character
+
+The **Character** tab in the library contains an example buildable character
+made of independent parts you can combine at will:
+
+- **Head**: a blank face (no eyes, ears or mouth).
+- **Eyes**: normal, happy, sad, closed, surprised…
+- **Mouth**: smile, neutral, sad, open, tongue…
+- **Ears**: normal, pointy.
+
+Place the head first, then drag each part into position. You can use **Rotate**
+(`[` / `]`), **Flip** (`H` / `V`), **Resize** (drag the bottom-right handle)
+and mix any expressions you like.
+
+## Presentation and export
+
+- Press **`F5`** (View ▸ Presentation) to read the comic in full screen.
+  Navigate with the arrow keys, `Space` or `Page Up`/`Page Down`; exit with
+  `Esc`.
+- **Export** (`Ctrl+E`) lets you choose the format, whether to export all pages
+  or only the current one, and the output scale (up to 1000 %) for PNG.
+
+## Theme, grid and session
+
+- **View ▸ Theme**: choose **System**, **Dark** or **Light**. The choice is
+  remembered between sessions.
+- **View ▸ Snap to Grid**: when active, panels snap to a 10 px grid while
+  moving or resizing, and the grid is shown on the canvas. Also remembered.
+- The program **reopens the last document** you had open when you close it.
+
+## Pages and search
+
+- The **Pages** dock on the left shows a **thumbnail** of every page; click one
+  to jump to it. Thumbnails refresh as the comic is edited.
+- **Edit ▸ Find Text…** (`Ctrl+F`) searches every text object in the document
+  and navigates to the page and panel containing a match.
+
+## Useful shortcuts
+
+| Shortcut | Action |
+| -------- | ------ |
+| `Ctrl+N` | New comic |
+| `Ctrl+O` | Open |
+| `Ctrl+S` | Save |
+| `Ctrl+E` | Export |
+| `Page Up` / `Page Down` | Previous / next page |
+| `F` | Add panel (on the page) |
+| Double-click panel | Edit its contents |
+| `T` | Add text (while editing a panel) |
+| `Esc` | Leave panel editing |
+| `Ctrl+D` | Clone selected panel / object |
+| `Ctrl+C` / `Ctrl+V` | Copy / paste panels or objects |
+| `Ctrl` + click / drag | Multi-select |
+| `Ctrl+A` | Select all |
+| `Space` + drag | Pan the view |
+| `Delete` | Delete selected panel(s) / object(s) |
+| `[` / `]` | Rotate object left / right |
+| `H` / `V` | Flip object horizontally / vertically |
+| `Ctrl` + wheel, `+` / `-` / `1` / `2` | Zoom in / out / actual size / fit page |
+| `F5` | Full-screen presentation |
+| `Ctrl+F` | Find text in the document |
+| `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / redo |
+"""
+        )
