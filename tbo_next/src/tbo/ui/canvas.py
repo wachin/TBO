@@ -769,22 +769,35 @@ class ComicCanvas(QGraphicsView):
         )
         editor.setFixedSize(max(1, graphic_object.width), max(1, graphic_object.height))
         proxy = self.scene.addWidget(editor)
-        proxy.setPos(graphic_object.x, graphic_object.y)
+        proxy.setPos(item.scenePos())
         proxy.setZValue(1000)
         self._inline_proxy = proxy
         self._inline_editor = editor
         self._inline_object = graphic_object
-        editor.accepted.connect(lambda: self._finish_inline_text_edit(True))
-        editor.canceled.connect(lambda: self._finish_inline_text_edit(False))
+        editor.accepted.connect(self._accept_inline_text)
+        editor.canceled.connect(self._cancel_inline_text)
         editor.setFocus()
 
+    def _accept_inline_text(self) -> None:
+        self._finish_inline_text_edit(True)
+
+    def _cancel_inline_text(self) -> None:
+        self._finish_inline_text_edit(False)
+
     def _finish_inline_text_edit(self, accepted: bool) -> None:
-        proxy = self._inline_proxy
         editor = self._inline_editor
+        proxy = self._inline_proxy
         graphic_object = self._inline_object
         self._inline_proxy = None
         self._inline_editor = None
         self._inline_object = None
+        if editor is not None:
+            try:
+                editor.accepted.disconnect(self._accept_inline_text)
+                editor.canceled.disconnect(self._cancel_inline_text)
+            except TypeError:
+                pass
+            editor.setVisible(False)
         if proxy is not None:
             self.scene.removeItem(proxy)
         if accepted and editor is not None and graphic_object is not None:
@@ -1099,7 +1112,8 @@ class InlineTextEditor(QPlainTextEdit):
             super().focusOutEvent(event)
             return
         self._emit_accepted()
-        super().focusOutEvent(event)
+        # Do not call super() afterwards: the handler may delete this widget
+        # while the event is still being processed.
 
     def _emit_accepted(self) -> None:
         if self._finished:
