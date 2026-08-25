@@ -24,16 +24,16 @@ jobs:
           sudo apt-get install -y xvfb
 
       - name: Install project
-        run: python3 -m pip install -e 'tbo_next[dev]'
+        run: python3 -m pip install -e '.[dev]'
 
       - name: Lint
-        run: ruff check tbo_next/src tbo_next/tests
+        run: ruff check src tests
 
       - name: Unit tests
-        run: cd tbo_next && python3 -m pytest tests/unit
+        run: python3 -m pytest tests/unit
 
       - name: Integration tests (headless via Xvfb)
-        run: cd tbo_next && xvfb-run -a python3 -m pytest tests/integration
+        run: xvfb-run -a python3 -m pytest tests/integration
 
   coverage:
     runs-on: ubuntu-latest
@@ -43,6 +43,6 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install project
-        run: python3 -m pip install -e 'tbo_next[dev]'
+        run: python3 -m pip install -e '.[dev]'
       - name: Coverage report
-        run: cd tbo_next && python3 -m pytest tests/unit --cov=src/tbo --cov-report=term-missing --cov-fail-under=80
+        run: python3 -m pytest tests/unit --cov=src/tbo --cov-report=term-missing --cov-fail-under=80
