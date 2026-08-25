@@ -252,6 +252,9 @@ GitHub Actions workflows live in `.github/workflows/`:
   The Qt integration tests are **not** run in CI: tearing down a `QGraphicsView`
   aborts in headless runners (see below). They must be run locally with a
   display or `xvfb-run`.
+
+The full collection of fixes and commands that took this CI to green is in
+**[docs/GitHub-Actions-Solutions/CI-CD-GitHub-Actions-For-PyQt6.md](docs/GitHub-Actions-Solutions/CI-CD-GitHub-Actions-For-PyQt6.md)**.
 - **`build.yml`** is **manual** (`workflow_dispatch`, triggered from the Actions
   tab) and produces the distributable executables as artifacts: Python
   wheel/sdist, a Debian `.deb`, a Flatpak bundle, a **Windows standalone

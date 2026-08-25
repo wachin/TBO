@@ -94,7 +94,9 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - The asset catalog scans user data directories (`~/.tbo/doodle`,
   `~/.local/share/tbo/doodle`) and merges custom SVG drawings into the shipped
   categories.
-- GitHub Actions CI (`ci.yml`): lint, unit/integration tests under Xvfb, coverage.
+- GitHub Actions CI (`ci.yml`): lint, unit tests, coverage on critical modules.
+- Guide for other developers/agents: `docs/GitHub-Actions-Solutions/`
+  documents every fix that took the CI to green for a PyQt6 stack.
 - Manual build workflow (`build.yml`, `workflow_dispatch`) producing wheel, sdist,
   `.deb`, and Flatpak artifacts.
 - Fixture corpus under `tests/fixtures/` and property-based parser tests
