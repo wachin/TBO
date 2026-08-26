@@ -23,7 +23,6 @@ python "$workspace_root/packaging/generate_icon.py" \
 iconutil -c icns "$iconset_dir" -o "$icon_path"
 
 pyinstaller -w -D -y \
-  --verbose \
   --name TBO \
   --icon "$icon_path" \
   --osx-bundle-identifier org.tbo.TBO \

@@ -5,6 +5,13 @@ export PYBUILD_NAME = tbo
 %:
 	dh $@ --with python3 --buildsystem=pybuild
 
+# Tests are skipped during the .deb build: TBO is a Qt GUI application and its
+# tests require PyQt6 + a display server at build time, but PyQt6 is a runtime
+# dependency (python3-pyqt6), not a build dependency. The test suite already
+# runs separately in .github/workflows/ci.yml.
+override_dh_auto_test:
+	@echo "Skipping dh_auto_test (Qt GUI tests require a display and PyQt6 at build time)"
+
 override_dh_auto_install:
 	dh_auto_install
 	install -d debian/tbo/usr/share/tbo
