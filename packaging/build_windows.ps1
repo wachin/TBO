@@ -16,7 +16,11 @@ if ($versionLine -match '"([^"]+)"') {
 } else {
     $version = "2.0.0"
 }
-$windowsVersion = "$version.0"
+# Nuitka requires a 4-part numeric version (major.minor.build.revision) for
+# --file-version / --product-version.  Strip any non-numeric suffix (e.g.
+# "2.0.0.dev0" -> "2.0.0") and append ".0" -> "2.0.0.0".
+$numericVersion = if ($version -match '^(\d+(?:\.\d+)*)') { $Matches[1] } else { $version }
+$windowsVersion = "$numericVersion.0"
 
 New-Item -ItemType Directory -Force -Path $distDir, $tmpDir, $outputDir | Out-Null
 Remove-Item "$distDir\*" -Recurse -Force -ErrorAction SilentlyContinue

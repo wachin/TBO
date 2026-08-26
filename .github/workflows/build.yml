@@ -27,11 +27,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install Debian build dependencies
+      - name: Install Debian build dependencies (system packages)
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential debhelper dh-python \
-            pybuild-plugin-pyproject python3-setuptools python3-build python3-installer
+            pybuild-plugin-pyproject python3-setuptools
+      - name: Install Python build tooling into the active interpreter
+        run: python3 -m pip install build setuptools wheel
       - name: Build .deb
         run: dpkg-buildpackage -b -uc -us
       - uses: actions/upload-artifact@v4
@@ -42,24 +44,52 @@ jobs:
             tbo_*.buildinfo
             tbo_*.changes
 
-  build-flatpak:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/flathub/flathub-infra:latest
+  # build-flatpak is DISABLED: the Docker image ghcr.io/flathub/flathub-infra:latest
+  # is no longer publicly accessible. Re-enable only when a working image is identified.
+  # See https://github.com/wachin/TBO/issues (flatpak not important for this project).
+  # build-flatpak:
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: ghcr.io/flathub/flathub-infra:latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Build Flatpak
+  #       run: |
+  #         cd packaging
+  #         flatpak-builder build-dir org.tbo.TBO.json --force-clean
+  #     - name: Export bundle
+  #       run: |
+  #         flatpak build-export export-repo packaging/build-dir
+  #         flatpak build-bundle export-repo org.tbo.TBO.flatpak org.tbo.TBO
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: flatpak
+  #         path: org.tbo.TBO.flatpak
+
+  build-appimage:
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Build Flatpak
-        run: |
-          cd packaging
-          flatpak-builder build-dir org.tbo.TBO.json --force-clean
-      - name: Export bundle
-        run: |
-          flatpak build-export export-repo packaging/build-dir
-          flatpak build-bundle export-repo org.tbo.TBO.flatpak org.tbo.TBO
-      - uses: actions/upload-artifact@v4
+      - uses: actions/setup-python@v5
         with:
-          name: flatpak
-          path: org.tbo.TBO.flatpak
+          python-version: "3.12"
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r packaging/requirements-linux.txt
+      - name: Install system dependencies for Qt
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0 \
+            libxcb-cursor0 libdbus-1-3
+      - name: Build AppImage
+        run: |
+          bash packaging/build_appimage.sh
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: tbo-linux-appimage
+          path: build/output/TBO-*-x86_64.AppImage
 
   build-windows:
     runs-on: windows-2025

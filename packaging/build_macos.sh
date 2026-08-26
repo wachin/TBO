@@ -19,7 +19,7 @@ mkdir -p "$dist_dir" "$tmp_dir" "$output_dir"
 rm -rf "$dist_dir/TBO" "$dist_dir/TBO.app" "$package_dir" "$iconset_dir" "$icon_path"
 
 python "$workspace_root/packaging/generate_icon.py" \
-    "$workspace_root/src/tbo/resources/icon.png" iconset
+    "$workspace_root/src/tbo/resources/icon.png" iconset "$iconset_dir"
 iconutil -c icns "$iconset_dir" -o "$icon_path"
 
 pyinstaller -w -D -y \
