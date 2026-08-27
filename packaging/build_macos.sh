@@ -47,7 +47,7 @@ fi
 
 mkdir -p "$package_dir"
 cp -R "$dist_dir/TBO.app" "$package_dir/"
-cp "$workspace_root/LICENSE" "$package_dir/"
+cp "$workspace_root/COPYING" "$package_dir/"
 
 rm -f "$output_dir/TBO-${version}-macOS-x64.zip"
 ditto -c -k --sequesterRsrc "$package_dir" "$output_dir/TBO-${version}-macOS-x64.zip"

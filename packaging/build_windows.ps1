@@ -64,12 +64,12 @@ if (-not $builtExe) {
 }
 
 Copy-Item $builtExe.Directory.FullName $appDistDir -Recurse -Force
-Copy-Item "$workspaceRoot\LICENSE" "$distDir\" -Force
+Copy-Item "$workspaceRoot\COPYING" "$distDir\" -Force
 
 $portableZipPath = Join-Path $outputDir "TBO-$version-Windows-x64-portable.zip"
 if (Test-Path $portableZipPath) {
     Remove-Item $portableZipPath -Force
 }
-Compress-Archive -Path "$appDistDir", "$distDir\LICENSE" -DestinationPath $portableZipPath
+Compress-Archive -Path "$appDistDir", "$distDir\COPYING" -DestinationPath $portableZipPath
 
 Write-Output "Windows build complete: $portableZipPath"
