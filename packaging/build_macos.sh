@@ -19,11 +19,10 @@ mkdir -p "$dist_dir" "$tmp_dir" "$output_dir"
 rm -rf "$dist_dir/TBO" "$dist_dir/TBO.app" "$package_dir" "$iconset_dir" "$icon_path"
 
 python "$workspace_root/packaging/generate_icon.py" \
-    "$workspace_root/src/tbo/resources/icon.png" iconset
+    "$workspace_root/src/tbo/resources/icon.png" iconset "$iconset_dir"
 iconutil -c icns "$iconset_dir" -o "$icon_path"
 
 pyinstaller -w -D -y \
-  --verbose \
   --name TBO \
   --icon "$icon_path" \
   --osx-bundle-identifier org.tbo.TBO \
@@ -48,7 +47,7 @@ fi
 
 mkdir -p "$package_dir"
 cp -R "$dist_dir/TBO.app" "$package_dir/"
-cp "$workspace_root/LICENSE" "$package_dir/"
+cp "$workspace_root/COPYING" "$package_dir/"
 
 rm -f "$output_dir/TBO-${version}-macOS-x64.zip"
 ditto -c -k --sequesterRsrc "$package_dir" "$output_dir/TBO-${version}-macOS-x64.zip"
