@@ -324,13 +324,25 @@ dpkg-buildpackage -b -uc -us
 ```bash
 sudo apt install build-essential debhelper dh-python python3 python3-setuptools \
     pybuild-plugin-pyproject python3-build python3-installer \
-    python3-pyqt6 python3-pyqt6.qtsvg python3-pyqt6.qtpdf
+    python3-pil python3-pyqt6 python3-pyqt6.qtsvg python3-pyqt6.qtpdf \
+    lintian debsums
 ```
 
 - `pybuild-plugin-pyproject`, `python3-build` and `python3-installer` are needed
   by the pybuild **pyproject** backend (the modern PEP 517 way; do not use a
   legacy `setup.py`).
+- `python3-pil` is used to resize the menu icon to 48×48 during the build.
 - `python3-pyqt6.qtpdf` is only a recommendation (needed for PDF export).
+- `lintian` and `debsums` are audit tools (see the audit steps below).
+
+After building, **audit the package before installing** it with gdebi:
+
+```bash
+lintian tbo_2.0.0.dev0-1_all.deb                 # Lintian checks
+dpkg-deb --info tbo_2.0.0.dev0-1_all.deb          # metadata/dependencies
+dpkg-deb --contents tbo_2.0.0.dev0-1_all.deb      # what will be installed
+apt install --dry-run ./tbo_2.0.0.dev0-1_all.deb  # verify deps without installing
+```
 
 Optional but recommended for translations:
 

@@ -13,7 +13,7 @@ Repository: `https://github.com/wachin/TBO`
 | File | Fix | Reason |
 |------|-----|--------|
 | `debian/rules` | Removed `export PYBUILD_SYSTEM = distutils` | The legacy `distutils` backend fails on CI because the apt setuptools is too old for PEP 639 `license` strings. |
-| `debian/rules` | Install the icon as SVG (scalable) + PNG (48×48) | So the menu icon is found at every size. |
+| `debian/rules` | Install the icon as SVG (scalable) + PNG resized to 48×48 | So the menu icon is found at every size. The PNG is **resized** with Pillow because the source PNG is 60×60; installing it as-is in `hicolor/48x48/` triggers the Lintian warning `icon-size-and-directory-name-mismatch`. |
 | `debian/rules` | Copy `data/doodle` into `/usr/share/tbo/doodle` | Ship the asset library. |
 | `packaging/tbo.desktop` | `Icon=org.tbo.TBO` (was `Icon=tbo`) | The icon name must match the installed file, or the system shows a generic icon. |
 | `debian/control` | `pybuild-plugin-pyproject` in Build-Depends | Required by the pybuild pyproject backend. |
@@ -81,12 +81,15 @@ override_dh_auto_install:
 	install -d debian/tbo/usr/share/icons/hicolor/scalable/apps
 	install -m644 packaging/org.tbo.TBO.svg debian/tbo/usr/share/icons/hicolor/scalable/apps/org.tbo.TBO.svg
 	install -d debian/tbo/usr/share/icons/hicolor/48x48/apps
-	install -m644 src/tbo/resources/icon.png debian/tbo/usr/share/icons/hicolor/48x48/apps/org.tbo.TBO.png
+	python3 -c "from PIL import Image; im = Image.open('src/tbo/resources/icon.png').resize((48, 48), Image.Resampling.LANCZOS); im.save('debian/tbo/usr/share/icons/hicolor/48x48/apps/org.tbo.TBO.png')"
 
 override_dh_clean:
 	dh_clean
 	rm -rf ../build ../dist
 ```
+
+- `python3-pil` must be in Build-Depends so Pillow is available to resize the
+  icon to 48×48.
 
 ---
 
@@ -169,16 +172,77 @@ The script `packaging/update_translations.sh` does all of this automatically.
 
 ---
 
-## 8. Lintian warnings (harmless)
+## 8. Audit the package before installing (Lintian + other tools)
 
-`dpkg-buildpackage` ends with Lintian and it exits `0` even when warnings are
-printed. The two common ones:
+Run these checks **before** installing with gdebi, so problems are caught early
+instead of seeing Lintian warnings only in gdebi.
+
+### 8.1 Lintian
+
+```bash
+lintian tbo_2.0.0.dev0-1_all.deb
+```
+
+`dpkg-buildpackage` already runs Lintian at the end, but running it explicitly
+lets you iterate without a full rebuild. Use `lintian --info` for the full
+explanation of each tag.
+
+Common warnings for this project (all harmless, exit `0`):
 
 - `initial-upload-closes-no-bugs`: the changelog references no bug number.
-- `no-manual-page`: `/usr/bin/tbo` is a GUI app without a man page.
+- `no-manual-page`: `/usr/bin/tbo` is a GUI app without a man page. To silence
+  it, add a minimal man page and list it in `debian/tbo.manpages`.
+- `icon-size-and-directory-name-mismatch`: fixed by resizing the icon to 48×48
+  (see section 3). If it appears, the PNG size does not match its hicolor
+  directory.
 
-Both are warnings, not errors. To silence `no-manual-page`, add a minimal man
-page and list it in `debian/tbo.manpages`.
+### 8.2 Inspect metadata and content
+
+```bash
+dpkg-deb --info tbo_2.0.0.dev0-1_all.deb     # metadata, dependencies
+dpkg-deb --contents tbo_2.0.0.dev0-1_all.deb # what will be installed
+```
+
+### 8.3 Verify dependencies without installing
+
+```bash
+apt install --dry-run ./tbo_2.0.0.dev0-1_all.deb
+```
+
+This resolves the dependency tree and reports what would be pulled in, without
+changing the system.
+
+### 8.4 Verify installed-file checksums (after install)
+
+```bash
+sudo apt install debsums
+debsums tbo
+```
+
+`debsums` checks the MD5 checksums of installed files against the package, to
+detect corruption.
+
+### 8.5 Full checklist before releasing
+
+```bash
+# 1. Build
+dpkg-buildpackage -b -uc -us
+
+# 2. Lintian (explicit)
+lintian tbo_2.0.0.dev0-1_all.deb
+
+# 3. Content + metadata
+dpkg-deb --contents tbo_2.0.0.dev0-1_all.deb | less
+dpkg-deb --info tbo_2.0.0.dev0-1_all.deb
+
+# 4. Dry-run install (deps)
+apt install --dry-run ./tbo_2.0.0.dev0-1_all.deb
+
+# 5. Install and smoke test
+sudo apt install ./tbo_2.0.0.dev0-1_all.deb
+tbo --help    # or launch the app
+debsums tbo   # after installing debsums
+```
 
 ---
 
