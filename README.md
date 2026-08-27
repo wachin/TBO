@@ -323,8 +323,14 @@ dpkg-buildpackage -b -uc -us
 
 ```bash
 sudo apt install build-essential debhelper dh-python python3 python3-setuptools \
+    pybuild-plugin-pyproject python3-build python3-installer \
     python3-pyqt6 python3-pyqt6.qtsvg python3-pyqt6.qtpdf
 ```
+
+- `pybuild-plugin-pyproject`, `python3-build` and `python3-installer` are needed
+  by the pybuild **pyproject** backend (the modern PEP 517 way; do not use a
+  legacy `setup.py`).
+- `python3-pyqt6.qtpdf` is only a recommendation (needed for PDF export).
 
 Optional but recommended for translations:
 
@@ -334,8 +340,16 @@ sudo apt install qt6-base-dev-tools   # provides lrelease / lupdate
 
 The generated package installs the application, the doodle library under
 `/usr/share/tbo/doodle`, the desktop entry, AppStream metadata, and the
-application icon. The `python3-pyqt6.qtpdf` dependency is only a recommendation
-(needed for PDF export).
+application icon.
+
+**Lintian warnings**: `dpkg-buildpackage` ends with Lintian and it exits `0`
+even when it prints warnings. The two most common are harmless for this project:
+
+- `initial-upload-closes-no-bugs` — the changelog does not reference a bug
+  number. It is a lint warning, not an error.
+- `no-manual-page` — `/usr/bin/tbo` is a GUI application without a man page.
+  To silence it, a minimal man page can be added under `debian/tbo.manpages`;
+  it is optional and does not affect the install.
 
 ```bash
 ./packaging/build.sh
