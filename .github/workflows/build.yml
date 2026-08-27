@@ -7,15 +7,15 @@ jobs:
   build-wheel:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Install build tool
         run: python3 -m pip install build
       - name: Build wheel and sdist
         run: python3 -m build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: wheel-sdist
           path: dist/*
@@ -23,8 +23,8 @@ jobs:
   build-deb:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Install Debian build dependencies (system packages)
@@ -35,8 +35,13 @@ jobs:
       - name: Install Python build tooling into the active interpreter
         run: python3 -m pip install build setuptools wheel
       - name: Build .deb
-        run: dpkg-buildpackage -b -uc -us
-      - uses: actions/upload-artifact@v4
+        run: |
+          dpkg-buildpackage -b -uc -us
+          # dpkg-buildpackage writes the .deb/.buildinfo/.changes to the PARENT
+          # directory of the source tree; move them into the workspace so the
+          # upload-artifact step can find them.
+          mv ../tbo_*.deb ../tbo_*.buildinfo ../tbo_*.changes ./
+      - uses: actions/upload-artifact@v5
         with:
           name: debian
           path: |
@@ -52,7 +57,7 @@ jobs:
   #   container:
   #     image: ghcr.io/flathub/flathub-infra:latest
   #   steps:
-  #     - uses: actions/checkout@v4
+  #     - uses: actions/checkout@v5
   #     - name: Build Flatpak
   #       run: |
   #         cd packaging
@@ -61,7 +66,7 @@ jobs:
   #       run: |
   #         flatpak build-export export-repo packaging/build-dir
   #         flatpak build-bundle export-repo org.tbo.TBO.flatpak org.tbo.TBO
-  #     - uses: actions/upload-artifact@v4
+  #     - uses: actions/upload-artifact@v5
   #       with:
   #         name: flatpak
   #         path: org.tbo.TBO.flatpak
@@ -69,8 +74,8 @@ jobs:
   build-appimage:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Install Python dependencies
@@ -86,7 +91,7 @@ jobs:
         run: |
           bash packaging/build_appimage.sh
       - name: Upload AppImage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: tbo-linux-appimage
           path: build/output/TBO-*-x86_64.AppImage
@@ -94,9 +99,9 @@ jobs:
   build-windows:
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           architecture: "x64"
@@ -111,7 +116,7 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass -File packaging/build_windows.ps1
 
       - name: Upload Windows executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: tbo-windows
           path: |
@@ -123,9 +128,9 @@ jobs:
     env:
       MACOSX_DEPLOYMENT_TARGET: "11.0"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           architecture: "x64"
@@ -140,7 +145,7 @@ jobs:
           bash packaging/build_macos.sh
 
       - name: Upload macOS app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: tbo-macos
           path: build/output/TBO-*-macOS-x64.zip
