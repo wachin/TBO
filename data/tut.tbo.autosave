@@ -4,6 +4,7 @@
   <frame x="39" y="21" width="718" height="401" border="0" r="1.000000" g="1.000000" b="1.000000">
    <svgimage x="131" y="-49" width="431" height="431" angle="0.000000" flipv="0" fliph="0" path="tbo/logo/tbo.svg"></svgimage>
    <text x="161" y="304" width="364" height="105" angle="0.000000" flipv="0" fliph="0" font="Sans 12" bold="0" italic="0" underline="0" r="0.000000" g="0.000000" b="0.000000">Tutorial</text>
+   <svgimage x="29" y="79" width="114" height="196" angle="0.000000" flipv="0" fliph="0" path="/usr/share/tbo/doodle/linuxhispano/bar/left-hand.svg"></svgimage>
   </frame>
  </page>
  <page>
@@ -114,7 +115,7 @@ como creas oportuno.</text>
   </frame>
  </page>
  <page>
-  <frame x="24" y="18" width="742" height="415" border="1" r="0.959167" g="1.000000" b="0.548974">
+  <frame x="31" y="19" width="742" height="415" border="1" r="0.959167" g="1.000000" b="0.548974">
    <svgimage x="82" y="282" width="97" height="94" angle="0.000000" flipv="0" fliph="0" path="arcadia/one/arcadio10.svg"></svgimage>
    <svgimage x="4" y="288" width="115" height="112" angle="0.000000" flipv="0" fliph="1" path="arcadia/one/arcadio5.svg"></svgimage>
    <text x="32" y="19" width="682" height="239" angle="0.000000" flipv="0" fliph="0" font="Sans 12" bold="0" italic="0" underline="0" r="0.000000" g="0.000000" b="0.000000">La herramienta de texto es un poco diferente a las anteriores. Una vez 

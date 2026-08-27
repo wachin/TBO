@@ -50,6 +50,11 @@ for ts in translations/*.ts; do
     fi
     lrelease "$ts" -qm "$qm" 2>/dev/null || echo "  (lrelease not available, skipping $ts -> $qm)"
 done
+
+echo "=== Copying .qm into the package (src/tbo/translations/) ==="
+mkdir -p src/tbo/translations
+cp -f translations/*.qm src/tbo/translations/
+
 echo "=== Done ==="
 echo "  To add a new language:"
 echo "    pylupdate6 src/tbo -ts translations/tbo_<locale>.ts"

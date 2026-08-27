@@ -10,8 +10,8 @@ build/
 dist/
 *.egg-info/
 
-# Compiled translation catalogs
-translations/*.qm
+# Compiled translation catalogs are tracked so packages ship them
+# (translations/*.qm)
 
 # Debian package build artefacts
 debian/.debhelper/
