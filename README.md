@@ -215,7 +215,6 @@ The unit tests run without a display. The integration tests drive a real
 such as `xvfb-run` is the most reliable option:
 
 ```bash
-
 xvfb-run -a python3 -m pytest
 ```
 
@@ -271,7 +270,6 @@ For agents starting a **new** PyQt6 project, see
 Coverage locally:
 
 ```bash
-
 python3 -m pytest tests/unit --cov=src/tbo --cov-report=term-missing
 ```
 
@@ -318,7 +316,6 @@ Flatpak/deb build is expected to install the doodle tree there.
 The `debian/` directory in the source root produces a binary `.deb`:
 
 ```bash
-
 dpkg-buildpackage -b -uc -us
 ```
 
@@ -330,6 +327,7 @@ sudo apt install build-essential debhelper dh-python python3 python3-setuptools 
 ```
 
 Optional but recommended for translations:
+
 ```bash
 sudo apt install qt6-base-dev-tools   # provides lrelease / lupdate
 ```
