@@ -22,6 +22,8 @@ override_dh_auto_install:
 	install -m644 packaging/org.tbo.TBO.appdata.xml debian/tbo/usr/share/metainfo/org.tbo.TBO.appdata.xml
 	install -d debian/tbo/usr/share/icons/hicolor/scalable/apps
 	install -m644 packaging/org.tbo.TBO.svg debian/tbo/usr/share/icons/hicolor/scalable/apps/org.tbo.TBO.svg
+	install -d debian/tbo/usr/share/icons/hicolor/48x48/apps
+	install -m644 src/tbo/resources/icon.png debian/tbo/usr/share/icons/hicolor/48x48/apps/org.tbo.TBO.png
 
 override_dh_clean:
 	dh_clean
