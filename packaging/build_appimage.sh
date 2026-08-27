@@ -72,11 +72,15 @@ EOF
 chmod +x "$appdir/AppRun"
 
 # Desktop entry + icon + metainfo
-python "$workspace_root/packaging/generate_icon.py" \
-    "$workspace_root/src/tbo/resources/icon.png" png "$appdir/tbo.png"
-install -m644 "$appdir/tbo.png" "$appdir/usr/share/icons/hicolor/256x256/apps/tbo.png"
-install -m644 "$workspace_root/packaging/tbo.desktop" "$appdir/tbo.desktop"
-install -m644 "$workspace_root/packaging/tbo.desktop" "$appdir/usr/share/applications/tbo.desktop"
+# The icon base name MUST match the desktop entry's Icon= value (org.tbo.TBO).
+python3 -c "
+from PIL import Image
+im = Image.open('$workspace_root/src/tbo/resources/icon.png').resize((256, 256), Image.Resampling.LANCZOS)
+im.save('$appdir/org.tbo.TBO.png')
+"
+install -m644 "$appdir/org.tbo.TBO.png" "$appdir/usr/share/icons/hicolor/256x256/apps/org.tbo.TBO.png"
+install -m644 "$workspace_root/packaging/tbo.desktop" "$appdir/org.tbo.TBO.desktop"
+install -m644 "$workspace_root/packaging/tbo.desktop" "$appdir/usr/share/applications/org.tbo.TBO.desktop"
 install -m644 "$workspace_root/packaging/org.tbo.TBO.appdata.xml" \
     "$appdir/usr/share/metainfo/org.tbo.TBO.metainfo.xml"
 
