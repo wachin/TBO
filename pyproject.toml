@@ -47,7 +47,7 @@ tbo = "tbo.application:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"tbo" = ["resources/*.svg", "resources/*.png", "resources/icons/*.svg", "translations/*.qm"]
+"tbo" = ["resources/*.svg", "resources/*.png", "resources/icons/*.svg", "resources/icons/NOTICE", "translations/*.qm"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"
