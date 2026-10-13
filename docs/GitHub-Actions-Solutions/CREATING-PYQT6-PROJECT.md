@@ -259,6 +259,7 @@ Reference the exact scripts in `packaging/`:
 - `packaging/build_macos.sh` (PyInstaller)
 - `packaging/build_appimage.sh` (PyInstaller)
 - `packaging/requirements-windows.txt`
+- `packaging/requirements-windows-pyinstaller.txt`
 - `packaging/requirements-macos.txt`
 
 When a build command collects application data (`--add-data`, `--include-data-dir`,
