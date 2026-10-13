@@ -254,10 +254,18 @@ that produces the artifacts. Key points:
   source and `"../data/doodle"` for assets.
 
 Reference the exact scripts in `packaging/`:
-- `packaging/build_windows.ps1` (Nuitka)
+- `packaging/build_windows_nuitka.ps1` (Windows, Nuitka - the shipping build)
+- `packaging/build_windows_pyinstaller.ps1` (Windows, PyInstaller - for comparison)
 - `packaging/build_macos.sh` (PyInstaller)
+- `packaging/build_appimage.sh` (PyInstaller)
 - `packaging/requirements-windows.txt`
 - `packaging/requirements-macos.txt`
+
+When a build command collects application data (`--add-data`, `--include-data-dir`,
+`--include-package-data`), the destination must match where the code looks at
+runtime, not where it is convenient to copy from. Getting it wrong builds cleanly
+and ships a broken artifact — see
+[PACKAGING-RESOURCE-COLLECTION-BUG.md](PACKAGING-RESOURCE-COLLECTION-BUG.md).
 
 ---
 
