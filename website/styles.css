@@ -232,6 +232,38 @@ li { list-style: none; }
 .card p { color: var(--text-dim); font-size: 0.9rem; margin: 0; }
 .card-sm { padding: 1rem 1.1rem; }
 
+/* ------------------------------------------------------------------ demo */
+/* The recording is the argument this page makes, so it gets the full width and
+   a real frame rather than a floating screenshot. `overflow: hidden` keeps the
+   screenshot's own square corners from poking out of the rounded border. */
+.demo {
+  margin: 2rem 0 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.demo img {
+  display: block;
+  width: 100%;
+  height: auto;      /* the intrinsic 800x451 ratio must win: a wrong height here
+                        is a layout shift, and the attributes in the HTML exist
+                        so the space is reserved before the GIF has loaded */
+  background: #16181f;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.demo figcaption {
+  padding: 0.9rem 1.25rem;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+.demo figcaption strong { color: var(--text-strong); }
+
+.demo-notes { margin-top: 1.4rem; }
+
 .rules {
   margin-top: 2rem; padding: 1.1rem 1.25rem;
   border-left: 3px solid var(--amber-400);

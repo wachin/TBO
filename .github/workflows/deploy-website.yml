@@ -1,8 +1,8 @@
 # Deploy the landing page to GitHub Pages.
 #
-# The site in website/ is plain HTML and CSS: there is no build step, no Node
-# toolchain and no lock file to keep in sync. The job uploads the directory as
-# it is, which is the whole reason this file is 25 lines instead of 60.
+# The site in website/ is plain HTML, CSS and images: there is no build step, no
+# Node toolchain and no lock file to keep in sync. The job uploads the directory
+# as it is, which is the whole reason the deploy job is short instead of long.
 #
 # One-time setup by a maintainer: Settings -> Pages -> Build and deployment ->
 # Source: GitHub Actions.

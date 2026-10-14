@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sitemap for the TBO 2 project site.
+
+  Read this before editing:
+
+  * Google only fetches robots.txt from the ROOT of a host. This site lives at
+    https://wachin.github.io/TBO/, which is a project page on GitHub's shared
+    domain, so a robots.txt placed here would never be read and cannot point at
+    this file. Adding one would look like crawl configuration while doing
+    nothing. Submission happens through Google Search Console instead - see
+    "Search engines" in website/README.md.
+  * <lastmod> must reflect a real content change. Bumping it on every deploy to
+    look fresh is the kind of signal that gets ignored, and it is a lie.
+  * The image entry is what lets the demo recording be found in Google Images.
+    Its <image:title> is the caption Google shows, so it earns the same care as
+    the alt text in index.html.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://wachin.github.io/TBO/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://wachin.github.io/TBO/images/TBO2-en-ezgif.com.gif</image:loc>
+      <image:title>TBO 2 comic editor: adding a character and a speech bubble to a page</image:title>
+      <image:caption>Screen recording of TBO 2 on Linux, from a blank page to a character from the asset library, a speech bubble and typed text.</image:caption>
+    </image:image>
+  </url>
+</urlset>
