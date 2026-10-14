@@ -81,6 +81,7 @@ this repository, which is a stronger statement than any scan result.
 
 Engines do occasionally flag legitimate software — a shared compiler stub or an
 unusual archive shape is enough. If you see a detection on a later build, please
-[open an issue](../../issues) with the report link. False positives are reported
-to the vendor concerned, which is the only way they get fixed; rebuilding or
-altering the binary to silence a scanner is not something this project does.
+report it in the [issue tracker](https://github.com/wachin/TBO/issues) with the
+report link. False positives are reported to the vendor concerned, which is the
+only way they get fixed; rebuilding or altering the binary to silence a scanner
+is not something this project does.
