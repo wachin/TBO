@@ -6,6 +6,16 @@ retained as a compatibility reference under [`legacy/`](legacy/).
 English is the source language for the application, with translations available
 for other languages (see [Translations](#translations)).
 
+> **Early alpha.** TBO 2 opens, edits and exports real documents, but it is far from
+> feature parity with the original — a great deal is still missing or rough. That is
+> the current state, not a disclaimer.
+>
+> **Want to help?** The project is developed *with* AI coding agents, and the
+> workflow is written down so you can point yours at the roadmap and land a
+> contribution the same day. Start at [Contributing](#contributing).
+>
+> Project page: <https://wachin.github.io/TBO/>
+
 ## Running from the repository
 
 Use the launcher from the repository root:
@@ -272,6 +282,145 @@ Coverage locally:
 ```bash
 python3 -m pytest tests/unit --cov=src/tbo --cov-report=term-missing
 ```
+
+## Contributing
+
+TBO 2 is at an early stage and developed in the open. Small contributions have a
+visible effect here, and there is no large codebase to learn before you can be
+useful. You do not need to be a Qt expert.
+
+The project is built **with AI coding agents** — that is how it was revived — and
+this section documents the whole workflow so you can use yours.
+
+### 1. Clone it, with the submodule
+
+The inline text editor lives in a git submodule, so a plain clone is incomplete:
+
+```bash
+git clone --recurse-submodules https://github.com/wachin/TBO.git
+cd TBO
+```
+
+If you already cloned without it:
+
+```bash
+git submodule update --init --recursive
+```
+
+### 2. Create an environment
+
+Python 3.11 or 3.12. The `dev` extra brings the test and lint tooling:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+### 3. Check that it runs before you change anything
+
+```bash
+./tbo.sh data/tut.tbo
+```
+
+The launcher sets `PYTHONPATH` for you. `data/tut.tbo` is the historical tutorial
+document and is a good smoke test: if it opens and you can page through it, your
+environment is correct.
+
+### 4. Run the tests
+
+```bash
+python -m pytest tests/unit -q
+```
+
+Two things to know about the suite:
+
+- **The unit tests are fast and must stay green.**
+- **The Qt integration tests are not run in CI.** Tearing down a `QGraphicsView`
+  aborts on a headless runner, so run them locally with a display, or under
+  `xvfb-run -a python -m pytest tests/integration -q`. One of the open tasks is to
+  make them work in CI.
+
+### The prompt that started this project
+
+TBO 2 began with the prompt below, and it is still the right way to start a
+session on this codebase. Copy it into your agent of choice — OpenCode, Claude
+Code, Codex, or anything else with access to the repository.
+
+Its value is the order: the agent has to read the legacy code and agree on a plan
+*before* it creates a single file. Skip that and you get a plausible change that
+quietly ignores three constraints it never read.
+
+```text
+You are working on TBO, a comic editor originally written in C and GTK 3
+(unmaintained since 2013). The legacy source code lives in the `legacy/`
+directory at the repository root.
+
+Your task is to port this program to Python and PyQt6 as TBO 2. Before
+modifying anything, do the following in order:
+
+1. EXPLORE — Read the legacy code under `legacy/src/` and the historical
+   documentation. Do NOT modify or create any files yet. Summarize:
+   - what the application does (its features and data model);
+   - the structure of the legacy `.tbo` format;
+   - the main architectural pieces (model, canvas, tools, save/load, export);
+   - which behaviors must be preserved for compatibility.
+
+2. PLAN — Propose a ROADMAP.md for the modernization to PyQt6, with phases
+   and exit criteria, following these principles:
+   - Reimplement, do not transliterate.
+   - The document model must be independent of Qt widgets (plain dataclasses).
+   - Every document change must be an undoable command (QUndoStack).
+   - Read/write the legacy .tbo v1 format with a safe parser: size limits,
+     strict validation, contextual errors, and atomic saves.
+   - The legacy code stays in `legacy/` as a reference oracle.
+
+3. After I approve the plan, start with the first phase: a small, installable,
+   testable Python skeleton.
+
+Throughout the work:
+- Re-check the current state of the repository before modifying files.
+- Run the test suite after meaningful changes and keep it green.
+- Use clear conventional commit messages, one logical change per commit.
+- Ask me when a decision affects compatibility, licensing, or the file format
+  instead of guessing.
+```
+
+For a task smaller than "modernise the whole program", the same three steps still
+apply in miniature: **read the relevant code, state the plan, then change
+something.** That is the part that transfers.
+
+Notes for running the agent tooling on Linux and Termux with free DeepSeek access
+are in [`AGENTS/`](AGENTS/).
+
+### 5. Make the change
+
+```bash
+git switch -c fix/stable-panel-ids
+# ... make one logical change ...
+python -m pytest tests/unit -q
+git commit -m "fix(canvas): keep panel identifiers stable across reloads"
+```
+
+Then open a pull request. Use
+[Conventional Commits](https://www.conventionalcommits.org/) as above.
+
+**Read your own diff before you open it.** If you cannot explain why a line is
+there, it does not belong in the pull request — and "the agent wrote it" is not
+something a reviewer can accept. Agents are excellent at the mechanical part
+(finding every call site, writing the test for the branch you just added, keeping
+a refactor consistent). The judgement about what this project values is yours.
+
+### 6. Where to start
+
+The [ROADMAP.md](ROADMAP.md) lists phases with verifiable exit criteria; anything
+unfinished in a phase that is in progress is fair game. Concrete suggestions are
+in [CONTRIBUTING.md](CONTRIBUTING.md), together with the rules a change has to
+follow, the commit conventions, and the licensing terms.
+
+Ask in [Discussions](https://github.com/wachin/TBO/discussions) if you want to
+float an idea first — it costs nothing and prevents a wasted afternoon.
 
 ## Downloads and VirusTotal results
 

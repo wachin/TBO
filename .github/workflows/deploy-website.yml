@@ -1,0 +1,49 @@
+# Deploy the landing page to GitHub Pages.
+#
+# The site in website/ is plain HTML and CSS: there is no build step, no Node
+# toolchain and no lock file to keep in sync. The job uploads the directory as
+# it is, which is the whole reason this file is 25 lines instead of 60.
+#
+# One-time setup by a maintainer: Settings -> Pages -> Build and deployment ->
+# Source: GitHub Actions.
+
+name: Deploy website
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'website/**'
+      - '.github/workflows/deploy-website.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v5
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
