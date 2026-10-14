@@ -71,6 +71,7 @@ legacy/src/tbo
 # Local download/inspection folders for CI artifacts: hundreds of MB of zips,
 # extracted executables and VirusTotal screenshots. Working folders only, never
 # part of the project. Without these entries a `git add -A` would try to commit
-# all of it. The glob covers the per-arm folders the build jobs produce.
+# all of it.
 TBO-Windows/
 tbo-windows*/
+virustotal.com/
