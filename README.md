@@ -264,14 +264,25 @@ For agents starting a **new** PyQt6 project, see
 - The Windows/macOS configurations mirror
   [lucio-iva-calculator](https://github.com/wachin/lucio-iva-calculator) (see
   its `windows-exe-fixes.md`): no UPX, embedded product/version metadata,
-  application icons, and no console window — the combination that produced
-  clean VirusTotal results.
+  application icons, and no console window — the combination behind the
+  [clean VirusTotal results](docs/virustotal/README.md).
 
 Coverage locally:
 
 ```bash
 python3 -m pytest tests/unit --cov=src/tbo --cov-report=term-missing
 ```
+
+## Downloads and VirusTotal results
+
+Release artifacts for Windows, macOS and Linux (AppImage and `.deb`), each with
+its SHA-256 and a screenshot of its VirusTotal report, are documented in
+**[docs/virustotal/](docs/virustotal/README.md)**.
+
+All four scored **zero detections** when built on 2026-10-14. The hashes are
+listed there so the scans can be verified against the downloaded files rather
+than taken on trust — and the caveats are stated too, because a scan is a
+point-in-time signal from third-party engines, not an audit.
 
 ## Third-party code
 
