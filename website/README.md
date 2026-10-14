@@ -15,26 +15,47 @@ and it works.
 | `images/TBO2-en-ezgif.com.gif` | The demo recording, 800×451, 30 s, 554 KB. |
 | `images/social-card.png` | 1200×630 link-preview card. |
 | `tools/make_social_card.py` | Regenerates `social-card.png` with Pillow. |
+| `google28242c9a5701a052.html` | Proof of ownership for Google Search Console. **Do not touch.** |
+
+### `google28242c9a5701a052.html`
+
+This one deserves its own warning, because it looks exactly like the kind of
+stray build artefact a tidy-minded contributor deletes.
+
+It is the ownership proof for the Search Console property
+`https://wachin.github.io/TBO/`, and it has to stay **at the site root, with
+these exact 53 bytes**:
+
+```
+google-site-verification: google28242c9a5701a052.html
+```
+
+No trailing newline. Google fetches
+<https://wachin.github.io/TBO/google28242c9a5701a052.html> and compares the
+body character for character, so reformatting it, renaming it, moving it into a
+subdirectory, or "fixing" the missing newline at the end of the file all break
+verification and can take the property — and its sitemap submission — with it.
+The file is not a secret and is public by design; anyone can fetch it.
 
 ## Search engines
 
 `index.html` carries the pieces a crawler needs: a `<title>` and description, a
 canonical URL, Open Graph and Twitter card tags, `max-image-preview:large`, and
 JSON-LD describing the app as a `SoftwareApplication`. That is the part that can
-be done in the repository. **Being indexed is not something the repository can
-do** — it needs a one-time action from whoever owns the Google account:
+be done in the repository.
 
-1. Open [Google Search Console](https://search.google.com/search-console) and add
-   a property. Use **URL prefix**, not *Domain*: `https://wachin.github.io/TBO/`.
-   A *Domain* property needs DNS control of `wachin.github.io`, which belongs to
-   GitHub, not to this project.
-2. Verify it with the **HTML tag** method. Search Console gives a
-   `<meta name="google-site-verification" content="...">` tag; paste it into
-   `index.html`'s `<head>`, commit, push, wait for the deploy, then press Verify.
-   The token is not a secret, but it is per-account, so it is deliberately not
-   committed here.
-3. Under **Sitemaps**, submit `sitemap.xml`. Then use **URL inspection** on
-   `https://wachin.github.io/TBO/` and press *Request indexing*.
+Ownership of the property was proved with the **HTML file** method rather than
+the meta tag, because the file needs no edit to `index.html` and survives any
+future rewrite of the head. The remaining work is a one-time manual step in
+Google Search Console, which no commit can do:
+
+1. The property already exists, as **URL prefix**
+   `https://wachin.github.io/TBO/`. A *Domain* property was not used and could
+   not be: that method needs a DNS TXT record on `github.io`, which belongs to
+   GitHub.
+2. Under **Sitemaps**, submit `sitemap.xml`.
+3. Use **URL inspection** on `https://wachin.github.io/TBO/` and press *Request
+   indexing*.
 
 Indexing takes days, not minutes, and *Request indexing* only asks for a
 recrawl — it is not a switch. Nothing about this can be forced from the
