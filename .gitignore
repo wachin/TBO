@@ -68,8 +68,9 @@ legacy/src/tbo
 # Personal
 # third-party/ksnip is a git submodule, not ignored
 
-# Local download/inspection folder for the Windows build artifacts: roughly
-# 290 MB of zips, extracted executables and VirusTotal screenshots. Purely a
-# working folder, never part of the project. Without this entry a `git add -A`
-# would try to commit all of it.
+# Local download/inspection folders for CI artifacts: hundreds of MB of zips,
+# extracted executables and VirusTotal screenshots. Working folders only, never
+# part of the project. Without these entries a `git add -A` would try to commit
+# all of it. The glob covers the per-arm folders the build jobs produce.
 TBO-Windows/
+tbo-windows*/
