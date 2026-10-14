@@ -38,6 +38,16 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          # Enable Pages if it is not enabled yet.
+          #
+          # Without this the action only *reads* the Pages configuration and
+          # fails with "Get Pages site failed ... Error: Not Found" when the
+          # repository has never had Pages switched on. That is exactly how the
+          # first run of this workflow failed: it started before the one-time
+          # setting had been applied, and a deploy job that cannot bootstrap the
+          # thing it deploys is a trap for whoever forks the project.
+          enablement: true
 
       - name: Upload the site
         uses: actions/upload-pages-artifact@v3
