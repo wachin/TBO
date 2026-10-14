@@ -61,10 +61,34 @@ Indexing takes days, not minutes, and *Request indexing* only asks for a
 recrawl — it is not a switch. Nothing about this can be forced from the
 repository side.
 
-There is deliberately **no `robots.txt`**. Google fetches it only from the root
-of a host, and this site sits on GitHub's shared `wachin.github.io` domain at a
-`/TBO/` subpath, so a file here would never be read. Adding one would look like
-crawl configuration while changing nothing.
+There is deliberately **no `robots.txt` in this directory**. Google fetches
+`robots.txt` only from the root of a host, and this site is a `/TBO/` project
+page, so a file here would never be read. Adding one would look like crawl
+configuration while changing nothing.
+
+The host root is a different story, and **it is not GitHub's to decide**. The
+same owner also publishes a user site from
+[`wachin/wachin.github.io`](https://github.com/wachin/wachin.github.io), and a
+`robots.txt` really is served at <https://wachin.github.io/robots.txt>:
+
+```
+User-agent: *
+
+Sitemap: https://wachin.github.io/sitemap.xml
+```
+
+That file is **generated, not committed**: `robots.txt` is not in that
+repository's root and not in its `static/`, while its Hugo config sets
+`enableRobotsTXT: true`, so the line above comes from Hugo's embedded template
+and lists only the user site's own sitemap.
+
+A `robots.txt` may advertise several sitemaps, so adding
+`Sitemap: https://wachin.github.io/TBO/sitemap.xml` there would let crawlers that
+honour `robots.txt` find this site without going through Search Console. It has
+to happen in the other repository, as a `layouts/robots.txt` override — there is
+no file to edit, and the generated output is overwritten on every build. Google
+does not depend on it, because the sitemap is submitted in Search Console
+directly; it mainly helps Bing and the rest.
 
 ## The two copies of the demo GIF
 
