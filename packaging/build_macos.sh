@@ -62,3 +62,5 @@ rm -f "$output_dir/TBO-${version}-macOS-x64.zip"
 ditto -c -k --sequesterRsrc "$package_dir" "$output_dir/TBO-${version}-macOS-x64.zip"
 
 echo "Created $output_dir/TBO-${version}-macOS-x64.zip"
+
+

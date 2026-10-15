@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from math import atan2, degrees, radians
 from pathlib import Path
 
-from PyQt6.QtCore import QPointF, QRectF, Qt, pyqtSignal
+from PyQt6.QtCore import QLineF, QPointF, QRectF, QSizeF, Qt, pyqtSignal
 from PyQt6.QtGui import (
     QBrush,
     QColor,
     QFont,
     QPainter,
+    QPainterPath,
     QPen,
     QPixmap,
     QTextCharFormat,
@@ -17,7 +19,10 @@ from PyQt6.QtGui import (
 )
 from PyQt6.QtSvgWidgets import QGraphicsSvgItem
 from PyQt6.QtWidgets import (
+    QGraphicsEllipseItem,
     QGraphicsItem,
+    QGraphicsLineItem,
+    QGraphicsPathItem,
     QGraphicsPixmapItem,
     QGraphicsProxyWidget,
     QGraphicsRectItem,
@@ -36,14 +41,20 @@ from tbo.document.model import (
     GraphicObject,
     ImageObject,
     Page,
+    ShapeObject,
     SvgObject,
     TextObject,
 )
+from tbo.geometry import Point as GeoPoint
+from tbo.geometry import Rect as GeoRect
+from tbo.geometry import normalized_points, resize_rect
+from tbo.rendering.shapes import paint_shape_object
 from tbo.ui.commands import (
     AddFrameCommand,
     AddObjectCommand,
     AddPageCommand,
     AlignFramesCommand,
+    AlignObjectsCommand,
     DeleteFrameCommand,
     DeleteObjectCommand,
     DeletePageCommand,
@@ -52,25 +63,227 @@ from tbo.ui.commands import (
     MoveFrameCommand,
     MoveObjectCommand,
     MovePageCommand,
+    ReorderObjectCommand,
     ResizeFrameCommand,
     ResizeObjectCommand,
     RotateObjectCommand,
+    SetFrameStyleCommand,
+    SetShapeStyleCommand,
+    TransformFrameCommand,
+    TransformObjectCommand,
 )
 
 RESIZE_HANDLE_SIZE = 12.0
 MIN_FRAME_SIZE = 20
 MIN_OBJECT_SIZE = 8
+ROTATE_HANDLE_OFFSET = 30.0
+
+TOOL_SELECT = "select"
+TOOL_RECT = "rect"
+TOOL_ELLIPSE = "ellipse"
+TOOL_LINE = "line"
+TOOL_FREEHAND = "freehand"
+CREATION_TOOLS = (TOOL_RECT, TOOL_ELLIPSE, TOOL_LINE, TOOL_FREEHAND)
+
+HANDLE_CURSORS = {
+    "n": Qt.CursorShape.SizeVerCursor,
+    "s": Qt.CursorShape.SizeVerCursor,
+    "e": Qt.CursorShape.SizeHorCursor,
+    "w": Qt.CursorShape.SizeHorCursor,
+    "ne": Qt.CursorShape.SizeBDiagCursor,
+    "sw": Qt.CursorShape.SizeBDiagCursor,
+    "nw": Qt.CursorShape.SizeFDiagCursor,
+    "se": Qt.CursorShape.SizeFDiagCursor,
+}
 
 
-class FrameGraphicsItem(QGraphicsRectItem):
+def _visual_transform(
+    width: int, height: int, angle: float, flip_horizontal: bool, flip_vertical: bool
+) -> QTransform:
+    center_x = width / 2
+    center_y = height / 2
+    transform = QTransform()
+    transform.translate(center_x, center_y)
+    transform.rotate(degrees(angle))
+    transform.scale(-1.0 if flip_horizontal else 1.0, -1.0 if flip_vertical else 1.0)
+    transform.translate(-center_x, -center_y)
+    return transform
+
+
+def _handle_rects(rect: QRectF) -> dict[str, QRectF]:
+    size = RESIZE_HANDLE_SIZE
+    half = size / 2
+    center = rect.center()
+    positions = {
+        "nw": QPointF(rect.left(), rect.top()),
+        "n": QPointF(center.x() - half, rect.top()),
+        "ne": QPointF(rect.right() - size, rect.top()),
+        "e": QPointF(rect.right() - size, center.y() - half),
+        "se": QPointF(rect.right() - size, rect.bottom() - size),
+        "s": QPointF(center.x() - half, rect.bottom() - size),
+        "sw": QPointF(rect.left(), rect.bottom() - size),
+        "w": QPointF(rect.left(), center.y() - half),
+    }
+    return {name: QRectF(position, QSizeF(size, size)) for name, position in positions.items()}
+
+
+def _rotate_handle_rect(rect: QRectF) -> QRectF:
+    size = RESIZE_HANDLE_SIZE + 2
+    center_x = rect.center().x()
+    return QRectF(center_x - size / 2, rect.top() - ROTATE_HANDLE_OFFSET - size / 2, size, size)
+
+
+def _paint_transform_handles(painter: QPainter, rect: QRectF, *, with_rotate: bool) -> None:
+    for handle in _handle_rects(rect).values():
+        painter.fillRect(handle, QColor("#f4c430"))
+        painter.setPen(QPen(QColor("#6b5600"), 1))
+        painter.drawRect(handle)
+    if with_rotate:
+        handle = _rotate_handle_rect(rect)
+        painter.setPen(QPen(QColor("#1677ff"), 1))
+        painter.drawLine(QLineF(rect.center().x(), rect.top(), handle.center().x(), handle.bottom()))
+        painter.setBrush(QColor("#1677ff"))
+        painter.drawEllipse(handle)
+
+
+def _hit_handle(rect: QRectF, position: QPointF) -> str | None:
+    for name, handle in _handle_rects(rect).items():
+        if handle.adjusted(-2, -2, 2, 2).contains(position):
+            return name
+    return None
+
+
+class _TransformMixin:
+    """Resize-handle behaviour shared by panels and objects.
+
+    Expects ``self._canvas``, ``self.rect()``, ``self.setRect()`` and
+    the ``_apply_live_geometry``/``_commit_geometry`` hooks.
+    """
+
+    _active_handle: str | None
+    _rotating: bool
+    _transform_scene_start: QPointF
+    _transform_pos_start: QPointF
+    _transform_size_start: tuple[int, int]
+    _transform_angle_start: float
+    _rotate_scene_start_angle: float
+
+    def _begin_transform(self, event: QGraphicsSceneMouseEvent, handle: str) -> None:
+        self._active_handle = handle
+        self._transform_scene_start = QPointF(event.scenePos())
+        self._transform_pos_start = QPointF(self.pos())
+        self._transform_size_start = (round(self.rect().width()), round(self.rect().height()))
+        self.setSelected(True)
+
+    def _begin_rotation(self, event: QGraphicsSceneMouseEvent) -> None:
+        self._rotating = True
+        self._transform_angle_start = self._model_angle()
+        scene_center = self.mapToScene(self.rect().center())
+        self._rotate_scene_start_angle = atan2(
+            event.scenePos().y() - scene_center.y(), event.scenePos().x() - scene_center.x()
+        )
+        self.setSelected(True)
+
+    def _model_angle(self) -> float:
+        return 0.0
+
+    def _update_transform(self, event: QGraphicsSceneMouseEvent) -> None:
+        if self._rotating:
+            scene_center = self.mapToScene(self.rect().center())
+            angle = atan2(
+                event.scenePos().y() - scene_center.y(), event.scenePos().x() - scene_center.x()
+            )
+            delta = angle - self._rotate_scene_start_angle
+            new_angle = self._transform_angle_start + delta
+            if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+                step = radians(15.0)
+                new_angle = round(new_angle / step) * step
+            self._apply_live_rotation(new_angle)
+            return
+        if self._active_handle is None:
+            return
+        local_now = self.mapFromScene(event.scenePos())
+        local_start = self.mapFromScene(self._transform_scene_start)
+        delta = GeoPoint(local_now.x() - local_start.x(), local_now.y() - local_start.y())
+        start_width, start_height = self._transform_size_start
+        result = resize_rect(
+            GeoRect(0.0, 0.0, float(start_width), float(start_height)),
+            self._active_handle,
+            delta,
+            keep_aspect=bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier),
+            from_center=bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier),
+            min_size=float(self._min_size()),
+        )
+        offset_x = result.x + result.width / 2 - start_width / 2
+        offset_y = result.y + result.height / 2 - start_height / 2
+        mapped = self._map_vector(offset_x, offset_y)
+        new_pos = QPointF(
+            self._transform_pos_start.x() + mapped.x(),
+            self._transform_pos_start.y() + mapped.y(),
+        )
+        self._apply_live_geometry(new_pos, result.width, result.height)
+
+    def _finish_transform(self) -> None:
+        if self._rotating:
+            self._rotating = False
+            new_angle = self._model_angle()
+            self._commit_rotation(self._transform_angle_start, new_angle)
+            return
+        if self._active_handle is None:
+            return
+        self._active_handle = None
+        self._commit_geometry(
+            (round(self.pos().x()), round(self.pos().y())),
+            (
+                max(self._min_size(), round(self.rect().width())),
+                max(self._min_size(), round(self.rect().height())),
+            ),
+            (round(self._transform_pos_start.x()), round(self._transform_pos_start.y())),
+            self._transform_size_start,
+        )
+
+    def _map_vector(self, dx: float, dy: float) -> QPointF:
+        transform = self.transform()
+        origin = transform.map(QPointF(0.0, 0.0))
+        mapped = transform.map(QPointF(dx, dy))
+        return QPointF(mapped.x() - origin.x(), mapped.y() - origin.y())
+
+    def _min_size(self) -> int:
+        return MIN_OBJECT_SIZE
+
+    # Hooks overridden by the concrete item classes.
+    def _apply_live_geometry(self, position: QPointF, width: float, height: float) -> None:
+        raise NotImplementedError
+
+    def _apply_live_rotation(self, angle: float) -> None:
+        raise NotImplementedError
+
+    def _commit_geometry(
+        self,
+        position: tuple[int, int],
+        size: tuple[int, int],
+        old_position: tuple[int, int],
+        old_size: tuple[int, int],
+    ) -> None:
+        raise NotImplementedError
+
+    def _commit_rotation(self, old_angle: float, new_angle: float) -> None:
+        raise NotImplementedError
+
+
+class FrameGraphicsItem(_TransformMixin, QGraphicsRectItem):
     def __init__(self, frame: Frame, canvas: ComicCanvas) -> None:
         super().__init__(0, 0, frame.width, frame.height)
         self.frame = frame
         self._canvas = canvas
         self._drag_start = (frame.x, frame.y)
-        self._resizing = False
-        self._resize_start = (frame.width, frame.height)
-        self._resize_scene_start = QPointF()
+        self._active_handle: str | None = None
+        self._rotating = False
+        self._transform_scene_start = QPointF()
+        self._transform_pos_start = QPointF()
+        self._transform_size_start = (frame.width, frame.height)
+        self._transform_angle_start = 0.0
+        self._rotate_scene_start_angle = 0.0
         self.setFlags(
             QGraphicsItem.GraphicsItemFlag.ItemIsMovable
             | QGraphicsItem.GraphicsItemFlag.ItemIsSelectable
@@ -78,38 +291,33 @@ class FrameGraphicsItem(QGraphicsRectItem):
         )
         self.setAcceptHoverEvents(True)
 
-    def _resize_handle(self) -> QRectF:
-        rectangle = self.rect()
-        return QRectF(
-            rectangle.right() - RESIZE_HANDLE_SIZE,
-            rectangle.bottom() - RESIZE_HANDLE_SIZE,
-            RESIZE_HANDLE_SIZE,
-            RESIZE_HANDLE_SIZE,
-        )
-
     def paint(self, painter, option, widget=None) -> None:
         super().paint(painter, option, widget)
         if self.isSelected():
-            painter.fillRect(self._resize_handle(), QColor("#f4c430"))
-            painter.setPen(QPen(QColor("#6b5600"), 1))
-            painter.drawRect(self._resize_handle())
+            _paint_transform_handles(painter, self.rect(), with_rotate=False)
 
     def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        tool = self._canvas.tool
+        if tool != TOOL_SELECT:
+            if self._canvas.editing_frame is self.frame:
+                self._canvas.begin_creation(self, event.pos())
+                event.accept()
+            return
         if (
             self._canvas.editing_frame is None
             and event.button() == Qt.MouseButton.LeftButton
-            and self._resize_handle().contains(event.pos())
         ):
-            self.setSelected(True)
-            self._resizing = True
-            self._resize_start = (self.frame.width, self.frame.height)
-            self._resize_scene_start = event.scenePos()
-            event.accept()
-            return
+            handle = _hit_handle(self.rect(), event.pos())
+            if handle is not None:
+                self._begin_transform(event, handle)
+                event.accept()
+                return
         self._drag_start = (self.frame.x, self.frame.y)
         super().mousePressEvent(event)
 
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if self._canvas.tool != TOOL_SELECT:
+            return
         if self._canvas.editing_frame is None:
             self._canvas.enter_frame(self.frame)
             event.accept()
@@ -117,11 +325,15 @@ class FrameGraphicsItem(QGraphicsRectItem):
         super().mouseDoubleClickEvent(event)
 
     def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        if self._resizing:
-            delta = event.scenePos() - self._resize_scene_start
-            width = max(MIN_FRAME_SIZE, round(self._resize_start[0] + delta.x()))
-            height = max(MIN_FRAME_SIZE, round(self._resize_start[1] + delta.y()))
-            self.setRect(0, 0, width, height)
+        if (
+            self._canvas._creation_tool is not None
+            and self._canvas._creation_frame_item is self
+        ):
+            self._canvas.update_creation(event.pos())
+            event.accept()
+            return
+        if self._active_handle is not None:
+            self._update_transform(event)
             event.accept()
             return
         super().mouseMoveEvent(event)
@@ -133,10 +345,16 @@ class FrameGraphicsItem(QGraphicsRectItem):
             )
 
     def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        if self._resizing:
-            self._resizing = False
-            destination = (round(self.rect().width()), round(self.rect().height()))
-            self._canvas.resize_frame(self.frame, destination, old_size=self._resize_start)
+        if (
+            self._canvas._creation_tool is not None
+            and self._canvas._creation_frame_item is self
+        ):
+            self._canvas.update_creation(event.pos())
+            self._canvas.finish_creation()
+            event.accept()
+            return
+        if self._active_handle is not None:
+            self._finish_transform()
             event.accept()
             return
         super().mouseReleaseEvent(event)
@@ -147,20 +365,45 @@ class FrameGraphicsItem(QGraphicsRectItem):
         self._canvas.move_frame(self.frame, destination, old_position=self._drag_start)
 
     def hoverMoveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
-        cursor = (
-            Qt.CursorShape.SizeFDiagCursor
-            if self._resize_handle().contains(event.pos())
-            else Qt.CursorShape.ArrowCursor
-        )
-        self.setCursor(cursor)
+        if self._canvas.tool != TOOL_SELECT:
+            self.setCursor(Qt.CursorShape.CrossCursor)
+        else:
+            handle = _hit_handle(self.rect(), event.pos())
+            self.setCursor(HANDLE_CURSORS.get(handle, Qt.CursorShape.ArrowCursor))
         super().hoverMoveEvent(event)
 
     def hoverLeaveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
         self.unsetCursor()
         super().hoverLeaveEvent(event)
 
+    def _min_size(self) -> int:
+        return MIN_FRAME_SIZE
 
-class ObjectGraphicsItem(QGraphicsRectItem):
+    def _apply_live_geometry(self, position: QPointF, width: float, height: float) -> None:
+        self.setRect(0, 0, width, height)
+        self.setPos(position)
+
+    def _apply_live_rotation(self, angle: float) -> None:  # pragma: no cover - panels never rotate
+        pass
+
+    def _commit_geometry(
+        self,
+        position: tuple[int, int],
+        size: tuple[int, int],
+        old_position: tuple[int, int],
+        old_size: tuple[int, int],
+    ) -> None:
+        self._canvas.transform_frame(
+            self.frame,
+            (position[0], position[1], size[0], size[1]),
+            old_geometry=(old_position[0], old_position[1], old_size[0], old_size[1]),
+        )
+
+    def _commit_rotation(self, old_angle: float, new_angle: float) -> None:  # pragma: no cover
+        pass
+
+
+class ObjectGraphicsItem(_TransformMixin, QGraphicsRectItem):
     def __init__(
         self,
         graphic_object: GraphicObject,
@@ -173,10 +416,15 @@ class ObjectGraphicsItem(QGraphicsRectItem):
         self.graphic_object = graphic_object
         self._canvas = canvas
         self._content: QGraphicsItem | None = None
+        self._natural_size: tuple[int, int] | None = None
         self._drag_start = (graphic_object.x, graphic_object.y)
-        self._resizing = False
-        self._resize_start = (graphic_object.width, graphic_object.height)
-        self._resize_scene_start = QPointF()
+        self._active_handle: str | None = None
+        self._rotating = False
+        self._transform_scene_start = QPointF()
+        self._transform_pos_start = QPointF()
+        self._transform_size_start = (graphic_object.width, graphic_object.height)
+        self._transform_angle_start = 0.0
+        self._rotate_scene_start_angle = 0.0
         self.setPen(QPen(Qt.PenStyle.NoPen))
         self.setBrush(QBrush(QColor(0, 0, 0, 0)))
         self.setFlags(
@@ -189,49 +437,50 @@ class ObjectGraphicsItem(QGraphicsRectItem):
             Qt.MouseButton.LeftButton if editable else Qt.MouseButton.NoButton
         )
 
-    def _resize_handle(self) -> QRectF:
-        rectangle = self.rect()
-        return QRectF(
-            rectangle.right() - RESIZE_HANDLE_SIZE,
-            rectangle.bottom() - RESIZE_HANDLE_SIZE,
-            RESIZE_HANDLE_SIZE,
-            RESIZE_HANDLE_SIZE,
-        )
-
-    def set_content(self, content: QGraphicsItem) -> None:
+    def set_content(
+        self, content: QGraphicsItem, *, natural_size: tuple[int, int] | None = None
+    ) -> None:
         self._content = content
+        self._natural_size = natural_size
 
     def _content_item(self) -> QGraphicsItem | None:
         children = self.childItems()
         return children[0] if children else None
 
     def paint(self, painter, option, widget=None) -> None:
+        if isinstance(self.graphic_object, ShapeObject):
+            paint_shape_object(painter, self.graphic_object, self.rect())
         super().paint(painter, option, widget)
         if self.isSelected():
             painter.setPen(QPen(QColor("#1677ff"), 2, Qt.PenStyle.DashLine))
             painter.setBrush(QBrush(Qt.BrushStyle.NoBrush))
             painter.drawRect(self.rect())
             if self.flags() & QGraphicsItem.GraphicsItemFlag.ItemIsMovable:
-                painter.fillRect(self._resize_handle(), QColor("#f4c430"))
-                painter.setPen(QPen(QColor("#6b5600"), 1))
-                painter.drawRect(self._resize_handle())
+                _paint_transform_handles(painter, self.rect(), with_rotate=True)
 
     def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if self._canvas.tool != TOOL_SELECT:
+            event.ignore()
+            return
         if (
             self._canvas.editing_frame is not None
             and event.button() == Qt.MouseButton.LeftButton
-            and self._resize_handle().contains(event.pos())
         ):
-            self.setSelected(True)
-            self._resizing = True
-            self._resize_start = (self.graphic_object.width, self.graphic_object.height)
-            self._resize_scene_start = event.scenePos()
-            event.accept()
-            return
+            if self.isSelected() and _rotate_handle_rect(self.rect()).contains(event.pos()):
+                self._begin_rotation(event)
+                event.accept()
+                return
+            handle = _hit_handle(self.rect(), event.pos())
+            if handle is not None:
+                self._begin_transform(event, handle)
+                event.accept()
+                return
         self._drag_start = (self.graphic_object.x, self.graphic_object.y)
         super().mousePressEvent(event)
 
     def mouseDoubleClickEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if self._canvas.tool != TOOL_SELECT:
+            return
         if isinstance(self.graphic_object, TextObject):
             self._canvas.start_inline_text_edit(self)
             event.accept()
@@ -239,23 +488,15 @@ class ObjectGraphicsItem(QGraphicsRectItem):
         super().mouseDoubleClickEvent(event)
 
     def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        if self._resizing:
-            delta = event.scenePos() - self._resize_scene_start
-            width = max(MIN_OBJECT_SIZE, round(self._resize_start[0] + delta.x()))
-            height = max(MIN_OBJECT_SIZE, round(self._resize_start[1] + delta.y()))
-            self.setRect(0, 0, width, height)
-            self._scale_content(width, height)
+        if self._active_handle is not None or self._rotating:
+            self._update_transform(event)
             event.accept()
             return
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        if self._resizing:
-            self._resizing = False
-            destination = (round(self.rect().width()), round(self.rect().height()))
-            self._canvas.resize_object(
-                self.graphic_object, destination, old_size=self._resize_start
-            )
+        if self._active_handle is not None or self._rotating:
+            self._finish_transform()
             event.accept()
             return
         super().mouseReleaseEvent(event)
@@ -270,28 +511,71 @@ class ObjectGraphicsItem(QGraphicsRectItem):
         )
 
     def hoverMoveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
-        cursor = (
-            Qt.CursorShape.SizeFDiagCursor
-            if self._resize_handle().contains(event.pos())
-            else Qt.CursorShape.ArrowCursor
-        )
-        self.setCursor(cursor)
+        if self._canvas.tool != TOOL_SELECT:
+            self.setCursor(Qt.CursorShape.CrossCursor)
+        elif self.isSelected() and _rotate_handle_rect(self.rect()).contains(event.pos()):
+            self.setCursor(Qt.CursorShape.CrossCursor)
+        else:
+            handle = _hit_handle(self.rect(), event.pos())
+            self.setCursor(HANDLE_CURSORS.get(handle, Qt.CursorShape.ArrowCursor))
         super().hoverMoveEvent(event)
 
     def hoverLeaveEvent(self, event: QGraphicsSceneHoverEvent) -> None:
         self.unsetCursor()
         super().hoverLeaveEvent(event)
 
-    def _scale_content(self, width: int, height: int) -> None:
+    def _min_size(self) -> int:
+        return MIN_OBJECT_SIZE
+
+    def _model_angle(self) -> float:
+        return self.graphic_object.angle
+
+    def _apply_live_geometry(self, position: QPointF, width: float, height: float) -> None:
+        self.setRect(0, 0, width, height)
+        self.setPos(position)
+        self._update_content_scale(width, height)
+
+    def _apply_live_rotation(self, angle: float) -> None:
+        obj = self.graphic_object
+        self.setTransform(
+            _visual_transform(
+                obj.width,
+                obj.height,
+                angle,
+                obj.flip_horizontal,
+                obj.flip_vertical,
+            )
+        )
+
+    def _commit_geometry(
+        self,
+        position: tuple[int, int],
+        size: tuple[int, int],
+        old_position: tuple[int, int],
+        old_size: tuple[int, int],
+    ) -> None:
+        self._canvas.transform_object(
+            self.graphic_object,
+            (position[0], position[1], size[0], size[1]),
+            old_geometry=(old_position[0], old_position[1], old_size[0], old_size[1]),
+        )
+
+    def _commit_rotation(self, old_angle: float, new_angle: float) -> None:
+        self._canvas.rotate_object(self.graphic_object, old_angle, new_angle)
+
+    def _update_content_scale(self, width: float, height: float) -> None:
         content = self._content_item()
         if content is None:
             return
         if isinstance(content, QGraphicsTextItem):
             content.setTextWidth(width)
             return
-        scale_x = width / self.graphic_object.width if self.graphic_object.width else 1.0
-        scale_y = height / self.graphic_object.height if self.graphic_object.height else 1.0
-        content.setTransform(QTransform.fromScale(scale_x, scale_y))
+        if self._natural_size is None:
+            return
+        natural_width, natural_height = self._natural_size
+        if natural_width <= 0 or natural_height <= 0:
+            return
+        content.setTransform(QTransform.fromScale(width / natural_width, height / natural_height))
 
 
 class ComicCanvas(QGraphicsView):
@@ -299,6 +583,7 @@ class ComicCanvas(QGraphicsView):
     modeChanged = pyqtSignal(bool)
     zoomChanged = pyqtSignal(int)
     assetDropped = pyqtSignal(Path)
+    toolChanged = pyqtSignal(str)
 
     def __init__(self, asset_root: Path | None = None) -> None:
         super().__init__()
@@ -315,6 +600,18 @@ class ComicCanvas(QGraphicsView):
         self._inline_proxy: QGraphicsProxyWidget | None = None
         self._inline_editor: InlineTextEditor | None = None
         self._inline_object: TextObject | None = None
+        self._tool = TOOL_SELECT
+        self._creation_frame_item: FrameGraphicsItem | None = None
+        self._creation_tool: str | None = None
+        self._creation_start = QPointF()
+        self._creation_current = QPointF()
+        self._creation_points: list[QPointF] = []
+        self._creation_preview: QGraphicsItem | None = None
+        self.default_shape_style: tuple[Color | None, Color, int] = (
+            Color(1.0, 1.0, 1.0),
+            Color(0.0, 0.0, 0.0),
+            2,
+        )
         self.undo_stack = QUndoStack(self)
         self.setRenderHints(
             QPainter.RenderHint.Antialiasing
@@ -349,6 +646,37 @@ class ComicCanvas(QGraphicsView):
     def editing_frame(self) -> Frame | None:
         return self._editing_frame
 
+    @property
+    def tool(self) -> str:
+        return self._tool
+
+    def set_tool(self, tool: str) -> None:
+        if tool not in (TOOL_SELECT, *CREATION_TOOLS):
+            raise ValueError(f"unknown tool {tool!r}")
+        self.cancel_creation()
+        self._tool = tool
+        if tool == TOOL_SELECT:
+            self.setDragMode(self._base_drag_mode)
+            self.viewport().unsetCursor()
+        else:
+            self.setDragMode(QGraphicsView.DragMode.NoDrag)
+            self.viewport().setCursor(Qt.CursorShape.CrossCursor)
+        self.toolChanged.emit(tool)
+
+    def cancel_active_tool(self) -> bool:
+        """Cancel an in-progress creation or leave creation mode.
+
+        Returns ``True`` when something was cancelled.  Wired to the
+        Escape shortcut so Esc backs out step by step.
+        """
+        if self._creation_tool is not None:
+            self.cancel_creation()
+            return True
+        if self._tool != TOOL_SELECT:
+            self.set_tool(TOOL_SELECT)
+            return True
+        return False
+
     def set_snap_to_grid(self, enabled: bool) -> None:
         self._snap_to_grid = enabled
         self.viewport().update()
@@ -381,6 +709,7 @@ class ComicCanvas(QGraphicsView):
         self._comic = comic
         self._page_index = 0
         self._editing_frame = None
+        self.cancel_creation()
         self.undo_stack.clear()
         self._frame_items.clear()
         self._object_items.clear()
@@ -403,6 +732,7 @@ class ComicCanvas(QGraphicsView):
         ):
             self._editing_frame = None
             self.modeChanged.emit(False)
+        self.cancel_creation()
         self._frame_items.clear()
         self._object_items.clear()
         self.scene.clear()
@@ -596,6 +926,29 @@ class ComicCanvas(QGraphicsView):
         )
         return True
 
+    def align_selected_objects(self, mode: str) -> bool:
+        objects = self.selected_objects()
+        if len(objects) < 2:
+            return False
+        target = _alignment_target(objects, mode)
+        old_positions = [(obj.x, obj.y) for obj in objects]
+        new_positions = [target(obj) for obj in objects]
+        self.undo_stack.push(
+            AlignObjectsCommand(objects, old_positions, new_positions, self._refresh_current_page)
+        )
+        return True
+
+    def distribute_selected_objects(self, axis: str) -> bool:
+        objects = self.selected_objects()
+        if len(objects) < 3:
+            return False
+        old_positions = [(obj.x, obj.y) for obj in objects]
+        new_positions = _distribution_positions(objects, axis)
+        self.undo_stack.push(
+            AlignObjectsCommand(objects, old_positions, new_positions, self._refresh_current_page)
+        )
+        return True
+
     def clone_selected_frame(self) -> Frame | None:
         page = self.current_page
         source = self.selected_frame()
@@ -687,7 +1040,15 @@ class ComicCanvas(QGraphicsView):
         if graphic_object is None:
             return False
         old_angle = graphic_object.angle
-        new_angle = old_angle + delta_degrees * 3.141592653589793 / 180.0
+        new_angle = old_angle + radians(delta_degrees)
+        return self.rotate_object(graphic_object, old_angle, new_angle)
+
+    def rotate_object(
+        self, graphic_object: GraphicObject, old_angle: float, new_angle: float
+    ) -> bool:
+        if old_angle == new_angle:
+            self._sync_object_transform(graphic_object)
+            return False
         self.undo_stack.push(
             RotateObjectCommand(
                 graphic_object,
@@ -714,11 +1075,124 @@ class ComicCanvas(QGraphicsView):
     ) -> bool:
         origin = old_size if old_size is not None else (graphic_object.width, graphic_object.height)
         destination = (max(1, new_size[0]), max(1, new_size[1]))
+        return self.transform_object(
+            graphic_object,
+            (graphic_object.x, graphic_object.y, destination[0], destination[1]),
+            old_geometry=(graphic_object.x, graphic_object.y, origin[0], origin[1]),
+        )
+
+    def transform_object(
+        self,
+        graphic_object: GraphicObject,
+        new_geometry: tuple[int, int, int, int],
+        *,
+        old_geometry: tuple[int, int, int, int] | None = None,
+    ) -> bool:
+        origin = (
+            old_geometry
+            if old_geometry is not None
+            else (graphic_object.x, graphic_object.y, graphic_object.width, graphic_object.height)
+        )
+        destination = (
+            new_geometry[0],
+            new_geometry[1],
+            max(MIN_OBJECT_SIZE, new_geometry[2]),
+            max(MIN_OBJECT_SIZE, new_geometry[3]),
+        )
         if origin == destination:
             self._sync_object_geometry(graphic_object)
             return False
         self.undo_stack.push(
-            ResizeObjectCommand(graphic_object, origin, destination, self._sync_object_geometry)
+            TransformObjectCommand(graphic_object, origin, destination, self._sync_object_geometry)
+        )
+        return True
+
+    def transform_frame(
+        self,
+        frame: Frame,
+        new_geometry: tuple[int, int, int, int],
+        *,
+        old_geometry: tuple[int, int, int, int] | None = None,
+    ) -> bool:
+        origin = (
+            old_geometry
+            if old_geometry is not None
+            else (frame.x, frame.y, frame.width, frame.height)
+        )
+        destination = (
+            new_geometry[0],
+            new_geometry[1],
+            max(MIN_FRAME_SIZE, new_geometry[2]),
+            max(MIN_FRAME_SIZE, new_geometry[3]),
+        )
+        if origin == destination:
+            self._sync_frame_geometry(frame)
+            return False
+        self.undo_stack.push(
+            TransformFrameCommand(frame, origin, destination, self._sync_frame_geometry)
+        )
+        return True
+
+    def reorder_selected_object(self, mode: str) -> bool:
+        frame = self._editing_frame
+        graphic_object = self.selected_object()
+        if frame is None or graphic_object is None:
+            return False
+        old_index = next(index for index, obj in enumerate(frame.objects) if obj is graphic_object)
+        if mode == "front":
+            new_index = len(frame.objects) - 1
+        elif mode == "back":
+            new_index = 0
+        elif mode == "up":
+            new_index = old_index + 1
+        elif mode == "down":
+            new_index = old_index - 1
+        else:
+            raise ValueError(f"unknown reorder mode {mode!r}")
+        if not 0 <= new_index < len(frame.objects):
+            return False
+        self.undo_stack.push(
+            ReorderObjectCommand(
+                frame,
+                graphic_object,
+                old_index,
+                new_index,
+                self._refresh_current_page,
+            )
+        )
+        # The refresh rebuilds the scene items and clears the selection.
+        self.select_object(graphic_object)
+        return True
+
+    def set_shape_style(
+        self,
+        fill: Color | None,
+        stroke: Color,
+        stroke_width: int,
+    ) -> bool:
+        graphic_object = self.selected_object()
+        if not isinstance(graphic_object, ShapeObject):
+            return False
+        old_style = (graphic_object.fill, graphic_object.stroke, graphic_object.stroke_width)
+        new_style = (fill, stroke, max(1, stroke_width))
+        if old_style == new_style:
+            return False
+        self.undo_stack.push(
+            SetShapeStyleCommand(graphic_object, old_style, new_style, self._sync_object_transform)
+        )
+        return True
+
+    def set_frame_style(self, color: Color, border: bool | None = None) -> bool:
+        frame = self.selected_frame()
+        if frame is None:
+            return False
+        new_border = frame.border if border is None else border
+        old_style = (frame.color, frame.border)
+        new_style = (color, new_border)
+        if old_style == new_style:
+            return False
+        self.undo_stack.push(
+            SetFrameStyleCommand(frame, old_style, new_style, self._refresh_current_page)
         )
         return True
 
@@ -904,13 +1378,150 @@ class ComicCanvas(QGraphicsView):
             max(MIN_FRAME_SIZE, self._snap_value(new_size[1])),
         )
         origin = old_size if old_size is not None else (frame.width, frame.height)
-        if origin == destination:
-            self._sync_frame_geometry(frame)
-            return False
-        self.undo_stack.push(
-            ResizeFrameCommand(frame, origin, destination, self._sync_frame_geometry)
+        return self.transform_frame(
+            frame,
+            (frame.x, frame.y, destination[0], destination[1]),
+            old_geometry=(frame.x, frame.y, origin[0], origin[1]),
         )
-        return True
+
+    # --- Creation tools -------------------------------------------------
+
+    def begin_creation(self, frame_item: FrameGraphicsItem, position: QPointF) -> None:
+        if self._tool not in CREATION_TOOLS or self._editing_frame is not frame_item.frame:
+            return
+        if self._frame_items.get(id(frame_item.frame)) is not frame_item:
+            # Stale graphics item from a previous scene refresh.
+            return
+        self.cancel_creation()
+        self._creation_frame_item = frame_item
+        self._creation_tool = self._tool
+        self._creation_start = QPointF(position)
+        self._creation_current = QPointF(position)
+        self._creation_points = [QPointF(position)]
+        preview: QGraphicsItem
+        pen = QPen(QColor("#1677ff"), 2, Qt.PenStyle.DashLine)
+        if self._tool == TOOL_RECT:
+            preview = QGraphicsRectItem(frame_item)
+            preview.setPen(pen)
+        elif self._tool == TOOL_ELLIPSE:
+            preview = QGraphicsEllipseItem(frame_item)
+            preview.setPen(pen)
+        elif self._tool == TOOL_LINE:
+            preview = QGraphicsLineItem(frame_item)
+            preview.setPen(pen)
+        else:
+            preview = QGraphicsPathItem(frame_item)
+            stroke = QPen(QColor("#1677ff"), 2)
+            stroke.setCapStyle(Qt.PenCapStyle.RoundCap)
+            stroke.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+            preview.setPen(stroke)
+        preview.setZValue(1000)
+        preview.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+        self._creation_preview = preview
+
+    def update_creation(self, position: QPointF) -> None:
+        preview = self._creation_preview
+        if preview is None or self._creation_tool is None:
+            return
+        self._creation_current = QPointF(position)
+        if self._creation_tool in (TOOL_RECT, TOOL_ELLIPSE):
+            preview.setRect(QRectF(self._creation_start, position).normalized())
+        elif self._creation_tool == TOOL_LINE:
+            preview.setLine(QLineF(self._creation_start, position))
+        else:
+            last = self._creation_points[-1]
+            if (position - last).manhattanLength() < 1.5:
+                return
+            self._creation_points.append(QPointF(position))
+            path = QPainterPath(self._creation_points[0])
+            for point in self._creation_points[1:]:
+                path.lineTo(point)
+            preview.setPath(path)
+
+    def finish_creation(self) -> None:
+        tool = self._creation_tool
+        start = QPointF(self._creation_start)
+        current = QPointF(self._creation_current)
+        points = [QPointF(point) for point in self._creation_points]
+        self.cancel_creation()
+        if tool is None:
+            return
+        graphic_object: ShapeObject | None = None
+        fill, stroke, stroke_width = self.default_shape_style
+        if tool in (TOOL_RECT, TOOL_ELLIPSE):
+            rect = QRectF(start, current).normalized()
+            if rect.width() < 2 or rect.height() < 2:
+                return
+            graphic_object = ShapeObject(
+                x=round(rect.x()),
+                y=round(rect.y()),
+                width=max(1, round(rect.width())),
+                height=max(1, round(rect.height())),
+                kind=tool,
+                fill=fill,
+                stroke=stroke,
+                stroke_width=stroke_width,
+            )
+        elif tool == TOOL_LINE:
+            rect = QRectF(start, current).normalized()
+            if rect.width() < 1 and rect.height() < 1:
+                return
+            absolute = [(start.x(), start.y()), (current.x(), current.y())]
+            graphic_object = ShapeObject(
+                x=round(rect.x()),
+                y=round(rect.y()),
+                width=max(1, round(rect.width())),
+                height=max(1, round(rect.height())),
+                kind=TOOL_LINE,
+                fill=None,
+                stroke=stroke,
+                stroke_width=stroke_width,
+                points=normalized_points(
+                    absolute,
+                    GeoRect(rect.x(), rect.y(), max(1.0, rect.width()), max(1.0, rect.height())),
+                ),
+            )
+        elif tool == TOOL_FREEHAND:
+            if len(points) < 2:
+                return
+            xs = [point.x() for point in points]
+            ys = [point.y() for point in points]
+            rect = QRectF(
+                min(xs), min(ys), max(1.0, max(xs) - min(xs)), max(1.0, max(ys) - min(ys))
+            )
+            absolute = [(point.x(), point.y()) for point in points]
+            graphic_object = ShapeObject(
+                x=round(rect.x()),
+                y=round(rect.y()),
+                width=max(1, round(rect.width())),
+                height=max(1, round(rect.height())),
+                kind=TOOL_FREEHAND,
+                fill=None,
+                stroke=stroke,
+                stroke_width=stroke_width,
+                points=normalized_points(
+                    absolute, GeoRect(rect.x(), rect.y(), rect.width(), rect.height())
+                ),
+            )
+        if graphic_object is None:
+            return
+        self.add_graphic_object(graphic_object)
+
+    def cancel_creation(self) -> None:
+        preview = self._creation_preview
+        self._creation_preview = None
+        self._creation_tool = None
+        self._creation_frame_item = None
+        self._creation_points = []
+        if preview is not None:
+            try:
+                scene = preview.scene()
+            except RuntimeError:
+                scene = None
+            if scene is not None:
+                scene.removeItem(preview)
+
+    # --- Synchronisation -----------------------------------------------
 
     def _refresh_current_page(self) -> None:
         if self.current_page is not None:
@@ -925,6 +1536,7 @@ class ComicCanvas(QGraphicsView):
         item = self._frame_items.get(id(frame))
         if item is not None:
             item.setRect(0, 0, frame.width, frame.height)
+            item.setPos(frame.x, frame.y)
 
     def _sync_object_position(self, graphic_object: GraphicObject) -> None:
         item = self._object_items.get(id(graphic_object))
@@ -934,7 +1546,9 @@ class ComicCanvas(QGraphicsView):
     def _sync_object_geometry(self, graphic_object: GraphicObject) -> None:
         item = self._object_items.get(id(graphic_object))
         if item is not None:
+            item.setPos(graphic_object.x, graphic_object.y)
             item.setRect(0, 0, graphic_object.width, graphic_object.height)
+            item._update_content_scale(graphic_object.width, graphic_object.height)
             self._apply_object_visual_transform(item, graphic_object)
 
     def _sync_object_transform(self, graphic_object: GraphicObject) -> None:
@@ -945,20 +1559,18 @@ class ComicCanvas(QGraphicsView):
     def _apply_object_visual_transform(
         self, item: ObjectGraphicsItem, graphic_object: GraphicObject
     ) -> None:
-        width = graphic_object.width
-        height = graphic_object.height
-        center_x = width / 2
-        center_y = height / 2
-        item.setRect(0, 0, width, height)
-        transform = QTransform()
-        transform.translate(center_x, center_y)
-        transform.rotate(graphic_object.angle * 180.0 / 3.141592653589793)
-        transform.scale(
-            -1.0 if graphic_object.flip_horizontal else 1.0,
-            -1.0 if graphic_object.flip_vertical else 1.0,
+        item.setRect(0, 0, graphic_object.width, graphic_object.height)
+        item.setTransform(
+            _visual_transform(
+                graphic_object.width,
+                graphic_object.height,
+                graphic_object.angle,
+                graphic_object.flip_horizontal,
+                graphic_object.flip_vertical,
+            )
         )
-        transform.translate(-center_x, -center_y)
-        item.setTransform(transform)
+
+    # --- Zoom ----------------------------------------------------------
 
     def zoom_in(self) -> None:
         self._zoom_by(1.2)
@@ -1037,7 +1649,8 @@ class ComicCanvas(QGraphicsView):
     ) -> None:
         container = ObjectGraphicsItem(obj, self, parent, editable=editable)
         self._object_items[id(obj)] = container
-        item: QGraphicsItem
+        item: QGraphicsItem | None = None
+        natural_size: tuple[int, int] | None = None
         if isinstance(obj, TextObject):
             text_item = QGraphicsTextItem(obj.text, container)
             text_item.setDefaultTextColor(
@@ -1052,11 +1665,7 @@ class ComicCanvas(QGraphicsView):
                 svg_item = QGraphicsSvgItem(str(resolved), container)
                 bounds = svg_item.boundingRect()
                 if bounds.width() and bounds.height():
-                    svg_item.setTransform(
-                        QTransform.fromScale(
-                            obj.width / bounds.width(), obj.height / bounds.height()
-                        )
-                    )
+                    natural_size = (round(bounds.width()), round(bounds.height()))
                 item = svg_item
             else:
                 item = _missing_asset_item(obj, container)
@@ -1066,22 +1675,21 @@ class ComicCanvas(QGraphicsView):
             if pixmap.isNull():
                 item = _missing_asset_item(obj, container)
             else:
-                item = QGraphicsPixmapItem(
-                    pixmap.scaled(
-                        obj.width,
-                        obj.height,
-                        Qt.AspectRatioMode.IgnoreAspectRatio,
-                        Qt.TransformationMode.SmoothTransformation,
-                    ),
-                    container,
-                )
+                pixmap_item = QGraphicsPixmapItem(pixmap, container)
+                pixmap_item.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+                natural_size = (pixmap.width(), pixmap.height())
+                item = pixmap_item
+        elif isinstance(obj, ShapeObject):
+            item = None
         else:
             return
 
         container.setPos(obj.x, obj.y)
-        container.set_content(item)
+        if item is not None:
+            container.set_content(item, natural_size=natural_size)
+            container._update_content_scale(obj.width, obj.height)
+            item.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
         self._apply_object_visual_transform(container, obj)
-        item.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
 
     def _resolve_asset(self, asset_path: Path) -> Path | None:
         if asset_path.is_absolute() and asset_path.is_file():
@@ -1169,47 +1777,47 @@ def _missing_asset_item(obj: GraphicObject, parent: QGraphicsItem) -> QGraphicsR
     return item
 
 
-def _alignment_target(frames: list[Frame], mode: str):
+def _alignment_target(items, mode: str):
     if mode == "left":
-        target = min(frame.x for frame in frames)
-        return lambda frame: (target, frame.y)
+        target = min(item.x for item in items)
+        return lambda item: (target, item.y)
     if mode == "right":
-        target = max(frame.x + frame.width for frame in frames)
-        return lambda frame: (target - frame.width, frame.y)
+        target = max(item.x + item.width for item in items)
+        return lambda item: (target - item.width, item.y)
     if mode == "hcenter":
-        centers = [frame.x + frame.width / 2 for frame in frames]
+        centers = [item.x + item.width / 2 for item in items]
         target = sum(centers) / len(centers)
-        return lambda frame: (round(target - frame.width / 2), frame.y)
+        return lambda item: (round(target - item.width / 2), item.y)
     if mode == "top":
-        target = min(frame.y for frame in frames)
-        return lambda frame: (frame.x, target)
+        target = min(item.y for item in items)
+        return lambda item: (item.x, target)
     if mode == "bottom":
-        target = max(frame.y + frame.height for frame in frames)
-        return lambda frame: (frame.x, target - frame.height)
+        target = max(item.y + item.height for item in items)
+        return lambda item: (item.x, target - item.height)
     if mode == "vcenter":
-        centers = [frame.y + frame.height / 2 for frame in frames]
+        centers = [item.y + item.height / 2 for item in items]
         target = sum(centers) / len(centers)
-        return lambda frame: (frame.x, round(target - frame.height / 2))
+        return lambda item: (item.x, round(target - item.height / 2))
     raise ValueError(f"unknown alignment mode {mode!r}")
 
 
-def _distribution_positions(frames: list[Frame], axis: str) -> list[tuple[int, int]]:
+def _distribution_positions(items, axis: str) -> list[tuple[int, int]]:
     if axis == "horizontal":
-        ordered = sorted(frames, key=lambda frame: frame.x + frame.width / 2)
-        centers = [frame.x + frame.width / 2 for frame in ordered]
+        ordered = sorted(items, key=lambda item: item.x + item.width / 2)
+        centers = [item.x + item.width / 2 for item in ordered]
         start, end = centers[0], centers[-1]
         step = (end - start) / (len(ordered) - 1) if len(ordered) > 1 else 0
         return [
-            (round(start + index * step - frame.width / 2), frame.y)
-            for index, frame in enumerate(ordered)
+            (round(start + index * step - item.width / 2), item.y)
+            for index, item in enumerate(ordered)
         ]
     if axis == "vertical":
-        ordered = sorted(frames, key=lambda frame: frame.y + frame.height / 2)
-        centers = [frame.y + frame.height / 2 for frame in ordered]
+        ordered = sorted(items, key=lambda item: item.y + item.height / 2)
+        centers = [item.y + item.height / 2 for item in ordered]
         start, end = centers[0], centers[-1]
         step = (end - start) / (len(ordered) - 1) if len(ordered) > 1 else 0
         return [
-            (frame.x, round(start + index * step - frame.height / 2))
-            for index, frame in enumerate(ordered)
+            (item.x, round(start + index * step - item.height / 2))
+            for index, item in enumerate(ordered)
         ]
     raise ValueError(f"unknown distribution axis {axis!r}")

@@ -123,3 +123,5 @@ def test_fixtures_are_valid_and_load() -> None:
         comic = loads(fixture.read_bytes(), title=fixture.stem)
         assert comic.title
         assert comic.width > 0 and comic.height > 0
+
+

@@ -73,3 +73,5 @@ class ExportDialog(QDialog):
         fmt_key = self.format_input.currentData()
         current_only = self.range_input.currentIndex() == 1
         return fmt_key, current_only, self.scale_input.value()
+
+

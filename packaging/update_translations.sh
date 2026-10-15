@@ -58,3 +58,4 @@ cp -f translations/*.qm src/tbo/translations/
 echo "=== Done ==="
 echo "  To add a new language:"
 echo "    pylupdate6 src/tbo -ts translations/tbo_<locale>.ts"
+

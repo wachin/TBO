@@ -99,3 +99,5 @@ def test_window_export_action_is_enabled_with_document(qtbot, tmp_path: Path) ->
     assert not window.export_action.isEnabled()
     window.new_document("Exportable", 300, 150)
     assert window.export_action.isEnabled()
+
+

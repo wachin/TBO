@@ -26,3 +26,4 @@ def test_text_dialog_returns_font_size_and_color(qtbot) -> None:
     assert text == "A caption"
     assert font.endswith(" 18")
     assert color.name() == "#336699"
+

@@ -170,3 +170,5 @@ class AssetsDock(QDockWidget):
             else:
                 regular.append(category)
         return character, accessories, regular
+
+

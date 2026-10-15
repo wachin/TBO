@@ -93,3 +93,5 @@ class TextObjectDialog(QDialog):
         self.color_button.setStyleSheet(
             f"background-color: {self._color.name()}; color: {foreground};"
         )
+
+

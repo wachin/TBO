@@ -143,3 +143,5 @@ def _export_pdf_writer(comic: Comic, destination: Path) -> QPdfWriter:
         )
     )
     return writer
+
+

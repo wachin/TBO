@@ -31,6 +31,14 @@ TBO 2 currently supports:
 - entering a panel and moving, cloning, or deleting its text, images, and SVGs;
 - adding new text with a selected font and color;
 - importing raster images and SVG files into a panel;
+- drawing rectangles, ellipses, lines and freehand strokes with editable fill
+  and stroke colors inside a panel;
+- resizing objects and panels from eight handles (corners and edges), locking
+  the aspect ratio with Shift or resizing from the centre with Ctrl;
+- rotating objects with a rotation handle (Ctrl snaps to 15°) and flipping
+  them horizontally or vertically;
+- changing the stacking order of objects and aligning or distributing them;
+- changing panel colors and toggling panel borders;
 - undoing and redoing the editing operations implemented so far;
 - navigation, fit-to-window, and zoom controls;
 - detecting pending changes before creating, opening, or closing a document;
@@ -38,7 +46,6 @@ TBO 2 currently supports:
 
 Features still pending include:
 
-- resizing, rotating, and flipping objects;
 - editing text and color properties;
 - exporting to PNG, PDF, and SVG;
 - automatic recovery, translations, and distribution packages.
@@ -156,3 +163,5 @@ easier to review.
 
 TBO is distributed under the **GNU General Public License, version 3 or later**.
 See [COPYING](COPYING) for the complete license text.
+
+

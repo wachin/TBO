@@ -51,3 +51,5 @@ echo "=== Flatpak build (requires flatpak-builder) ==="
 echo "  cd packaging && flatpak-builder build org.tbo.TBO.json --force-clean"
 
 echo "=== All checks done ==="
+
+

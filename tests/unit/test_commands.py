@@ -145,3 +145,5 @@ def test_object_commands_preserve_identity_and_position() -> None:
     assert frame.objects[0] is original
     add.undo()
     assert len(frame.objects) == 1
+
+

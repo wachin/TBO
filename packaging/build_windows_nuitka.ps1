@@ -108,3 +108,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Output "Windows build complete: $portableZipPath"
+
+

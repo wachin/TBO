@@ -147,3 +147,5 @@ class AssetCatalog:
             if part == category_name:
                 return parts[index + 1] if index + 1 < len(parts) else category_name
         return category_name
+
+

@@ -47,3 +47,5 @@ def test_assets_dock_search_filters_library_items(qtbot) -> None:
     assert filtered == 0
     tab.search_input.setText("")
     assert sum(page.count() for page in tab._pages) == total
+
+

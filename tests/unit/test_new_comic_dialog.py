@@ -18,3 +18,5 @@ def test_new_comic_dialog_normalizes_empty_title(qtbot) -> None:
     dialog.height_input.setValue(900)
 
     assert dialog.values() == ("Untitled", 1200, 900)
+
+

@@ -281,3 +281,5 @@ def test_object_edit_mode_mutates_model_and_is_undoable(qtbot, tmp_path: Path) -
     assert window.canvas.leave_frame()
     assert window.canvas.editing_frame is None
     assert window.statusBar().currentMessage() == "Page 1 of 11"
+
+

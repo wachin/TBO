@@ -25,6 +25,18 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 
 ### Added
 
+- Drawing tools: rectangle, ellipse, line and freehand pencil, with editable
+  fill colour, stroke colour and stroke width.  Shapes are saved in the `.tbo`
+  document (`<shape>` elements) and included in PNG/PDF/SVG exports.
+- Inkscape-style object transformation: eight resize handles (corners and
+  edges), Shift to lock the aspect ratio, Ctrl to resize from the centre, and a
+  rotation handle with Ctrl snapping to 15°.  Resizing works correctly on
+  rotated and flipped objects.
+- Object stacking order commands (bring to front/forward, send backward/back)
+  and align/distribute tools for objects inside a panel.
+- Panel colour and border editing.
+- Style toolbar that edits the selected shape or sets the defaults for the next
+  drawing.
 - Python/PyQt6 reimplementation of TBO (`tbo_next/`).
 - Read and write the legacy `.tbo` v1 format with a safe XML parser, size
   limits, and contextual errors; atomic writes with fsync.
@@ -106,3 +118,5 @@ overwrites the only copy of a user document without confirmation or a safe copy.
 - Fixed: the writer now rejects XML-invalid control characters instead of
   producing an unreadable file.
 - Pytest suite (unit and integration tests).
+
+

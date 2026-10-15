@@ -12,7 +12,17 @@ from PyQt6.QtGui import (
 )
 from PyQt6.QtSvg import QSvgRenderer
 
-from tbo.document.model import Comic, Frame, GraphicObject, ImageObject, Page, SvgObject, TextObject
+from tbo.document.model import (
+    Comic,
+    Frame,
+    GraphicObject,
+    ImageObject,
+    Page,
+    ShapeObject,
+    SvgObject,
+    TextObject,
+)
+from tbo.rendering.shapes import paint_shape_object
 
 
 def _font_from_legacy_string(description: str) -> QFont:
@@ -72,6 +82,8 @@ class ComicRenderer:
             self._paint_svg(painter, obj)
         elif isinstance(obj, ImageObject):
             self._paint_image(painter, obj)
+        elif isinstance(obj, ShapeObject):
+            paint_shape_object(painter, obj, QRectF(0, 0, obj.width, obj.height))
 
         painter.restore()
 
@@ -112,3 +124,5 @@ class ComicRenderer:
         painter.setPen(QPen(QColor("#b00020"), 2, Qt.PenStyle.DashLine))
         painter.setBrush(QColor(255, 220, 220, 100))
         painter.drawRect(rect)
+
+

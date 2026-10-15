@@ -74,3 +74,5 @@ def apply_theme(application: QApplication, mode: str) -> None:
 
 def system_prefers_dark(application: QApplication) -> bool:
     return application.styleHints().colorScheme() == Qt.ColorScheme.Dark
+
+

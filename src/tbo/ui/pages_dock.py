@@ -80,3 +80,5 @@ class PagesDock(QDockWidget):
         index = item.data(Qt.ItemDataRole.UserRole)
         if index is not None:
             self.pageSelected.emit(index)
+
+

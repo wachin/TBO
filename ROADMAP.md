@@ -377,3 +377,5 @@ Reglas específicas para trabajo asistido por IA (por ejemplo, OpenCode):
 10. Publicar `2.0.0` estable cuando se resuelvan los bloqueos restantes (Fase 6).
 
 La reimplementación será exitosa cuando TBO 2 proteja los proyectos existentes, pueda instalarse de forma reproducible y permita añadir funciones mediante cambios pequeños y comprobables. La cantidad de código nuevo no será una medida de progreso por sí sola.
+
+

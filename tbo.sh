@@ -13,7 +13,7 @@ fi
 
 if ! "$TBO_PYTHON" -c 'import PyQt6' >/dev/null 2>&1; then
     printf 'TBO: PyQt6 is not installed for %s.\n' "$TBO_PYTHON" >&2
-    printf "Install it with: %s -m pip install -e '%s'\n" \
+    printf "Install it with: %s -m pip install -e '%s/tbo_next'\n" \
         "$TBO_PYTHON" "$TBO_ROOT" >&2
     exit 1
 fi
@@ -21,3 +21,5 @@ fi
 export PYTHONPATH="$TBO_ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 
 exec "$TBO_PYTHON" -m tbo "$@"
+
+

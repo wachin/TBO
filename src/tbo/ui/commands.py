@@ -5,7 +5,15 @@ from collections.abc import Callable
 from PyQt6.QtCore import QCoreApplication
 from PyQt6.QtGui import QUndoCommand
 
-from tbo.document.model import Color, Comic, Frame, GraphicObject, Page, TextObject
+from tbo.document.model import (
+    Color,
+    Comic,
+    Frame,
+    GraphicObject,
+    Page,
+    ShapeObject,
+    TextObject,
+)
 
 ChangeCallback = Callable[[], None]
 MoveCallback = Callable[[Frame], None]
@@ -425,3 +433,185 @@ class EditTextObjectCommand(QUndoCommand):
         self._object.color = color
         self._object.bold, self._object.italic, self._object.underline = style
         self._on_change(self._object)
+
+
+
+
+Geometry = tuple[int, int, int, int]
+
+
+class TransformObjectCommand(QUndoCommand):
+    """Move and resize an object in a single undoable step.
+
+    Needed for resize handles that keep a corner or edge anchored: the
+    object's position changes together with its size.
+    """
+
+    def __init__(
+        self,
+        graphic_object: GraphicObject,
+        old_geometry: Geometry,
+        new_geometry: Geometry,
+        on_change: ObjectMoveCallback,
+    ) -> None:
+        super().__init__(_tr("Transform object"))
+        self._object = graphic_object
+        self._old_geometry = old_geometry
+        self._new_geometry = new_geometry
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new_geometry)
+
+    def undo(self) -> None:
+        self._apply(self._old_geometry)
+
+    def _apply(self, geometry: Geometry) -> None:
+        self._object.x, self._object.y, self._object.width, self._object.height = geometry
+        self._on_change(self._object)
+
+
+class TransformFrameCommand(QUndoCommand):
+    """Move and resize a panel in a single undoable step."""
+
+    def __init__(
+        self,
+        frame: Frame,
+        old_geometry: Geometry,
+        new_geometry: Geometry,
+        on_change: MoveCallback,
+    ) -> None:
+        super().__init__(_tr("Transform panel"))
+        self._frame = frame
+        self._old_geometry = old_geometry
+        self._new_geometry = new_geometry
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new_geometry)
+
+    def undo(self) -> None:
+        self._apply(self._old_geometry)
+
+    def _apply(self, geometry: Geometry) -> None:
+        self._frame.x, self._frame.y, self._frame.width, self._frame.height = geometry
+        self._on_change(self._frame)
+
+
+class ReorderObjectCommand(QUndoCommand):
+    """Change the stacking order of an object inside its panel."""
+
+    def __init__(
+        self,
+        frame: Frame,
+        graphic_object: GraphicObject,
+        old_index: int,
+        new_index: int,
+        on_change: ChangeCallback,
+    ) -> None:
+        super().__init__(_tr("Reorder object"))
+        self._frame = frame
+        self._object = graphic_object
+        self._old_index = old_index
+        self._new_index = new_index
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._move(self._new_index)
+
+    def undo(self) -> None:
+        self._move(self._old_index)
+
+    def _move(self, destination: int) -> None:
+        current = _object_identity_index(self._frame.objects, self._object)
+        self._frame.objects.pop(current)
+        bounded = max(0, min(destination, len(self._frame.objects)))
+        self._frame.objects.insert(bounded, self._object)
+        self._on_change()
+
+
+class SetShapeStyleCommand(QUndoCommand):
+    """Change fill, stroke colour and stroke width of a shape object."""
+
+    def __init__(
+        self,
+        shape: ShapeObject,
+        old_style: tuple[Color | None, Color, int],
+        new_style: tuple[Color | None, Color, int],
+        on_change: ObjectMoveCallback,
+    ) -> None:
+        super().__init__(_tr("Change shape style"))
+        self._shape = shape
+        self._old_style = old_style
+        self._new_style = new_style
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new_style)
+
+    def undo(self) -> None:
+        self._apply(self._old_style)
+
+    def _apply(self, style: tuple[Color | None, Color, int]) -> None:
+        fill, stroke, stroke_width = style
+        self._shape.fill = fill
+        self._shape.stroke = stroke
+        self._shape.stroke_width = stroke_width
+        self._on_change(self._shape)
+
+
+class SetFrameStyleCommand(QUndoCommand):
+    """Change the background colour and border flag of a panel."""
+
+    def __init__(
+        self,
+        frame: Frame,
+        old_style: tuple[Color, bool],
+        new_style: tuple[Color, bool],
+        on_change: ChangeCallback,
+    ) -> None:
+        super().__init__(_tr("Change panel style"))
+        self._frame = frame
+        self._old_style = old_style
+        self._new_style = new_style
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new_style)
+
+    def undo(self) -> None:
+        self._apply(self._old_style)
+
+    def _apply(self, style: tuple[Color, bool]) -> None:
+        color, border = style
+        self._frame.color = color
+        self._frame.border = border
+        self._on_change()
+
+
+class AlignObjectsCommand(QUndoCommand):
+    """Align or distribute several objects inside their panel."""
+
+    def __init__(
+        self,
+        objects: list[GraphicObject],
+        old_positions: list[tuple[int, int]],
+        new_positions: list[tuple[int, int]],
+        on_change: ChangeCallback,
+    ) -> None:
+        super().__init__(_tr("Align objects"))
+        self._objects = objects
+        self._old_positions = old_positions
+        self._new_positions = new_positions
+        self._on_change = on_change
+
+    def redo(self) -> None:
+        self._apply(self._new_positions)
+
+    def undo(self) -> None:
+        self._apply(self._old_positions)
+
+    def _apply(self, positions: list[tuple[int, int]]) -> None:
+        for graphic_object, (x, y) in zip(self._objects, positions, strict=False):
+            graphic_object.x, graphic_object.y = x, y
+        self._on_change()

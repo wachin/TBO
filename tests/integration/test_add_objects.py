@@ -147,3 +147,5 @@ def test_edit_text_object_is_reflected_in_saved_file(qtbot, tmp_path: Path) -> N
     assert restored.text == "Saved"
     assert restored.font == "Sans 16"
     assert (restored.color.red, restored.color.green, restored.color.blue) == (0.0, 0.0, 1.0)
+
+

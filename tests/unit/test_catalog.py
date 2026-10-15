@@ -87,3 +87,5 @@ def test_resolve_asset_does_not_escape_root(tmp_path: Path) -> None:
 def test_resolve_asset_absolute_existing_path_is_honored() -> None:
     entry = AssetCatalog(DOODLE_ROOT).entries(bubbles=True)[0]
     assert resolve_asset(entry.path, roots=[DOODLE_ROOT]) == entry.path
+
+

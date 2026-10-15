@@ -121,3 +121,5 @@ chmod +x "$APPIMAGETOOL"
     "$output_dir/TBO-${version}-x86_64.AppImage"
 
 echo "Created $output_dir/TBO-${version}-x86_64.AppImage"
+
+

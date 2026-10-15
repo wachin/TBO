@@ -251,3 +251,5 @@ $manifestPath = Join-Path $outputDir "TBO-$version-$Flavour-windows.json"
 
 Write-Host "PyInstaller Windows build complete." -ForegroundColor Green
 $results | Format-Table kind, bytes, sha256 -AutoSize
+
+

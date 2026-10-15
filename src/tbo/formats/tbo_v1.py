@@ -15,6 +15,7 @@ from tbo.document.model import (
     GraphicObject,
     ImageObject,
     Page,
+    ShapeObject,
     SvgObject,
     TextObject,
 )
@@ -178,7 +179,38 @@ def _serialize_object(graphic_object: GraphicObject, context: str) -> ET.Element
                 "path": _validate_string(str(graphic_object.path), "path", context),
             },
         )
+    if isinstance(graphic_object, ShapeObject):
+        attributes = {
+            **common,
+            "shape": graphic_object.kind,
+            "sw": str(graphic_object.stroke_width),
+            "sr": _format_color(graphic_object.stroke.red, context),
+            "sg": _format_color(graphic_object.stroke.green, context),
+            "sb": _format_color(graphic_object.stroke.blue, context),
+        }
+        if graphic_object.fill is None:
+            attributes["fill"] = "none"
+        else:
+            attributes.update(
+                {
+                    "fr": _format_color(graphic_object.fill.red, context),
+                    "fg": _format_color(graphic_object.fill.green, context),
+                    "fb": _format_color(graphic_object.fill.blue, context),
+                }
+            )
+        if graphic_object.points:
+            attributes["points"] = _format_points(graphic_object.points, context)
+        return ET.Element("shape", attributes)
     raise TboFormatError(f"{context}: unsupported object type {type(graphic_object).__name__}")
+
+
+def _format_points(points: list[tuple[float, float]], context: str) -> str:
+    rendered = []
+    for x, y in points:
+        if not math.isfinite(x) or not math.isfinite(y) or not 0.0 <= x <= 1.0 or not 0.0 <= y <= 1.0:
+            raise TboFormatError(f"{context}: shape points must be between 0 and 1")
+        rendered.append(f"{x:.6f},{y:.6f}")
+    return " ".join(rendered)
 
 
 def _validate_document_size(comic: Comic) -> None:
@@ -312,8 +344,51 @@ def _parse_object(element: ET.Element, frame_context: str, object_index: int) ->
         asset_path = Path(_string(element, "path", context))
         object_type = SvgObject if element.tag == "svgimage" else ImageObject
         return object_type(**common, path=asset_path)
+    if element.tag == "shape":
+        kind = _string(element, "shape", context, default="rect")
+        fill: Color | None = None
+        if element.get("fill", "") != "none":
+            fill = Color(
+                _number(element, "fr", context, default=1.0),
+                _number(element, "fg", context, default=1.0),
+                _number(element, "fb", context, default=1.0),
+            )
+        stroke = Color(
+            _number(element, "sr", context, default=0.0),
+            _number(element, "sg", context, default=0.0),
+            _number(element, "sb", context, default=0.0),
+        )
+        stroke_width_raw = element.get("sw", "2")
+        try:
+            stroke_width = int(stroke_width_raw)
+        except ValueError as error:
+            raise TboFormatError(f"{context}: 'sw' must be an integer") from error
+        return ShapeObject(
+            **common,
+            kind=kind,
+            fill=fill,
+            stroke=stroke,
+            stroke_width=stroke_width,
+            points=_parse_points(element.get("points", ""), context),
+        )
 
     raise TboFormatError(f"{context}: unsupported element <{element.tag}>")
+
+
+def _parse_points(raw: str, context: str) -> list[tuple[float, float]]:
+    if not raw:
+        return []
+    points: list[tuple[float, float]] = []
+    for token in raw.split():
+        parts = token.split(",")
+        if len(parts) != 2:
+            raise TboFormatError(f"{context}: malformed shape point {token!r}")
+        try:
+            x, y = (float(part.replace(",", ".")) for part in parts)
+        except ValueError as error:
+            raise TboFormatError(f"{context}: malformed shape point {token!r}") from error
+        points.append((x, y))
+    return points
 
 
 def _raw(element: ET.Element, name: str, context: str) -> str:
@@ -381,3 +456,5 @@ def _color(element: ET.Element, context: str, *, default: float) -> Color:
         return Color(*values)
     except DocumentValidationError as error:
         raise TboFormatError(f"{context}: {error}") from error
+
+

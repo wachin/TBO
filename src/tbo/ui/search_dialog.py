@@ -77,3 +77,5 @@ class SearchDialog(QDialog):
             page_index, frame, graphic_object = self._results[row]
             self.goTo.emit(page_index, frame, graphic_object)
             self.accept()
+
+

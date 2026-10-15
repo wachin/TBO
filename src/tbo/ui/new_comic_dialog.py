@@ -47,3 +47,5 @@ class NewComicDialog(QDialog):
     def values(self) -> tuple[str, int, int]:
         title = self.title_input.text().strip() or self.tr("Untitled")
         return title, self.width_input.value(), self.height_input.value()
+
+

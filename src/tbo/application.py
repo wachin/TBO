@@ -81,3 +81,5 @@ def main(argv: list[str] | None = None) -> int:
             window.new_document(QCoreApplication.translate("Application", "Untitled"), 800, 450)
     window.show()
     return application.exec()
+
+

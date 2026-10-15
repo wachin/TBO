@@ -63,3 +63,5 @@ def test_locale_default_and_persisted(monkeypatch, tmp_path: Path) -> None:
     fresh = _fresh_preferences(tmp_path)
     fresh._settings.setValue("locale", "es")
     assert fresh.locale() == "es"
+
+

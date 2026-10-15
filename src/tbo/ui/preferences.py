@@ -86,3 +86,5 @@ class Preferences:
 
     def set_snap_to_grid(self, enabled: bool) -> None:
         self._settings.setValue("view/snapToGrid", bool(enabled))
+
+

@@ -27,6 +27,7 @@ from tbo.document.model import (
     Comic,
     ImageObject,
     Page,
+    ShapeObject,
     SvgObject,
     TextObject,
 )
@@ -68,7 +69,9 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.pages_dock)
         self._create_actions()
         self._create_toolbar()
+        self._create_tools_toolbar()
         self._create_text_toolbar()
+        self._create_shape_toolbar()
         self.canvas.undo_stack.cleanChanged.connect(self._on_clean_changed)
         self.canvas.undo_stack.indexChanged.connect(self._refresh_page_thumbnails)
         self.canvas.pageChanged.connect(self._update_page_actions)
@@ -266,6 +269,75 @@ class MainWindow(QMainWindow):
         self.edit_text_action.setShortcut("E")
         self.edit_text_action.triggered.connect(self.edit_text_dialog)
         edit_menu.addAction(self.edit_text_action)
+
+        object_menu = self.menuBar().addMenu(self.tr("&Object"))
+        self.bring_front_action = QAction(self.tr("Bring to Front"), self)
+        self.bring_front_action.setShortcut("Ctrl+Shift+]")
+        self.bring_front_action.triggered.connect(lambda: self._reorder_object("front"))
+        object_menu.addAction(self.bring_front_action)
+        self.bring_forward_action = QAction(self.tr("Bring Forward"), self)
+        self.bring_forward_action.setShortcut("Ctrl+]")
+        self.bring_forward_action.triggered.connect(lambda: self._reorder_object("up"))
+        object_menu.addAction(self.bring_forward_action)
+        self.send_backward_action = QAction(self.tr("Send Backward"), self)
+        self.send_backward_action.setShortcut("Ctrl+[")
+        self.send_backward_action.triggered.connect(lambda: self._reorder_object("down"))
+        object_menu.addAction(self.send_backward_action)
+        self.send_back_action = QAction(self.tr("Send to Back"), self)
+        self.send_back_action.setShortcut("Ctrl+Shift+[")
+        self.send_back_action.triggered.connect(lambda: self._reorder_object("back"))
+        object_menu.addAction(self.send_back_action)
+
+        object_menu.addSeparator()
+        object_align_menu = object_menu.addMenu(self.tr("Align Objects"))
+        self.object_align_actions = []
+        for mode, label in (
+            ("left", self.tr("Left")),
+            ("hcenter", self.tr("Horizontal Center")),
+            ("right", self.tr("Right")),
+            ("top", self.tr("Top")),
+            ("vcenter", self.tr("Vertical Center")),
+            ("bottom", self.tr("Bottom")),
+        ):
+            action = QAction(label, self)
+            action.triggered.connect(
+                lambda checked=False, m=mode: self._align_objects(m)
+            )
+            object_align_menu.addAction(action)
+            self.object_align_actions.append(action)
+        object_distribute_menu = object_menu.addMenu(self.tr("Distribute Objects"))
+        self.object_distribute_actions = []
+        for axis, label in (
+            ("horizontal", self.tr("Horizontally")),
+            ("vertical", self.tr("Vertically")),
+        ):
+            action = QAction(label, self)
+            action.triggered.connect(
+                lambda checked=False, a=axis: self._distribute_objects(a)
+            )
+            object_distribute_menu.addAction(action)
+            self.object_distribute_actions.append(action)
+
+        object_menu.addSeparator()
+        self.shape_fill_action = QAction(self.tr("Fill Color…"), self)
+        self.shape_fill_action.triggered.connect(self._choose_shape_fill)
+        object_menu.addAction(self.shape_fill_action)
+        self.shape_stroke_action = QAction(self.tr("Stroke Color…"), self)
+        self.shape_stroke_action.triggered.connect(self._choose_shape_stroke)
+        object_menu.addAction(self.shape_stroke_action)
+        self.shape_no_fill_action = QAction(self.tr("No Fill"), self)
+        self.shape_no_fill_action.setCheckable(True)
+        self.shape_no_fill_action.toggled.connect(lambda _checked: self._apply_shape_style())
+        object_menu.addAction(self.shape_no_fill_action)
+
+        object_menu.addSeparator()
+        self.panel_color_action = QAction(self.tr("Panel Color…"), self)
+        self.panel_color_action.triggered.connect(self._choose_panel_color)
+        object_menu.addAction(self.panel_color_action)
+        self.panel_border_action = QAction(self.tr("Panel Border"), self)
+        self.panel_border_action.setCheckable(True)
+        self.panel_border_action.toggled.connect(lambda _checked: self._toggle_panel_border())
+        object_menu.addAction(self.panel_border_action)
 
         edit_menu.addSeparator()
         self.find_text_action = QAction(self.tr("&Find Text…"), self)
@@ -540,6 +612,196 @@ class MainWindow(QMainWindow):
             f"background-color: {color.name()}; "
             f"color: {'white' if color.lightness() < 128 else 'black'};"
         )
+
+    def _create_tools_toolbar(self) -> None:
+        tools_toolbar = self.addToolBar(self.tr("Tools"))
+        tools_toolbar.setObjectName("tools_toolbar")
+        tools_toolbar.setMovable(False)
+        tools_toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        self.tool_group = QActionGroup(self)
+        self.tool_group.setExclusive(True)
+        self.tool_actions: dict[str, QAction] = {}
+        for tool, label, shortcut, tip in (
+            ("select", self.tr("Select"), "S", self.tr("Select and transform objects (S)")),
+            ("rect", self.tr("Rect"), "R", self.tr("Draw a rectangle (R)")),
+            ("ellipse", self.tr("Ellipse"), "O", self.tr("Draw an ellipse (O)")),
+            ("line", self.tr("Line"), "L", self.tr("Draw a line (L)")),
+            ("freehand", self.tr("Pencil"), "P", self.tr("Freehand drawing (P)")),
+        ):
+            action = QAction(label, self)
+            action.setCheckable(True)
+            action.setShortcut(shortcut)
+            action.setToolTip(tip)
+            action.setStatusTip(tip)
+            action.triggered.connect(
+                lambda checked=False, t=tool: self.canvas.set_tool(t) if checked else None
+            )
+            self.tool_group.addAction(action)
+            tools_toolbar.addAction(action)
+            self.tool_actions[tool] = action
+        self.tool_actions["select"].setChecked(True)
+        self.canvas.toolChanged.connect(self._sync_tool_actions)
+
+    def _sync_tool_actions(self, tool: str) -> None:
+        action = self.tool_actions.get(tool)
+        if action is not None:
+            action.blockSignals(True)
+            action.setChecked(True)
+            action.blockSignals(False)
+
+    def _create_shape_toolbar(self) -> None:
+        shape_toolbar = self.addToolBar(self.tr("Style"))
+        shape_toolbar.setObjectName("style_toolbar")
+        shape_toolbar.setMovable(False)
+        shape_toolbar.setEnabled(False)
+        self.shape_toolbar = shape_toolbar
+
+        self.shape_fill_button = QToolButton()
+        self.shape_fill_button.setText(self.tr("Fill"))
+        self.shape_fill_button.setToolTip(self.tr("Fill color"))
+        self.shape_fill_button.clicked.connect(self._choose_shape_fill)
+        shape_toolbar.addWidget(self.shape_fill_button)
+
+        self.shape_no_fill_button = QToolButton()
+        self.shape_no_fill_button.setText(self.tr("∅"))
+        self.shape_no_fill_button.setCheckable(True)
+        self.shape_no_fill_button.setToolTip(self.tr("No fill"))
+        self.shape_no_fill_button.toggled.connect(lambda _checked: self._apply_shape_style())
+        shape_toolbar.addWidget(self.shape_no_fill_button)
+
+        self.shape_stroke_button = QToolButton()
+        self.shape_stroke_button.setText(self.tr("Stroke"))
+        self.shape_stroke_button.setToolTip(self.tr("Stroke color"))
+        self.shape_stroke_button.clicked.connect(self._choose_shape_stroke)
+        shape_toolbar.addWidget(self.shape_stroke_button)
+
+        self.shape_stroke_width_spin = QSpinBox()
+        self.shape_stroke_width_spin.setRange(1, 100)
+        self.shape_stroke_width_spin.setValue(2)
+        self.shape_stroke_width_spin.setFixedWidth(56)
+        self.shape_stroke_width_spin.setSuffix(" px")
+        self.shape_stroke_width_spin.setToolTip(self.tr("Stroke width"))
+        self.shape_stroke_width_spin.valueChanged.connect(lambda _value: self._apply_shape_style())
+        shape_toolbar.addWidget(self.shape_stroke_width_spin)
+
+        self._shape_fill = QColor("white")
+        self._shape_stroke = QColor("black")
+        self._shape_no_fill = False
+        self._sync_shape_toolbar()
+
+    def _reorder_object(self, mode: str) -> None:
+        if self.canvas.reorder_selected_object(mode):
+            self._update_edit_actions()
+
+    def _align_objects(self, mode: str) -> None:
+        if self.canvas.align_selected_objects(mode):
+            self._update_edit_actions()
+
+    def _distribute_objects(self, axis: str) -> None:
+        if self.canvas.distribute_selected_objects(axis):
+            self._update_edit_actions()
+
+    def _choose_shape_fill(self) -> None:
+        color = QColorDialog.getColor(self._shape_fill, self, self.tr("Choose Fill Color"))
+        if color.isValid():
+            self._shape_fill = color
+            self._shape_no_fill = False
+            self.shape_no_fill_button.blockSignals(True)
+            self.shape_no_fill_button.setChecked(False)
+            self.shape_no_fill_button.blockSignals(False)
+            self.shape_no_fill_action.blockSignals(True)
+            self.shape_no_fill_action.setChecked(False)
+            self.shape_no_fill_action.blockSignals(False)
+            self._apply_shape_style()
+
+    def _choose_shape_stroke(self) -> None:
+        color = QColorDialog.getColor(self._shape_stroke, self, self.tr("Choose Stroke Color"))
+        if color.isValid():
+            self._shape_stroke = color
+            self._apply_shape_style()
+
+    def _apply_shape_style(self) -> None:
+        self._shape_no_fill = self.shape_no_fill_button.isChecked()
+        fill = (
+            None
+            if self._shape_no_fill
+            else Color(self._shape_fill.redF(), self._shape_fill.greenF(), self._shape_fill.blueF())
+        )
+        stroke = Color(
+            self._shape_stroke.redF(), self._shape_stroke.greenF(), self._shape_stroke.blueF()
+        )
+        width = self.shape_stroke_width_spin.value()
+        selected = self.canvas.selected_object()
+        if isinstance(selected, ShapeObject):
+            self.canvas.set_shape_style(fill, stroke, width)
+        else:
+            self.canvas.default_shape_style = (fill, stroke, width)
+        self._update_edit_actions()
+
+    def _sync_shape_toolbar(self) -> None:
+        selected = self.canvas.selected_object()
+        editing = self.canvas.editing_frame is not None
+        self.shape_toolbar.setEnabled(editing)
+        if isinstance(selected, ShapeObject):
+            fill = selected.fill
+            if fill is not None:
+                self._shape_fill = QColor.fromRgbF(fill.red, fill.green, fill.blue)
+            self._shape_stroke = QColor.fromRgbF(
+                selected.stroke.red, selected.stroke.green, selected.stroke.blue
+            )
+            self._shape_no_fill = fill is None
+            self.shape_no_fill_button.blockSignals(True)
+            self.shape_no_fill_button.setChecked(fill is None)
+            self.shape_no_fill_button.blockSignals(False)
+            self.shape_no_fill_action.blockSignals(True)
+            self.shape_no_fill_action.setChecked(fill is None)
+            self.shape_no_fill_action.blockSignals(False)
+            self.shape_stroke_width_spin.blockSignals(True)
+            self.shape_stroke_width_spin.setValue(selected.stroke_width)
+            self.shape_stroke_width_spin.blockSignals(False)
+        else:
+            _fill, _stroke, width = self.canvas.default_shape_style
+            self.shape_stroke_width_spin.blockSignals(True)
+            self.shape_stroke_width_spin.setValue(width)
+            self.shape_stroke_width_spin.blockSignals(False)
+        self._update_shape_swatches()
+
+    def _update_shape_swatches(self) -> None:
+        fill_style = (
+            "background-color: transparent;"
+            if self._shape_no_fill
+            else f"background-color: {self._shape_fill.name()};"
+        )
+        self.shape_fill_button.setStyleSheet(fill_style)
+        self.shape_stroke_button.setStyleSheet(
+            f"background-color: {self._shape_stroke.name()}; "
+            f"color: {'white' if self._shape_stroke.lightness() < 128 else 'black'};"
+        )
+
+    def _choose_panel_color(self) -> None:
+        frame = self.canvas.selected_frame()
+        if frame is None:
+            return
+        current = QColor.fromRgbF(frame.color.red, frame.color.green, frame.color.blue)
+        color = QColorDialog.getColor(current, self, self.tr("Choose Panel Color"))
+        if color.isValid():
+            self.canvas.set_frame_style(Color(color.redF(), color.greenF(), color.blueF()))
+            self._update_edit_actions()
+
+    def _toggle_panel_border(self) -> None:
+        frame = self.canvas.selected_frame()
+        if frame is None:
+            return
+        self.canvas.set_frame_style(frame.color, not frame.border)
+        self._update_edit_actions()
+
+    def _sync_panel_controls(self) -> None:
+        frame = self.canvas.selected_frame() if self.canvas.editing_frame is None else None
+        self.panel_color_action.setEnabled(frame is not None)
+        self.panel_border_action.setEnabled(frame is not None)
+        self.panel_border_action.blockSignals(True)
+        self.panel_border_action.setChecked(bool(frame is not None and frame.border))
+        self.panel_border_action.blockSignals(False)
 
     def _directory_hint(self) -> Path:
         return self.preferences.last_directory() or Path.home()
@@ -943,6 +1205,9 @@ class MainWindow(QMainWindow):
             self.canvas.nudge_selected_frame(dx, dy)
 
     def leave_frame(self) -> None:
+        if self.canvas.cancel_active_tool():
+            self._update_edit_actions()
+            return
         self.canvas.leave_frame()
 
     def add_text_dialog(self) -> None:
@@ -1157,6 +1422,28 @@ class MainWindow(QMainWindow):
         self.copy_action.setEnabled(has_selection)
         clipboard_matches = editing == self._clipboard_is_objects if self._clipboard else False
         self.paste_action.setEnabled(bool(self._clipboard) and clipboard_matches)
+        for action in (
+            self.bring_front_action,
+            self.bring_forward_action,
+            self.send_backward_action,
+            self.send_back_action,
+        ):
+            action.setEnabled(object_selected)
+        is_shape = object_selected and isinstance(selected_object, ShapeObject)
+        self.shape_fill_action.setEnabled(is_shape)
+        self.shape_stroke_action.setEnabled(is_shape)
+        self.shape_no_fill_action.setEnabled(is_shape)
+        object_count = len(self.canvas.selected_objects()) if editing else 0
+        for action in self.object_align_actions:
+            action.setEnabled(object_count >= 2)
+        for action in self.object_distribute_actions:
+            action.setEnabled(object_count >= 3)
+        self._sync_panel_controls()
+        self._sync_shape_toolbar()
+        if not editing and self.canvas.tool != "select":
+            self.canvas.set_tool("select")
+        for tool, action in self.tool_actions.items():
+            action.setEnabled(editing or tool == "select")
         self._sync_text_toolbar()
 
     def _update_zoom_label(self, percent: int) -> None:
@@ -1196,3 +1483,5 @@ class MainWindow(QMainWindow):
                 else self.tr("Document has no pages")
             )
         self.statusBar().showMessage(message)
+
+

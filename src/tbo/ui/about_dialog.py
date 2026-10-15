@@ -116,3 +116,5 @@ class AboutDialog(QDialog):
         layout.setSpacing(24)
         layout.addWidget(logo, 0, Qt.AlignmentFlag.AlignTop)
         layout.addWidget(scroll, 1)
+
+

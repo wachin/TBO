@@ -90,3 +90,5 @@ class PresentationDialog(QDialog):
             self._previous_page()
         else:
             super().keyPressEvent(event)
+
+

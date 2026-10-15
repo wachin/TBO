@@ -12,3 +12,5 @@ Keywords=comic;comics;editor;drawing;graphic;novel;
 StartupNotify=true
 MimeType=application/x-tbo;
 X-GNOME-UsesNotifications=false
+
+

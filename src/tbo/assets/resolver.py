@@ -19,3 +19,5 @@ def resolve_asset(asset_path: Path, *, roots: list[Path]) -> Path | None:
         if root.resolve() in candidate.parents and candidate.is_file():
             return candidate
     return None
+
+

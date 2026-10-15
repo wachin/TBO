@@ -54,3 +54,5 @@ def find_icon() -> Path | None:
         if candidate.is_file():
             return candidate
     return None
+
+

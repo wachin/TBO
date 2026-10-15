@@ -37,3 +37,5 @@ def test_find_asset_root_returns_none_when_missing(monkeypatch, tmp_path: Path) 
     fake = [empty / "a", empty / "b", empty / "c", empty / "d"]
     assert all(not candidate.is_dir() for candidate in fake)
     assert real_candidates  # repo checkout always provides one
+
+

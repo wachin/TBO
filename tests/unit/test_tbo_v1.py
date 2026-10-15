@@ -110,3 +110,5 @@ def test_save_cleans_temporary_file_when_replace_fails(tmp_path: Path, monkeypat
 
     assert target.read_text(encoding="utf-8") == "original"
     assert not list(tmp_path.glob(".comic.tbo.*.tmp"))
+
+
