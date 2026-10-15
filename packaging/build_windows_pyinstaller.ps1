@@ -192,7 +192,11 @@ function Build-TboPyInstaller {
         # Zipped by packaging/make_portable_zip.py. See the packaging comment in
         # build_windows_nuitka.ps1: neither Compress-Archive nor any .NET zip API
         # can be trusted to write conformant separators from PowerShell 5.1.
-        python "$workspaceRoot\packaging\make_portable_zip.py" $appDir $zipPath
+        #
+        # COPYING is copied into $appDir *before* this call, so it ends up inside
+        # the top-level folder rather than loose beside it, and --require proves
+        # that after the fact.
+        python "$workspaceRoot\packaging\make_portable_zip.py" $appDir $zipPath --prefix "TBO-$version-Windows-x64-$Flavour-onedir-portable" --require "$name.exe" --require COPYING
         if ($LASTEXITCODE -ne 0) { throw "make_portable_zip.py failed with exit code $LASTEXITCODE" }
         # PyInstaller names the executable after --name, so the onedir payload
         # is <name>\<name>.exe, not <name>\tbo.exe.
@@ -205,12 +209,13 @@ function Build-TboPyInstaller {
         $zipPath = Join-Path $outputDir "TBO-$version-Windows-x64-$Flavour-onefile.zip"
         if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
         # The helper archives a directory, so the single executable is staged
-        # first; the archive then holds one entry named after the executable.
+        # first. --prefix keeps it inside a named folder instead of dumping a
+        # lone .exe at the root of the archive, which is what a user sees first.
         $oneFileStage = Join-Path $workDir "zip-stage-$Flavour"
         Remove-Item $oneFileStage -Recurse -Force -ErrorAction SilentlyContinue
         New-Item -ItemType Directory -Force -Path $oneFileStage | Out-Null
         Copy-Item $exePath $oneFileStage -Force
-        python "$workspaceRoot\packaging\make_portable_zip.py" $oneFileStage $zipPath
+        python "$workspaceRoot\packaging\make_portable_zip.py" $oneFileStage $zipPath --prefix "TBO-$version-Windows-x64-$Flavour-onefile" --require "$name.exe"
         if ($LASTEXITCODE -ne 0) { throw "make_portable_zip.py failed with exit code $LASTEXITCODE" }
     }
 

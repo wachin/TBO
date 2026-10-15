@@ -94,15 +94,30 @@ if (Test-Path $portableZipPath) {
 # The same script does the verification, deliberately: reading
 # ZipArchiveEntry.FullName is subject to the very switch described above, so a
 # PowerShell-side check could report a conformant archive as broken.
+
+# ----------------------------------------------------------------- staging ---
+# The archive must unpack to ONE folder with everything inside it, licence
+# included, and that folder is named after the ZIP so the two agree. An archive
+# that drops a loose COPYING beside the folder reads as a half-built download,
+# and "TBO" alone tells the user nothing about which version they have.
+#
+# Copy the *contents* of the Nuitka output, not the directory itself:
+# `Copy-Item <dir> <existing-dir> -Recurse` creates <existing-dir>\TBO\, which
+# is exactly how this shipped with a nested TBO folder and a stray COPYING at
+# the archive root. The "\*" is what makes it a contents copy.
 $stagingDir = Join-Path $outputDir "TBO-$version-Windows-x64-portable"
 Remove-Item $stagingDir -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $stagingDir | Out-Null
 
-Copy-Item $appDistDir $stagingDir -Recurse -Force
+Copy-Item "$appDistDir\*" $stagingDir -Recurse -Force
 Copy-Item "$workspaceRoot\COPYING" $stagingDir -Force
 
+# --prefix names the single top-level folder; --require is a post-condition on
+# the finished archive. If the staging step above ever nests the tree again, the
+# helper finds no "<prefix>/TBO.exe", refuses to ship, and deletes the archive,
+# instead of publishing something that only fails when a user extracts it.
 $stagingRoot = (Get-Item $stagingDir).FullName
-python "$workspaceRoot\packaging\make_portable_zip.py" $stagingRoot $portableZipPath
+python "$workspaceRoot\packaging\make_portable_zip.py" $stagingRoot $portableZipPath --prefix "TBO-$version-Windows-x64-portable" --require TBO.exe --require COPYING
 if ($LASTEXITCODE -ne 0) {
     Write-Error "make_portable_zip.py failed with exit code $LASTEXITCODE; no archive was published."
 }
